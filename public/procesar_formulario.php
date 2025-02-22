@@ -42,7 +42,7 @@ $stmt->store_result();
 
 if ($stmt->num_rows > 0) {
     // Si el email ya existe, redirigir al formulario con un mensaje de error
-    header("Location: /public/formulario.html?error=" . urlencode("El correo electrónico ya está registrado."));
+    header("Location: /formulario.html?error=" . urlencode("El correo electrónico ya está registrado."));
     exit();
 }
 
@@ -80,16 +80,16 @@ if ($stmt->execute()) {
         $mail->send();
         
         // Redirigir al formulario con mensaje de éxito
-        header("Location: /public/formulario.html?success=" . urlencode("Registro enviado correctamente. Un administrador revisará tu solicitud."));
+        header("Location: /formulario.html?success=" . urlencode("Registro enviado correctamente. Un administrador revisará tu solicitud."));
         exit();
     } catch (Exception $e) {
         // Redirigir al formulario con mensaje de error si falla el envío de correo
-        header("Location: /public/formulario.html?error=" . urlencode("Error al enviar el mensaje. Mailer Error: {$mail->ErrorInfo}"));
+        header("Location: /formulario.html?error=" . urlencode("Error al enviar el mensaje. Mailer Error: {$mail->ErrorInfo}"));
         exit();
     }
 } else {
     // Redirigir al formulario con mensaje de error si falla la inserción en la base de datos
-    header("Location: /public/formulario.html?error=" . urlencode("Error al registrar los datos: " . $conn->error));
+    header("Location: /formulario.html?error=" . urlencode("Error al registrar los datos: " . $conn->error));
     exit();
 }
 
