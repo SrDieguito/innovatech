@@ -3,7 +3,7 @@ const htmlContent = `
         <header class="sc-400fb3e-0 bWWaGg">
             <div class="sc-c592f796-0 chTJIG">
                 <div class="TabGroup__Container-sc-1k1eo94-0 eIWsfq sc-c592f796-1 ktHNXA">
-                    <img src="../imagenes/UTM-logo.png" alt="UTM-logo" width="200">
+                    <img src="/imagenes/UTM-logo.png" alt="UTM-logo" width="200">
                     <div class="TabGroup__Wrapper-sc-1k1eo94-1 bDzWUZ">
                         <a href="index.php"
                             class="TabLink__TabAnchor-sc-e9hfzw-0 fRDGyE sc-ed9d1b1-0 gJLgIT">Inicio</a>

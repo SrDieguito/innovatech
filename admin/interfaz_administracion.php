@@ -4,7 +4,7 @@ session_start(); // Inicia la sesión
 // Verifica si el usuario está autenticado y tiene el rol de admin
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 'admin') {
     // Redirige a la página de inicio de sesión si no está autenticado o no es admin
-    header("Location: ../public/auth/login.php?error=" . urlencode("Acceso no autorizado."));
+    header("Location: /public/auth/login.php?error=" . urlencode("Acceso no autorizado."));
     exit();
 }
 
@@ -39,7 +39,7 @@ $result_rechazados = $conn->query($sql_rechazados);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - UTM 2024</title>
-    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="/css/admin.css">
     <script>
         function toggleVisibility(id) {
             var element = document.getElementById(id);

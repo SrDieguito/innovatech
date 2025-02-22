@@ -1,24 +1,24 @@
 //Videojuegos
 const htmlContent1 = `
         <h3 style="font-size: 26px; font-weight: bold;">Videojuegos</h3><img width="50" height="50"
-            src="../imagenes/videogames.png" alt="icon-Videojuegos">
+            src="/imagenes/videogames.png" alt="icon-Videojuegos">
 `
 
 //ideacion
 const htmlContent2 = `
-    <h3 style="font-size: 26px; font-weight: bold;">Ideación</h3><img width="50" height="50" src="../imagenes/ideatech.png"
+    <h3 style="font-size: 26px; font-weight: bold;">Ideación</h3><img width="50" height="50" src="/imagenes/ideatech.png"
         alt="icon-Ideación">
 `
 
 //Prototipo 
 const htmlContent3 = `
         <h3 style="font-size: 26px; font-weight: bold;">Prototipo</h3><img width="50" height="50"
-        src="../imagenes/prototech.png" alt="icon-Prototipo">
+        src="/imagenes/prototech.png" alt="icon-Prototipo">
 `
 
 const htmlContent4 = `
        <h3 style="font-size: 26px; font-weight: bold;">Conferencias y Negocios</h3><img width="50" height="50"
-        src="../imagenes/conferencia.png" alt="icon-Conferencias y Negocios">
+        src="/imagenes/conferencia.png" alt="icon-Conferencias y Negocios">
 `
 
 const htmlAlmuerzo = `

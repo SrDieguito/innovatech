@@ -22,7 +22,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('../imagenes/fondo.jpeg'); /* Imagen de fondo */
+    background-image: url('/imagenes/fondo.jpeg'); /* Imagen de fondo */
     background-size: cover; /* Asegura que la imagen cubra todo */
     background-position: center; /* Centra la imagen */
     background-repeat: no-repeat; /* Evita que la imagen se repita */

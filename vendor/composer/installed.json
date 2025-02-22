@@ -82,7 +82,7 @@
                     "type": "github"
                 }
             ],
-            "install-path": "../phpmailer/phpmailer"
+            "install-path": "/phpmailer/phpmailer"
         }
     ],
     "dev": true,

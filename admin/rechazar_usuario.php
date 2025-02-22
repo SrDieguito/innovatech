@@ -4,7 +4,7 @@ session_start(); // Inicia la sesión
 // Verifica si el usuario está autenticado y tiene el rol de admin
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 'admin') {
     // Redirige a la página de inicio de sesión si no está autenticado o no es admin
-    header("Location:../public/auth/login.php?error=" . urlencode("Acceso no autorizado."));
+    header("Location:/public/auth/login.php?error=" . urlencode("Acceso no autorizado."));
     exit();
 }
 

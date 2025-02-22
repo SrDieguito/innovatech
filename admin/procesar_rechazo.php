@@ -4,14 +4,14 @@ session_start(); // Inicia la sesión
 // Verifica si el usuario está autenticado y tiene el rol de admin
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 'admin') {
     // Redirige a la página de inicio de sesión si no está autenticado o no es admin
-    header("Location: ../public/auth/login.php?error=" . urlencode("Acceso no autorizado."));
+    header("Location: /public/auth/login.php?error=" . urlencode("Acceso no autorizado."));
     exit();
 }
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require '../vendor/autoload.php'; // Asegúrate de que esta ruta sea correcta
+require '/vendor/autoload.php'; // Asegúrate de que esta ruta sea correcta
 date_default_timezone_set('America/Guayaquil');
 
 $servername = "localhost";
@@ -79,7 +79,7 @@ try {
 }
 
 // Redirige de vuelta al panel de administración con un mensaje de éxito
-header("Location:../admin/interfaz_administracion.php?mensaje=" . urlencode("Usuario rechazado correctamente."));
+header("Location:/admin/interfaz_administracion.php?mensaje=" . urlencode("Usuario rechazado correctamente."));
 exit();
 
 ?>

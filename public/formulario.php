@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UTM 2024 - Registro</title>
-    <link rel="stylesheet" href="../css/formulario.css"> <!-- Asegúrate de que la ruta a tu archivo CSS sea correcta -->
+    <link rel="stylesheet" href="/css/formulario.css"> <!-- Asegúrate de que la ruta a tu archivo CSS sea correcta -->
 
     <!-- Enlace al archivo JavaScript -->
     <script src="script.js" defer></script>
@@ -12,7 +12,7 @@
 <body>
     <header>
         <div class="banner-container">
-            <img src="../imagenes/logo.png" alt="UTM 2024 Banner" class="banner-image">
+            <img src="/imagenes/logo.png" alt="UTM 2024 Banner" class="banner-image">
         </div>
     </header>
     <div class="container">
@@ -24,7 +24,7 @@
     
 
             <!-- Aquí empieza el formulario -->
-            <form action="../public/procesar_formulario.php" method="post">
+            <form action="/public/procesar_formulario.php" method="post">
                 <div class="question-box">
                     <label for="nombre">Nombre y apellidos *</label>
                     <input type="text" id="nombre" name="nombre" required>
@@ -142,7 +142,7 @@
             </form>
 
             <!-- Botón de regresar -->
-            <a href="../public/index.php" class="btn-regresar">Regresar a Inicio</a>
+            <a href="/public/index.php" class="btn-regresar">Regresar a Inicio</a>
         </div>
     </div>
 

@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
     if (isset($_FILES['profile_image'])) {
-        $target_dir = "../imagenes/";
+        $target_dir = "/imagenes/";
         $target_file = $target_dir . basename($_FILES["profile_image"]["name"]);
         $uploadOk = 1;
         $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
@@ -66,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
     if (isset($_FILES['banner_image'])) {
-        $target_dir = "../imagenes/";
+        $target_dir = "/imagenes/";
         $target_file = $target_dir . basename($_FILES["banner_image"]["name"]);
         $uploadOk = 1;
         $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
@@ -119,7 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil - UTM 2024</title>
-    <link rel="stylesheet" href="../css/perfil.css">
+    <link rel="stylesheet" href="/css/perfil.css">
 </head>
 <body>
     <header class="profile-header">

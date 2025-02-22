@@ -44,13 +44,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             // Redirigir con mensaje de error
             $error = urlencode("Contraseña incorrecta.");
-            header("Location: ../auth/login.php?error=$error");
+            header("Location: /auth/login.php?error=$error");
             exit();
         }
     } else {
         // Redirigir con mensaje de error
         $error = urlencode("No se encontró el usuario o la cuenta no está aprobada.");
-        header("Location: ../auth/login.php?error=$error");
+        header("Location: /auth/login.php?error=$error");
         exit();
     }
 
