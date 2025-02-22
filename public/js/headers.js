@@ -61,7 +61,7 @@ const htmlContent = `
 `;
 
 function iniciarSesion() {
-    window.location.href = '/auth/login.php';
+    window.location.href = '/auth/login.html';
 }
 
 var contenteaders = (id) => {
