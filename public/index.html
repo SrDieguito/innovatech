@@ -11,9 +11,9 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet">
 
     <!-- Estilos personalizados -->
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/style2.css">
-    <link rel="stylesheet" href="../assets/css/animacion.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style2.css">
+    <link rel="stylesheet" href="/assets/css/animacion.css">
 
 </head>
 
@@ -22,7 +22,7 @@
     <div class="sc-11eee2bc-0 jAwpjL" style="margin-top: 120px;">
         <div class="sc-11eee2bc-2 cHPxBG">
             <div
-                style="width: 820px; height: 250px; background-image: url(../imagenes/cintillo_web_innovatech.jpg); background-size: cover; display: flex; align-items: center;">
+                style="width: 820px; height: 250px; background-image: url('/imagenes/cintillo_web_innovatech.jpg'); background-size: cover; display: flex; align-items: center;">
                 <button class="Button__StyledButton-sc-1gfts8g-0 gMZAES btn_loing"
                     style="background-color: white; margin-top: 140px; margin-left: 105px;" id="inscripcion">
                     Inscripciones gratuitas
@@ -45,10 +45,10 @@
                 COORDINADORES DEL EVENTO
             </h2>
             <div class="sc-f7c6fa33-0 EVdKX coordinadores">
-                <img src="../imagenes/Logo-Utm3.png" width="380" height="150" />
-                <img src="../imagenes/LOGO UTEG PNG2.png" width="380" height="150" />
+                <img src="/imagenes/Logo-Utm3.png" width="380" height="150" />
+                <img src="/imagenes/LOGO UTEG PNG2.png" width="380" height="150" />
                 <p> Gap Portoviejo Logo</p>
-                <img src="../imagenes/LOGO MINTEL .png" width="380" height="150" />
+                <img src="/imagenes/LOGO MINTEL .png" width="380" height="150" />
             </div>
         </div>
 
@@ -71,17 +71,17 @@
             <h2 class="Heading__StyledHeading-sc-12q62of-0 kkNHpG sc-d34334de-2 jwJGzL mb-12 text-wrap"
                 style="text-align: center;">SPONSORS</h2>
             <div class="sc-f7c6fa33-0 EVdKX">
-                <div class="sc-f7c6fa33-1 iVwNbe"><img src="../imagenes/malaga.jpg" alt="UTM-LOGO" width="450" height="350"
+                <div class="sc-f7c6fa33-1 iVwNbe"><img src="/imagenes/malaga.jpg" alt="UTM-LOGO" width="450" height="350"
                     class="sc-a28d35a8-0 fnqpil">
             </div><br>
-                <div class="sc-f7c6fa33-1 iVwNbe"><img src="../imagenes/cordoba.jpg" alt="UTM-LOGO" width="350"
+                <div class="sc-f7c6fa33-1 iVwNbe"><img src="/imagenes/cordoba.jpg" alt="UTM-LOGO" width="350"
                         class="sc-a28d35a8-0 fnqpil">
                 </div><br>
 
-                <div class="sc-f7c6fa33-1 iVwNbe"><img src="../imagenes/granada.jpg" alt="UTM-LOGO" width="350"
+                <div class="sc-f7c6fa33-1 iVwNbe"><img src="/imagenes/granada.jpg" alt="UTM-LOGO" width="350"
                         class="sc-a28d35a8-0 fnqpil">
                 </div><br>
-                <div class="sc-f7c6fa33-1 iVwNbe"><img src="../imagenes/ucam.jpg" alt="UTM-LOGO" width="350"
+                <div class="sc-f7c6fa33-1 iVwNbe"><img src="/imagenes/ucam.jpg" alt="UTM-LOGO" width="350"
                         class="sc-a28d35a8-0 fnqpil">
                 </div><br>
             </div>
@@ -97,7 +97,7 @@
                 de innovación abierta alrededor de la seguridad, empleo, salud y agricultura, enmarcados en la Ley
                 Orgánica para la Transformación Digital y Audiovisual.
             </p>
-            <br /> <br />
+            <br /> <br /> 
 
             <div>
                 <h3>¿ Que busca INNOVATECH ?</h3>
@@ -119,11 +119,11 @@
             </div>
         </div>
     </div>
-    <script src="../js/sweetalert2.all.min.js"></script>
-    <script src="../js/headers.js"></script>
+    
+    <script src="/js/sweetalert2.all.min.js"></script>
+    <script src="/js/headers.js"></script>
     <script>
-        document.getElementById('inscripcion').onclick = (e) => window.location.href = `../public/formulario.php`
-
+        document.getElementById('inscripcion').onclick = (e) => window.location.href = `/public/formulario.php`;
 
         // script.js
         document.addEventListener('DOMContentLoaded', () => {
@@ -144,9 +144,6 @@
             window.addEventListener('scroll', checkVisibility);
             checkVisibility(); // Ejecuta la función al cargar la página
         });
-
-
-
     </script>
 </body>
 
