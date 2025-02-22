@@ -64,7 +64,7 @@ $conn->close();
 </head>
 <body>
     <header class="header">
-        <a href="index.html" class="nav-link">Inicio</a>
+        <a href="/index.html" class="nav-link">Inicio</a>
         <form action="explorar_perfiles.php" method="post" class="search-form">
             <input type="text" name="search_query" placeholder="Buscar perfiles..." value="<?php echo htmlspecialchars($search_query); ?>">
             <button type="submit" name="search" class="btn-search">Buscar</button>

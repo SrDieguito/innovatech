@@ -40,7 +40,7 @@ $user_id = intval($_GET['id']);
     <header>
         <h1>Rechazar Usuario</h1>
         <nav>
-            <a href="index.html" class="btn-back">Regresar al Panel</a>
+            <a href="/index.html" class="btn-back">Regresar al Panel</a>
         </nav>
     </header>
     <main>
