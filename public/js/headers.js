@@ -5,7 +5,7 @@ const htmlContent = `
                 <div class="TabGroup__Container-sc-1k1eo94-0 eIWsfq sc-c592f796-1 ktHNXA">
                     <img src="/imagenes/UTM-logo.png" alt="UTM-logo" width="200">
                     <div class="TabGroup__Wrapper-sc-1k1eo94-1 bDzWUZ">
-                        <a href="index.php"
+                        <a href="index.html"
                             class="TabLink__TabAnchor-sc-e9hfzw-0 fRDGyE sc-ed9d1b1-0 gJLgIT">Inicio</a>
                     </div>
                 </div>
@@ -47,7 +47,7 @@ const htmlContent = `
             <div class="TabGroup__Container-sc-1k1eo94-0 eIWsfq w-100">
                 <div class="TabGroup__Wrapper-sc-1k1eo94-1 YAXmj">
                     <a class="TabLink__TabAnchor-sc-e9hfzw-0 bATmFG text-uppercase px-24 px-tablet-40"
-                        id="btnNav_Inicio" href="./index.php" tabindex="0">Inicio</a>
+                        id="btnNav_Inicio" href="./index.html" tabindex="0">Inicio</a>
                     <a class="TabLink__TabAnchor-sc-e9hfzw-0 bATmFG text-uppercase px-24 px-tablet-40"
                         id="btnNav_Metodologia" href="./metodologias.html" tabindex="0">Metodología</a>
                     <a class="TabLink__TabAnchor-sc-e9hfzw-0 bATmFG text-uppercase px-24 px-tablet-40" id="btnNav_Retos"

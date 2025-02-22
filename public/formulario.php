@@ -142,7 +142,7 @@
             </form>
 
             <!-- Botón de regresar -->
-            <a href="/public/index.php" class="btn-regresar">Regresar a Inicio</a>
+            <a href="/public/index.html" class="btn-regresar">Regresar a Inicio</a>
         </div>
     </div>
 

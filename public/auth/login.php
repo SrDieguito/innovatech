@@ -12,7 +12,7 @@
         <h2>Iniciar Sesión</h2>
         
         <!-- Botón de regresar -->
-        <a href="/pasantia/public/index.php" class="btn-regresar">Regresar</a>
+        <a href="/pasantia/public/index.html" class="btn-regresar">Regresar</a>
         
         <!-- Mostrar mensaje de error si existe -->
         <?php if (isset($_GET['error'])): ?>
