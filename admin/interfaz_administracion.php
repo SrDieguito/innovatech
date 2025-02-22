@@ -62,7 +62,7 @@ $result_rechazados = $conn->query($sql_rechazados);
     <header>
         <h1>Panel de Administración</h1>
         <nav>
-            <a href="/pasantia/public/auth/logout.php" class="btn-logout">Cerrar sesión</a>
+            <a href="/auth/logout.php" class="btn-logout">Cerrar sesión</a>
         </nav>
     </header>
     <main>
