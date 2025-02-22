@@ -61,7 +61,7 @@ const htmlContent = `
 `;
 
 function iniciarSesion() {
-    window.location.href = '/pasantia/public/auth/login.php';
+    window.location.href = '/auth/login.php';
 }
 
 var contenteaders = (id) => {
