@@ -1,7 +1,0 @@
-{
-    "functions": {
-      "api/procesar_formulario.js": {
-        "runtime": "nodejs18.x"
-      }
-    }
-  }
