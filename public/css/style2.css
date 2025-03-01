@@ -1,0 +1,146 @@
+* {
+    user-select: none;
+    color: rgba(35,35,35,1);
+
+    /* Desactivar selección de texto */
+}
+
+/* Permitir selección de texto en los elementos input */
+input {
+    user-select: auto;
+    /* Permitir selección de texto */
+}
+
+
+
+.days {
+    margin-top: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 2px  solid rgba(35,35,35,1);
+    padding-inline: 7px;
+    padding-block: 20px;
+}
+
+.day_inv {}
+
+.days div:first-child {}
+
+
+.coordinadores {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+}
+
+.soporte {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+}
+
+.soporte p {
+    text-align: center;
+}
+
+#listInovatech {
+    list-style-type: circle;
+}
+
+.container.actividades1 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+}
+
+.item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+
+.item.actividad span.event {
+    font-weight: 600;
+    max-width: 700px;
+    font-size: 14px;
+    position: relative;
+    display: inline-block;
+
+}
+
+.item.actividad span.event:not(.not)::before {
+    content: '';
+    position: absolute;
+    top: 40%;
+    left: -20px;
+    transform: translateY(-5%);
+    width: 5px;
+    height: 5px;
+    border: 2px solid rgb(15, 15, 15);
+    /* Borde del círculo */
+    background-color: transparent;
+    border-radius: 50%;
+}
+
+.item.actividad .time {
+    font-size: 18px;
+    width: 200px;
+    text-align: left;
+    font-weight: 300;
+    font-size: 14px;
+
+}
+
+.eventsH2 {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.strong_day {
+    font-size: 30px;
+    color: rgb(193, 18, 31);
+
+
+}
+
+
+
+.retos:not(.retos.container) {
+    margin-top: 200px;
+    background-color: rgb(255, 255, 255);
+    gap: 40px;
+    margin-inline: 120px;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.retos.container {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 30px;
+    align-items: center;
+    border: 1px solid rgba(0, 0, 0, 0.4);
+    box-shadow: 0px 0px 5px rgba(0, 73, 119, 0.327);
+    border-radius: 20px;
+    padding-block: 30px;
+    padding-inline: 40px;
+
+
+}
+
+.items_r {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: flex-end;
+    min-width: 350px;
+    position: relative;
+}
