@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            const response = await fetch("/api/procesar_formulario.js", {
+            const response = await fetch("/api/procesar_formulario", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),
