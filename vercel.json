@@ -1,7 +1,13 @@
 {
-    "functions": {
-      "api/procesar_formulario.js": {
-        "runtime": "nodejs18.x"
-      }
+  "functions": {
+    "api/procesar_formulario.js": {
+      "runtime": "nodejs18.x"
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ]
+}
