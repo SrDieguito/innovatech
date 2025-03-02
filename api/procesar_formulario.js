@@ -30,7 +30,7 @@ export default async function handler(req, res) {
   try {
   // Conexión a MySQL usando la URL completa
   const conn = await mysql.createConnection({
-    uri: "mysql://root:nulxOVOMEauNtyOMWtjloNSuAFdgghYV@shinkansen.proxy.rlwy.net:31839/pasantia"
+    uri: "mysql://root:nulxOVOMEauNtyOMWtjloNSuAFdgghYV@mysql.railway.internal:3306/pasantia"
   });
 
     // Verificar si el email ya existe
