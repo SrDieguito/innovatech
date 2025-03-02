@@ -28,10 +28,14 @@ export default async function handler(req, res) {
   const fecha_actualizacion = new Date().toISOString().slice(0, 19).replace("T", " ");
 
   try {
-  // Conexión a MySQL usando la URL completa
-  const conn = await mysql.createConnection({
-    uri: "mysql://root:nulxOVOMEauNtyOMWtjloNSuAFdgghYV@mysql.railway.internal:3306/pasantia"
-  });
+    // Conexión a MySQL usando la configuración adecuada
+    const conn = await mysql.createConnection({
+      host: "mysql.railway.internal", // Usar el host interno
+      user: "root",                   // El nombre de usuario
+      password: "nulxOVOMEauNtyOMWtjloNSuAFdgghYV", // La contraseña
+      database: "pasantia",           // El nombre de la base de datos
+      port: 3306                      // El puerto de la base de datos (usualmente 3306 para MySQL)
+    });
 
     // Verificar si el email ya existe
     const [rows] = await conn.execute("SELECT id FROM usuarios WHERE email = ?", [email]);
