@@ -30,7 +30,7 @@ export default async function handler(req, res) {
   try {
     // Conexión a MySQL
     const conn = await mysql.createConnection({
-      host: "railway", // Cambia esto por el host real de la base de datos
+      host: "mysql.railway.internal", // Cambia esto por el host real de la base de datos
       user: "root",
       password: "nulxOVOMEauNtyOMWtjloNSuAFdgghYV",
       database: "pasantia",
