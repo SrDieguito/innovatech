@@ -28,13 +28,10 @@ export default async function handler(req, res) {
   const fecha_actualizacion = new Date().toISOString().slice(0, 19).replace("T", " ");
 
   try {
-    // Conexión a MySQL
-    const conn = await mysql.createConnection({
-      host: "mysql.railway.internal", // Cambia esto por el host real de la base de datos
-      user: "root",
-      password: "nulxOVOMEauNtyOMWtjloNSuAFdgghYV",
-      database: "pasantia",
-    });
+  // Conexión a MySQL usando la URL completa
+  const conn = await mysql.createConnection({
+    uri: "mysql://root:nulxOVOMEauNtyOMWtjloNSuAFdgghYV@shinkansen.proxy.rlwy.net:31839/pasantia"
+  });
 
     // Verificar si el email ya existe
     const [rows] = await conn.execute("SELECT id FROM usuarios WHERE email = ?", [email]);
