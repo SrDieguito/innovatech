@@ -7,18 +7,9 @@ export default async function handler(req, res) {
   }
 
   const {
-    nombre,
-    email,
-    telefono,
-    perfil,
-    organizacion,
-    cedula_ruc_pasaporte,
-    ubicacion,
-    fase,
-    pitches,
-    deck,
-    descripcion,
-    campo_accion,
+    nombre, email, telefono, perfil, organizacion,
+    cedula_ruc_pasaporte, ubicacion, fase, pitches,
+    deck, descripcion, campo_accion,
   } = req.body;
 
   if (!nombre || !email || !telefono) {
@@ -27,14 +18,15 @@ export default async function handler(req, res) {
 
   const fecha_actualizacion = new Date().toISOString().slice(0, 19).replace("T", " ");
 
+  let conn;
   try {
-    // Conexión a MySQL usando la configuración adecuada
-    const conn = await mysql.createConnection({
-      host: "shinkansen.proxy.rlwy.net", // Usar el host interno
-      user: "root",                   // El nombre de usuario
-      password: "nulxOVOMEauNtyOMWtjloNSuAFdgghYV", // La contraseña
-      database: "pasantia",           // El nombre de la base de datos
-      port: 31839                      // El puerto de la base de datos (usualmente 3306 para MySQL)
+    // Conexión a MySQL con variables de entorno
+    conn = await mysql.createConnection({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT
     });
 
     // Verificar si el email ya existe
@@ -46,25 +38,28 @@ export default async function handler(req, res) {
 
     // Insertar datos en la base de datos
     await conn.execute(
-      `INSERT INTO usuarios (nombre, email, telefono, perfil, organizacion, cedula_ruc_pasaporte, ubicacion, fase, pitches, deck, descripcion, campo_accion, fecha_actualizacion)
+      `INSERT INTO usuarios (nombre, email, telefono, perfil, organizacion, cedula_ruc_pasaporte,
+        ubicacion, fase, pitches, deck, descripcion, campo_accion, fecha_actualizacion)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nombre, email, telefono, perfil, organizacion, cedula_ruc_pasaporte, ubicacion, fase, pitches, deck, descripcion, campo_accion, fecha_actualizacion]
+      [nombre, email, telefono, perfil, organizacion, cedula_ruc_pasaporte,
+        ubicacion, fase, pitches, deck, descripcion, campo_accion, fecha_actualizacion]
     );
 
-    conn.end();
+    // Cerrar conexión después de la ejecución
+    await conn.end();
 
-    // Configurar Nodemailer
+    // Configurar Nodemailer con variables de entorno
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "crafteo727@gmail.com",
-        pass: "naek pyan xphb bseo",
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
-    // Enviar correo
+    // Enviar correo de confirmación
     await transporter.sendMail({
-      from: '"UTM 2024" <crafteo727@gmail.com>',
+      from: `"UTM 2024" <${process.env.EMAIL_USER}>`,
       to: "srdieguit@gmail.com",
       subject: "Nuevo registro de usuario",
       html: `<p>El usuario ${nombre} (${email}) ha solicitado registrarse.</p>`,
@@ -74,5 +69,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ error: "Error en el servidor" });
+  } finally {
+    if (conn) await conn.end(); // Asegurar que la conexión se cierra siempre
   }
 }
