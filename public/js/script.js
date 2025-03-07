@@ -19,6 +19,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
 
+        // Verificar si el usuario seleccionó "Otros" en "Campo de acción"
+        const campoAccionSelect = document.getElementById("campo_accion");
+        const campoAccionOtroInput = document.getElementById("campo_accion_otro");
+
+        if (campoAccionSelect.value === "Otros") {
+            data.campo_accion = campoAccionOtroInput.value.trim(); // Reemplaza con el valor ingresado
+        }
+
         try {
             const response = await fetch("/api/procesarformulario", {
                 method: "POST",
