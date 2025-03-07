@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: login.js");
     exit();
 }
 
@@ -65,11 +65,11 @@ $conn->close();
 <body>
     <header class="header">
         <a href="/index.html" class="nav-link">Inicio</a>
-        <form action="explorar_perfiles.php" method="post" class="search-form">
+        <form action="explorar_perfiles.js" method="post" class="search-form">
             <input type="text" name="search_query" placeholder="Buscar perfiles..." value="<?php echo htmlspecialchars($search_query); ?>">
             <button type="submit" name="search" class="btn-search">Buscar</button>
         </form>
-        <a href="/pasantia/views/perfil_usuario.php" class="profile-link">
+        <a href="/pasantia/views/perfil_usuario.js" class="profile-link">
             <img src="<?php echo htmlspecialchars($user_profile_pic); ?>" alt="Tu perfil" class="profile-pic">
         </a>
     </header>
@@ -82,7 +82,7 @@ $conn->close();
                     <img src="<?php echo htmlspecialchars($profile['imagen_perfil']); ?>" alt="<?php echo htmlspecialchars($profile['nombre']); ?>" class="profile-img">
                     <h3><?php echo htmlspecialchars($profile['nombre']); ?></h3>
                     <p><?php echo htmlspecialchars($profile['perfil']); ?></p>
-                    <a href="ver_perfil.php?id=<?php echo htmlspecialchars($profile['id']); ?>" class="btn-view-profile">Ver Perfil</a>
+                    <a href="ver_perfil.js?id=<?php echo htmlspecialchars($profile['id']); ?>" class="btn-view-profile">Ver Perfil</a>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>

@@ -3,7 +3,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 // Incluir los archivos necesarios de PHPMailer
-require '/vendor/autoload.php'; // Si usas Composer
+require '/vendor/autoload.js'; // Si usas Composer
 date_default_timezone_set('America/Guayaquil');
 
 $servername = "localhost";
@@ -122,7 +122,7 @@ if (isset($_GET['id'])) {
             // Enviar el correo
             $mail->send();
             // Redirige de vuelta al panel de administración con un mensaje de éxito
-            header("Location: /admin/interfaz_administracion.php?status=success");
+            header("Location: /admin/interfaz_administracion.js?status=success");
         } catch (Exception $e) {
             echo "No se pudo enviar el correo. Error: {$mail->ErrorInfo}";
         }

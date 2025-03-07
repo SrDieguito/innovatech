@@ -62,7 +62,7 @@ $result_rechazados = $conn->query($sql_rechazados);
     <header>
         <h1>Panel de Administración</h1>
         <nav>
-            <a href="/auth/logout.php" class="btn-logout">Cerrar sesión</a>
+            <a href="/auth/logout.js" class="btn-logout">Cerrar sesión</a>
         </nav>
     </header>
     <main>
@@ -90,8 +90,8 @@ $result_rechazados = $conn->query($sql_rechazados);
                                 <p><strong>Descripción:</strong> <?php echo htmlspecialchars($row['descripcion']); ?></p>
                                 <p><strong>Procedencia:</strong> <?php echo htmlspecialchars($row['procedencia']); ?></p>
                                 <p><strong>Campo de Acción:</strong> <?php echo htmlspecialchars($row['campo_accion']); ?></p>
-                                <a href="aprobar_usuario.php?id=<?php echo $row['id']; ?>" class="btn-approve">Aprobar</a>
-                                <a href="rechazar_usuario.php?id=<?php echo $row['id']; ?>" class="btn-reject">Rechazar</a>
+                                <a href="aprobar_usuario.js?id=<?php echo $row['id']; ?>" class="btn-approve">Aprobar</a>
+                                <a href="rechazar_usuario.js?id=<?php echo $row['id']; ?>" class="btn-reject">Rechazar</a>
                             </div>
                         </div>
                     <?php endwhile; ?>

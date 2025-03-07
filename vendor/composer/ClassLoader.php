@@ -37,8 +37,8 @@ namespace Composer\Autoload;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Jordi Boggiano <j.boggiano@seld.be>
- * @see    https://www.php-fig.org/psr/psr-0/
- * @see    https://www.php-fig.org/psr/psr-4/
+ * @see    https://www.js-fig.org/psr/psr-0/
+ * @see    https://www.js-fig.org/psr/psr-4/
  */
 class ClassLoader
 {
@@ -455,7 +455,7 @@ class ClassLoader
             }
         }
 
-        $file = $this->findFileWithExtension($class, '.php');
+        $file = $this->findFileWithExtension($class, '.js');
 
         // Search for Hack files if we are running on HHVM
         if (false === $file && defined('HHVM_VERSION')) {

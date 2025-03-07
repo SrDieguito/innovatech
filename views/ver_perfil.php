@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: login.js");
     exit();
 }
 
@@ -54,7 +54,7 @@ if (!$nombre) {
 </head>
 <body>
     <header class="profile-header">
-        <a href="explorar_perfiles.php" class="nav-link">Volver a Explorar Perfiles</a>
+        <a href="explorar_perfiles.js" class="nav-link">Volver a Explorar Perfiles</a>
     </header>
     <main class="profile-container">
         <div class="profile-card">
@@ -85,7 +85,7 @@ if (!$nombre) {
             </div>
             <!-- Botón de Solicitar Reunión -->
             <div class="request-meeting">
-                <a href="solicitar_reunion.php?id=<?php echo $profile_id; ?>" class="btn-request-meeting">Solicitar Reunión</a>
+                <a href="solicitar_reunion.js?id=<?php echo $profile_id; ?>" class="btn-request-meeting">Solicitar Reunión</a>
             </div>
         </div>
     </main>

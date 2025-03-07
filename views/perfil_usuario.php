@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: login.js");
     exit();
 }
 
@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = $conn->prepare("UPDATE usuarios SET descripcion = ? WHERE id = ?");
         $stmt->bind_param("si", $new_description, $user_id);
         $stmt->execute();
-        header("Location: /pasantia/views/perfil_usuario.php");
+        header("Location: /pasantia/views/perfil_usuario.js");
         exit();
     }
     if (isset($_FILES['profile_image'])) {
@@ -60,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmt = $conn->prepare("UPDATE usuarios SET imagen_perfil = ? WHERE id = ?");
                 $stmt->bind_param("si", $target_file, $user_id);
                 $stmt->execute();
-                header("Location: perfil_usuario.php");
+                header("Location: perfil_usuario.js");
                 exit();
             }
         }
@@ -91,7 +91,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmt = $conn->prepare("UPDATE usuarios SET banner = ? WHERE id = ?");
                 $stmt->bind_param("si", $target_file, $user_id);
                 $stmt->execute();
-                header("Location: perfil_usuario.php");
+                header("Location: perfil_usuario.js");
                 exit();
             }
         }
@@ -123,13 +123,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <header class="profile-header">
-    <a href="explorar_perfiles.php" class="btn-custom">Inicio</a>
+    <a href="explorar_perfiles.js" class="btn-custom">Inicio</a>
     <div class="nav-link dropdown">
             <button class="dropbtn">Configuración</button>
             <div class="dropdown-content">
                 <a href="#" id="open-password-modal">Actualizar Contraseña</a>
-                <a href="editar_perfil.php">Editar Perfil</a>
-                <a href="logout.php">Cerrar sesión</a>
+                <a href="editar_perfil.js">Editar Perfil</a>
+                <a href="logout.js">Cerrar sesión</a>
             </div>
         </div>
     </header>
@@ -138,14 +138,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <img src="<?php echo htmlspecialchars($banner); ?>" alt="Banner" class="banner-image">
             <div class="profile-image-container">
                 <img src="<?php echo htmlspecialchars($imagen_perfil); ?>" alt="Imagen de perfil" class="profile-image">
-                <form action="perfil_usuario.php" method="post" enctype="multipart/form-data">
+                <form action="perfil_usuario.js" method="post" enctype="multipart/form-data">
                     <label for="profile-image-upload" class="file-upload-label">
                         <img src="/pasantia/imagenes/edit-icon.png" alt="Editar" class="edit-icon1">
                     </label>
                     <input type="file" id="profile-image-upload" name="profile_image" accept="image/*" style="display: none;" onchange="this.form.submit();">
                 </form>
             </div>
-            <form action="perfil_usuario.php" method="post" enctype="multipart/form-data">
+            <form action="perfil_usuario.js" method="post" enctype="multipart/form-data">
                 <label for="banner-upload" class="file-upload-label-banner">
                     <img src="/pasantia/imagenes/edit-icon.png" alt="Editar" class="edit-icon">
                 </label>
@@ -177,7 +177,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <button id="add-description-btn" class="btn-add-description">Añadir Descripción</button>
         <div id="description-form" class="description-form">
-            <form action="perfil_usuario.php" method="post">
+            <form action="perfil_usuario.js" method="post">
                 <textarea id="description" name="description" maxlength="1000" placeholder="Escribe tu descripción aquí..."><?php echo htmlspecialchars($descripcion); ?></textarea>
                 <div id="char-count">1000 caracteres restantes</div>
                 <button type="submit" name="update_description" class="btn-update-description">Actualizar Descripción</button>
@@ -191,7 +191,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Actualizar Contraseña</h2>
-            <form action="perfil_usuario.php" method="post">
+            <form action="perfil_usuario.js" method="post">
                 <label for="old_password">Contraseña antigua:</label>
                 <input type="password" id="old_password" name="old_password" required>
                 <label for="new_password">Nueva contraseña:</label>

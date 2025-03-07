@@ -36,9 +36,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Redirigir según el rol del usuario
             if ($row['rol'] === 'admin') {
-                header("Location: /admin/interfaz_administracion.php"); // Redirige al panel de administración
+                header("Location: /admin/interfaz_administracion.js"); // Redirige al panel de administración
             } else {
-                header("Location: /views/perfil_usuario.php"); // Redirige al perfil del usuario
+                header("Location: /views/perfil_usuario.js"); // Redirige al perfil del usuario
             }
             exit();
         } else {

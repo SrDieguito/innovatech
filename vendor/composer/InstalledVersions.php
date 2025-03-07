@@ -253,7 +253,7 @@ class InstalledVersions
     }
 
     /**
-     * Returns the raw installed.php data for custom implementations
+     * Returns the raw installed.js data for custom implementations
      *
      * @deprecated Use getAllRawData() instead which returns all datasets for all autoloaders present in the process. getRawData only returns the first dataset loaded, which may not be what you expect.
      * @return array[]
@@ -264,10 +264,10 @@ class InstalledVersions
         @trigger_error('getRawData only returns the first dataset loaded, which may not be what you expect. Use getAllRawData() instead which returns all datasets for all autoloaders present in the process.', E_USER_DEPRECATED);
 
         if (null === self::$installed) {
-            // only require the installed.php file if this file is loaded from its dumped location,
+            // only require the installed.js file if this file is loaded from its dumped location,
             // and not from its source location in the composer/composer package, see https://github.com/composer/composer/issues/9937
             if (substr(__DIR__, -8, 1) !== 'C') {
-                self::$installed = include __DIR__ . '/installed.php';
+                self::$installed = include __DIR__ . '/installed.js';
             } else {
                 self::$installed = array();
             }
@@ -277,7 +277,7 @@ class InstalledVersions
     }
 
     /**
-     * Returns the raw data of all installed.php which are currently loaded for custom implementations
+     * Returns the raw data of all installed.js which are currently loaded for custom implementations
      *
      * @return array[]
      * @psalm-return list<array{root: array{name: string, pretty_version: string, version: string, reference: string|null, type: string, install_path: string, aliases: string[], dev: bool}, versions: array<string, array{pretty_version?: string, version?: string, reference?: string|null, type?: string, install_path?: string, aliases?: string[], dev_requirement: bool, replaced?: string[], provided?: string[]}>}>
@@ -292,15 +292,15 @@ class InstalledVersions
      *
      * This is only useful for complex integrations in which a project needs to use
      * this class but then also needs to execute another project's autoloader in process,
-     * and wants to ensure both projects have access to their version of installed.php.
+     * and wants to ensure both projects have access to their version of installed.js.
      *
      * A typical case would be PHPUnit, where it would need to make sure it reads all
      * the data it needs from this class, then call reload() with
-     * `require $CWD/vendor/composer/installed.php` (or similar) as input to make sure
+     * `require $CWD/vendor/composer/installed.js` (or similar) as input to make sure
      * the project in which it runs can then also use this class safely, without
      * interference between PHPUnit's dependencies and the project's dependencies.
      *
-     * @param  array[] $data A vendor/composer/installed.php data set
+     * @param  array[] $data A vendor/composer/installed.js data set
      * @return void
      *
      * @psalm-param array{root: array{name: string, pretty_version: string, version: string, reference: string|null, type: string, install_path: string, aliases: string[], dev: bool}, versions: array<string, array{pretty_version?: string, version?: string, reference?: string|null, type?: string, install_path?: string, aliases?: string[], dev_requirement: bool, replaced?: string[], provided?: string[]}>} $data
@@ -327,9 +327,9 @@ class InstalledVersions
             foreach (ClassLoader::getRegisteredLoaders() as $vendorDir => $loader) {
                 if (isset(self::$installedByVendor[$vendorDir])) {
                     $installed[] = self::$installedByVendor[$vendorDir];
-                } elseif (is_file($vendorDir.'/composer/installed.php')) {
+                } elseif (is_file($vendorDir.'/composer/installed.js')) {
                     /** @var array{root: array{name: string, pretty_version: string, version: string, reference: string|null, type: string, install_path: string, aliases: string[], dev: bool}, versions: array<string, array{pretty_version?: string, version?: string, reference?: string|null, type?: string, install_path?: string, aliases?: string[], dev_requirement: bool, replaced?: string[], provided?: string[]}>} $required */
-                    $required = require $vendorDir.'/composer/installed.php';
+                    $required = require $vendorDir.'/composer/installed.js';
                     $installed[] = self::$installedByVendor[$vendorDir] = $required;
                     if (null === self::$installed && strtr($vendorDir.'/composer', '\\', '/') === strtr(__DIR__, '\\', '/')) {
                         self::$installed = $installed[count($installed) - 1];
@@ -339,11 +339,11 @@ class InstalledVersions
         }
 
         if (null === self::$installed) {
-            // only require the installed.php file if this file is loaded from its dumped location,
+            // only require the installed.js file if this file is loaded from its dumped location,
             // and not from its source location in the composer/composer package, see https://github.com/composer/composer/issues/9937
             if (substr(__DIR__, -8, 1) !== 'C') {
                 /** @var array{root: array{name: string, pretty_version: string, version: string, reference: string|null, type: string, install_path: string, aliases: string[], dev: bool}, versions: array<string, array{pretty_version?: string, version?: string, reference?: string|null, type?: string, install_path?: string, aliases?: string[], dev_requirement: bool, replaced?: string[], provided?: string[]}>} $required */
-                $required = require __DIR__ . '/installed.php';
+                $required = require __DIR__ . '/installed.js';
                 self::$installed = $required;
             } else {
                 self::$installed = array();

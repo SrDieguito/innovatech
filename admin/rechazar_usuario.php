@@ -45,7 +45,7 @@ $user_id = intval($_GET['id']);
     </header>
     <main>
         <h2>Motivo del Rechazo</h2>
-        <form action="procesar_rechazo.php" method="post">
+        <form action="procesar_rechazo.js" method="post">
             <input type="hidden" name="user_id" value="<?php echo $user_id; ?>">
             <label for="rejection_reason">Motivo del rechazo:</label>
             <textarea id="rejection_reason" name="rejection_reason" rows="4" required></textarea>

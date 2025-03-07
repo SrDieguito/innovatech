@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 'admin') {
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require '/vendor/autoload.php'; // Asegúrate de que esta ruta sea correcta
+require '/vendor/autoload.js'; // Asegúrate de que esta ruta sea correcta
 date_default_timezone_set('America/Guayaquil');
 
 $servername = "localhost";
@@ -79,7 +79,7 @@ try {
 }
 
 // Redirige de vuelta al panel de administración con un mensaje de éxito
-header("Location:/admin/interfaz_administracion.php?mensaje=" . urlencode("Usuario rechazado correctamente."));
+header("Location:/admin/interfaz_administracion.js?mensaje=" . urlencode("Usuario rechazado correctamente."));
 exit();
 
 ?>
