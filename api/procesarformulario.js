@@ -6,21 +6,20 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método no permitido" });
   }
 
-  const {
-    nombre, email, telefono, perfil, organizacion,
-    cedula_ruc_pasaporte, ubicacion, fase, pitches,
-    deck, descripcion, campo_accion,
-  } = req.body;
-
-  if (!nombre || !email || !telefono) {
-    return res.status(400).json({ error: "Faltan datos obligatorios" });
-  }
-
-  const fecha_actualizacion = new Date().toISOString().slice(0, 19).replace("T", " ");
-
   let conn;
   try {
-    // Conexión a MySQL con variables de entorno
+    const {
+      nombre, email, telefono, perfil, organizacion,
+      cedula_ruc_pasaporte, ubicacion, fase, pitches,
+      deck, descripcion, campo_accion, campo_accion_otro
+    } = req.body;
+
+    // Verificar que los datos obligatorios existen
+    if (!nombre || !email || !telefono) {
+      return res.status(400).json({ error: "Faltan datos obligatorios" });
+    }
+
+    // Conexión a MySQL
     conn = await mysql.createConnection({
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
@@ -31,24 +30,39 @@ export default async function handler(req, res) {
 
     // Verificar si el email ya existe
     const [rows] = await conn.execute("SELECT id FROM usuarios WHERE email = ?", [email]);
-
     if (rows.length > 0) {
       return res.status(400).json({ error: "El correo electrónico ya está registrado." });
     }
+
+    // Reemplazar valores undefined con null
+    const safeData = {
+      nombre: nombre || null,
+      email: email || null,
+      telefono: telefono || null,
+      perfil: perfil || null,
+      organizacion: organizacion || null,
+      cedula_ruc_pasaporte: cedula_ruc_pasaporte || null,
+      ubicacion: ubicacion || null,
+      fase: fase || null,
+      pitches: pitches || null,
+      deck: deck || null,
+      descripcion: descripcion || null,
+      campo_accion: campo_accion === "Otros" ? campo_accion_otro || null : campo_accion || null,
+      fecha_actualizacion: new Date().toISOString().slice(0, 19).replace("T", " ")
+    };
 
     // Insertar datos en la base de datos
     await conn.execute(
       `INSERT INTO usuarios (nombre, email, telefono, perfil, organizacion, cedula_ruc_pasaporte,
         ubicacion, fase, pitches, deck, descripcion, campo_accion, fecha_actualizacion)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nombre, email, telefono, perfil, organizacion, cedula_ruc_pasaporte,
-        ubicacion, fase, pitches, deck, descripcion, campo_accion, fecha_actualizacion]
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      Object.values(safeData)
     );
 
-    // Cerrar conexión después de la ejecución
+    // Cerrar conexión
     await conn.end();
 
-    // Configurar Nodemailer con variables de entorno
+    // Configurar Nodemailer
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -66,10 +80,11 @@ export default async function handler(req, res) {
     });
 
     return res.status(200).json({ message: "Registro enviado correctamente" });
+
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error en el servidor:", error);
     return res.status(500).json({ error: "Error en el servidor" });
   } finally {
-    if (conn) await conn.end(); // Asegurar que la conexión se cierra siempre
+    if (conn) await conn.end(); // Asegurar que la conexión se cierre
   }
 }
