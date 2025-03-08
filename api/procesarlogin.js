@@ -1,8 +1,10 @@
-const express = require("express");
-const mysql = require("mysql2/promise");
-const bcrypt = require("bcrypt");
-const session = require("express-session");
-require("dotenv").config();
+import express from "express";
+import mysql from "mysql2/promise";
+import bcrypt from "bcrypt";
+import session from "express-session";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
