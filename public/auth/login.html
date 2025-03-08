@@ -55,7 +55,7 @@
                     const result = await response.json();
                     
                     if (response.ok) {
-                        window.location.href = "/dashboard.html"; // Redirigir si el login es exitoso
+                        window.location.href = "/admin/dashboardadmin"; // Redirigir si el login es exitoso
                     } else {
                         document.getElementById("error-message").textContent = result.error;
                         document.getElementById("error-message").style.display = "block";
