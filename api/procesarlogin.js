@@ -1,6 +1,6 @@
 import express from "express";
 import mysql from "mysql2/promise";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs"; // Usamos bcryptjs por compatibilidad
 import session from "express-session";
 import dotenv from "dotenv";
 
@@ -21,7 +21,7 @@ app.use(
 );
 
 // Ruta de login
-app.post("/api/login", async (req, res) => {
+app.post("/api/procesarlogin", async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -43,7 +43,6 @@ app.post("/api/login", async (req, res) => {
     const [results] = await conn.execute(sql, [email]);
 
     if (results.length === 0) {
-      await conn.end();
       return res.status(401).json({ error: "Usuario no encontrado o no aprobado" });
     }
 
@@ -51,7 +50,6 @@ app.post("/api/login", async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
-      await conn.end();
       return res.status(401).json({ error: "Contraseña incorrecta" });
     }
 
@@ -60,17 +58,13 @@ app.post("/api/login", async (req, res) => {
     req.session.user_name = user.nombre;
     req.session.user_rol = user.rol;
 
-    await conn.end();
-
-    // Redirección según el rol
     return res.json({ redirect: user.rol === "admin" ? "/admin/interfaz_administracion" : "/views/perfil_usuario" });
-
   } catch (error) {
     console.error("Error en el servidor:", error);
     return res.status(500).json({ error: "Error en el servidor" });
   } finally {
-    if (conn) await conn.end();
+    if (conn) await conn.end(); // Cerrar conexión en cualquier caso
   }
 });
 
-module.exports = app;
+export default app;
