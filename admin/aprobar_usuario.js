@@ -8,15 +8,13 @@ dotenv.config();
 const app = express();
 
 // Configuración de la base de datos con pool de conexiones
-const pool = mysql.createPool({
-    host: process.env.DB_HOST, 
-    user: process.env.DB_USER, 
-    password: process.env.DB_PASS, 
-    database: process.env.DB_NAME,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+    const db = await mysql.createConnection({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASS,
+        database: process.env.DB_NAME,
+        port: process.env.DB_PORT,
+    });
 
 // Ruta para aprobar usuarios y enviar correo
 app.get('/aprobar-usuario', async (req, res) => {

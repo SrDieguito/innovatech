@@ -8,12 +8,13 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-const dbConfig = {
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'pasantia'
-};
+    const db = await mysql.createConnection({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASS,
+        database: process.env.DB_NAME,
+        port: process.env.DB_PORT,
+    });
 
 app.post('/api/reject-user', async (req, res) => {
     const { user_id, rejection_reason } = req.body;
