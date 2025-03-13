@@ -43,5 +43,4 @@ app.get("/api/perfil/:id", (req, res) => {
   });
 });
 
-module.exports = app;
-a
+export default app;
