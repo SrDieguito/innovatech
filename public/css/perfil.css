@@ -1,0 +1,394 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background-color: #00983d;
+    color: white;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    margin: 0 10px;
+}
+  
+
+.nav-link:hover {
+    text-decoration: underline;
+}
+
+/* Estilo para el modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.file-upload-label, .file-upload-label-banner {
+    cursor: pointer;
+}
+
+/* Botón de configuración */
+.dropbtn {
+    background-color: #00983d; /* Ajusta el color según tu paleta */
+    color: white;
+    padding: 10px 20px; /* Añade más espacio alrededor del texto */
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px; /* Opcional: para redondear las esquinas del botón */
+}
+
+/* Menú desplegable de configuración */
+.nav-link.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.btn-custom {
+    background-color: #00983d; /* Ajusta el color según tu paleta */
+    color: white;
+    padding: 10px 20px; /* Añade más espacio alrededor del texto */
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px; /* Opcional: para redondear las esquinas del botón */
+    text-decoration: none;
+}
+
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0; /* Alineación a la derecha del contenedor padre */
+    top: 100%; /* Se posiciona justo debajo del botón */
+    background-color: #fefefe;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    padding: 10px 0; /* Añade un poco de espacio dentro del dropdown */
+    border-radius: 8px; /* Opcional: para redondear las esquinas del dropdown */
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+/* Mostrar el menú desplegable cuando se hace clic en el botón */
+.show {
+    display: block;
+}
+
+
+/* Cambiar el tamaño del banner y centrar la imagen de perfil */
+.banner-container {
+    position: relative;
+    text-align: center;
+    margin-bottom: 60px;
+    max-width: 851px;
+    margin: 0 auto;
+}
+
+.banner-image {
+    width: 100%;
+    height: 315px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.profile-image-container {
+    position: absolute;
+    bottom: -130px; /* Este valor puede ajustarse para dar más espacio al ícono */
+    left: 20px;
+    border-radius: 50%;
+    overflow: hidden;
+    width: 176px;
+    height: 176px;
+    border: 4px solid white;
+    z-index: 1; /* Asegúrate de que el z-index sea menor que el del ícono */
+}
+
+.profile-image {
+    position: cover;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Asegúrate de que este sea menor que el del ícono */
+}
+
+
+.profile-info {
+    max-width: 851px;
+    margin-top: 150px;
+    text-align: left;
+    margin-left: 125px;
+}
+
+.profile-info h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #00983d;
+}
+
+.file-upload-label-profile {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: pointer;
+    z-index: 2;
+}
+
+.file-upload-label-banner {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.edit-icon {
+    width: 24px;
+    height: 24px;
+    opacity: 0.7;
+    z-index: 2;
+}
+
+.edit-icon1 {
+    position: absolute;
+    bottom: 10px; /* Ajusta este valor según necesites */
+    right: 10px; /* Ajusta este valor según necesites */
+    width: 24px;
+    height: 24px;
+    opacity: 0.7;
+    z-index: 2; /* Asegúrate de que este valor sea mayor */
+    cursor: pointer;
+}
+
+
+/* Estilo del formulario de descripción */
+
+.description-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.description {
+    width: 815px; /* Ancho fijo */
+    max-width: 815px; /* Asegúrate de que no se expanda más allá de 315px */
+    word-wrap: break-word;
+    overflow: hidden;
+    text-align: justify;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+}
+
+.btn-add-description {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background-color: #00983d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.description-form {
+    display: none;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.description-form.show {
+    display: block;
+}
+
+.description-form textarea {
+    width: 100%;
+    max-width: 100%;
+    height: 100px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+}
+
+.btn-update-description {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #00983d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.form-group {
+    margin-bottom: 10px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Estilo del modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+}
+
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.btn-update-password {
+    background-color: #00983d;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.btn-update-password:hover {
+    background-color: #007a2d;
+}
+
+/* Estilo para la sección de Información Adicional */
+.additional-info {
+    background-color: #f9f9f9; /* Color de fondo claro */
+    border-radius: 8px; /* Bordes redondeados */
+    padding: 20px; /* Espacio interior */
+    margin-top: 20px; /* Espacio superior */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    max-width: 600px; /* Ancho máximo */
+    margin-left: auto; /* Centrar horizontalmente */
+    margin-right: auto; /* Centrar horizontalmente */
+}
+
+.additional-info h3 {
+    font-size: 1.5rem; /* Tamaño de fuente del título */
+    margin-bottom: 15px; /* Espacio inferior del título */
+    color: #333; /* Color del texto del título */
+    border-bottom: 2px solid #00983d; /* Línea debajo del título */
+    padding-bottom: 5px; /* Espacio debajo del texto del título */
+}
+
+.additional-info p {
+    font-size: 1rem; /* Tamaño de fuente del párrafo */
+    margin-bottom: 10px; /* Espacio inferior de cada párrafo */
+    color: #666; /* Color del texto del párrafo */
+}
+
+.additional-info p strong {
+    color: #00983d; /* Color del texto en negrita */
+}
