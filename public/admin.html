@@ -1,0 +1,42 @@
+<script>
+    async function obtenerUsuarios(estado) {
+        const response = await fetch(`/api/usuarios/${estado}`);
+        const data = await response.json();
+        const contenedor = document.getElementById(estado);
+        contenedor.innerHTML = "";
+    
+        data.forEach(usuario => {
+            const div = document.createElement("div");
+            div.innerHTML = `
+                <h3>${usuario.nombre}</h3>
+                <p><strong>Email:</strong> ${usuario.email}</p>
+                <button onclick="aprobarUsuario(${usuario.id})">Aprobar</button>
+                <button onclick="rechazarUsuario(${usuario.id})">Rechazar</button>
+            `;
+            contenedor.appendChild(div);
+        });
+    }
+    
+    async function aprobarUsuario(id) {
+        await fetch(`/api/usuarios/aprobar`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id })
+        });
+        obtenerUsuarios("pendiente");
+    }
+    
+    async function rechazarUsuario(id) {
+        await fetch(`/api/usuarios/rechazar`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id })
+        });
+        obtenerUsuarios("pendiente");
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        obtenerUsuarios("pendiente");
+    });
+    </script>
+    
