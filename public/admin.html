@@ -1,42 +1,43 @@
 <script>
-    async function obtenerUsuarios(estado) {
-        const response = await fetch(`/api/usuarios/${estado}`);
+async function obtenerUsuarios(estado) {
+    try {
+        const response = await fetch(`/api/admin?estado=${estado}`);
         const data = await response.json();
+
         const contenedor = document.getElementById(estado);
         contenedor.innerHTML = "";
-    
+
         data.forEach(usuario => {
             const div = document.createElement("div");
             div.innerHTML = `
                 <h3>${usuario.nombre}</h3>
                 <p><strong>Email:</strong> ${usuario.email}</p>
-                <button onclick="aprobarUsuario(${usuario.id})">Aprobar</button>
-                <button onclick="rechazarUsuario(${usuario.id})">Rechazar</button>
+                <button onclick="actualizarEstado(${usuario.id}, 'aprobar')">Aprobar</button>
+                <button onclick="actualizarEstado(${usuario.id}, 'rechazar')">Rechazar</button>
             `;
             contenedor.appendChild(div);
         });
+    } catch (error) {
+        console.error("Error obteniendo usuarios:", error);
     }
-    
-    async function aprobarUsuario(id) {
-        await fetch(`/api/usuarios/aprobar`, {
+}
+
+async function actualizarEstado(id, accion) {
+    try {
+        await fetch(`/api/admin`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ id, accion })
         });
         obtenerUsuarios("pendiente");
+    } catch (error) {
+        console.error(`Error al ${accion} usuario:`, error);
     }
-    
-    async function rechazarUsuario(id) {
-        await fetch(`/api/usuarios/rechazar`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id })
-        });
-        obtenerUsuarios("pendiente");
-    }
-    
-    document.addEventListener("DOMContentLoaded", () => {
-        obtenerUsuarios("pendiente");
-    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    obtenerUsuarios("pendiente");
+});
+
     </script>
     
