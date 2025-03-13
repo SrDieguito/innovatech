@@ -7,10 +7,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Servir archivos estáticos correctamente
-app.use(express.static("public")); // Asegúrate de que los archivos están en "public/"
+app.use(express.static("public"));
 
 // Middleware para procesar datos del formulario
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // 👈 Agregado para manejar JSON en req.body
 
 // Ruta para rechazar usuarios
 app.get("/reject-user", (req, res) => {
@@ -57,8 +58,8 @@ app.post("/api/process-rejection", (req, res) => {
 
     console.log(`Usuario ${user_id} rechazado por: ${rejection_reason}`);
     
-    // Redirigir a la interfaz del administrador (ajusta la ruta si es necesario)
-    res.redirect("/admin/admin.html.js?status=rejected");
+    // Redirigir correctamente a la interfaz del administrador
+    res.redirect("/admin/admin.html?status=rejected"); // 👈 Arreglado
 });
 
 // Exportar la app para Vercel

@@ -1,7 +1,9 @@
-const express = require('express');
-const mysql = require('mysql2/promise');
-const nodemailer = require('nodemailer');
-require('dotenv').config();
+import express from 'express';
+import mysql from 'mysql2/promise';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -55,4 +57,4 @@ app.post('/api/reject-user', async (req, res) => {
     }
 });
 
-module.exports = app;
+export default app;
