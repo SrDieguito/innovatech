@@ -1,10 +1,11 @@
-const express = require('express');
-const mysql = require('mysql2');
-const session = require('express-session');
-const bcrypt = require('bcrypt');
-const multer = require('multer');
-const path = require('path');
-const cors = require('cors');
+import express from "express";
+import mysql from "mysql2/promise";
+import session from "express-session";
+import bcrypt from "bcrypt";
+import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
