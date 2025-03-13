@@ -1,43 +1,68 @@
-<script>
-async function obtenerUsuarios(estado) {
-    try {
-        const response = await fetch(`/api/admin?estado=${estado}`);
-        const data = await response.json();
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de Usuarios</title>
+</head>
+<body>
 
-        const contenedor = document.getElementById(estado);
-        contenedor.innerHTML = "";
+    <h2>Usuarios Pendientes</h2>
+    <div id="pendiente">
+        <!-- Aquí se insertarán los usuarios -->
+    </div>
 
-        data.forEach(usuario => {
-            const div = document.createElement("div");
-            div.innerHTML = `
-                <h3>${usuario.nombre}</h3>
-                <p><strong>Email:</strong> ${usuario.email}</p>
-                <button onclick="actualizarEstado(${usuario.id}, 'aprobar')">Aprobar</button>
-                <button onclick="actualizarEstado(${usuario.id}, 'rechazar')">Rechazar</button>
-            `;
-            contenedor.appendChild(div);
+    <script>
+        async function obtenerUsuarios(estado) {
+            try {
+                const response = await fetch(`/api/admin?estado=${estado}`);
+                const data = await response.json();
+
+                const contenedor = document.getElementById(estado);
+                if (!contenedor) {
+                    console.error(`Error: No se encontró el contenedor con ID '${estado}'`);
+                    return;
+                }
+
+                contenedor.innerHTML = "";
+
+                if (data.length === 0) {
+                    contenedor.innerHTML = "<p>No hay usuarios pendientes.</p>";
+                    return;
+                }
+
+                data.forEach(usuario => {
+                    const div = document.createElement("div");
+                    div.innerHTML = `
+                        <h3>${usuario.nombre}</h3>
+                        <p><strong>Email:</strong> ${usuario.email}</p>
+                        <button onclick="actualizarEstado(${usuario.id}, 'aprobar')">Aprobar</button>
+                        <button onclick="actualizarEstado(${usuario.id}, 'rechazar')">Rechazar</button>
+                    `;
+                    contenedor.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Error obteniendo usuarios:", error);
+            }
+        }
+
+        async function actualizarEstado(id, accion) {
+            try {
+                await fetch(`/api/admin`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id, accion })
+                });
+                obtenerUsuarios("pendiente");
+            } catch (error) {
+                console.error(`Error al ${accion} usuario:`, error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            obtenerUsuarios("pendiente");
         });
-    } catch (error) {
-        console.error("Error obteniendo usuarios:", error);
-    }
-}
-
-async function actualizarEstado(id, accion) {
-    try {
-        await fetch(`/api/admin`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id, accion })
-        });
-        obtenerUsuarios("pendiente");
-    } catch (error) {
-        console.error(`Error al ${accion} usuario:`, error);
-    }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    obtenerUsuarios("pendiente");
-});
-
     </script>
-    
+
+</body>
+</html>
