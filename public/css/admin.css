@@ -55,41 +55,20 @@ nav ul li a.active {
 
 #contenedor-usuarios {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     justify-content: center;
     padding: 20px;
-    max-width: 900px;
-    margin: auto;
 }
 
 .usuario-card {
     background: white;
-    padding: 15px;
-    border-radius: 5px;
+    padding: 20px;
+    margin: 10px;
+    border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    max-width: 320px;
     text-align: center;
-    height: 100%;
-    min-height: 180px;
-}
-
-.usuario-card h3 {
-    margin: 10px 0;
-    font-size: 18px;
-}
-
-.usuario-card p {
-    font-size: 14px;
-    color: #555;
-}
-
-.usuario-card .botones {
-    margin-top: auto;
-    display: flex;
-    justify-content: space-between;
 }
 
 .usuario-card button {
@@ -97,21 +76,13 @@ nav ul li a.active {
     color: white;
     border: none;
     padding: 8px 12px;
+    margin: 5px;
     cursor: pointer;
     font-size: 14px;
-    flex: 1;
-    margin: 5px;
     border-radius: 5px;
+    width: 100px;
 }
 
 .usuario-card button:hover {
     background-color: #007a2e;
-}
-
-.usuario-card button.rechazar {
-    background-color: #d9534f;
-}
-
-.usuario-card button.rechazar:hover {
-    background-color: #c9302c;
 }
