@@ -6,7 +6,7 @@
     <title>Panel de Administración</title>
     <link rel="stylesheet" href="/css/admin.css">
 </head>
-<body>
+<body style="display: none;">
     <header>
         <nav>
             <ul>
@@ -40,23 +40,23 @@
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch('/api/verificarSesion'); // Verifica si hay sesión activa
+                const data = await response.json();
 
-            document.addEventListener("DOMContentLoaded", () => {
-        fetch('/api/verificarSesion') // Llama al endpoint que verifica si hay sesión activa
-            .then(response => response.json())
-            .then(data => {
                 if (!data.autenticado) {
-                    window.location.href = "/auth/login.html"; // Redirige al login si no está autenticado
+                    window.location.href = "/auth/login.html"; // Si no hay sesión, redirige
                 } else {
-                    obtenerUsuarios("pendiente"); // Cargar usuarios solo si está autenticado
+                    document.body.style.display = "block"; // Muestra la página solo si está autenticado
+                    obtenerUsuarios("pendiente"); // Cargar usuarios
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error("Error verificando sesión:", error);
-                window.location.href = "/auth/login.html"; // En caso de error, también redirige
-            });
-            
-    });
+                window.location.href = "/auth/login.html"; // Redirige en caso de error
+            }
+        });
+
         async function obtenerUsuarios(estado) {
             try {
                 const response = await fetch(`/api/admin?estado=${estado}`);
@@ -85,9 +85,9 @@
         }
 
         function verDescripcion(button) {
-        const descripcion = decodeURIComponent(button.getAttribute("data-desc"));
-        alert(descripcion);
-}
+            const descripcion = decodeURIComponent(button.getAttribute("data-desc"));
+            alert(descripcion);
+        }
 
         function cerrarModal() {
             document.getElementById("modalDescripcion").style.display = "none";
@@ -126,20 +126,15 @@
             }
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            obtenerUsuarios("pendiente");
-        });
-
         document.getElementById("cerrar-sesion").addEventListener("click", function() {
-    if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
-        fetch('/api/logout', { method: 'POST' }) // Si tienes un endpoint para cerrar sesión
-            .then(() => {
-                window.location.href = "/auth/login.html"; // Redirige al login
-            })
-            .catch(error => console.error("Error al cerrar sesión:", error));
-    }
-});
-
+            if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
+                fetch('/api/logout', { method: 'POST' }) // Si tienes un endpoint para cerrar sesión
+                    .then(() => {
+                        window.location.href = "/auth/login.html"; // Redirige al login
+                    })
+                    .catch(error => console.error("Error al cerrar sesión:", error));
+            }
+        });
     </script>
 </body>
 </html>
