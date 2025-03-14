@@ -68,11 +68,18 @@ nav ul li a.active {
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     width: 300px;
-    height: 200px; /* Misma altura para todas las tarjetas */
+    min-height: 220px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     text-align: center;
+}
+
+.usuario-card .botones {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .usuario-card button {
@@ -88,20 +95,24 @@ nav ul li a.active {
     height: 40px;
 }
 
-.usuario-card .botones {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-
 .usuario-card .botones button {
-    flex: 1; /* Para que los botones de Aceptar y Rechazar sean iguales */
+    flex: 1;
 }
 
 .usuario-card button:hover {
     background-color: #007a2e;
+}
+
+.usuario-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: space-evenly;
+}
+
+.usuario-card {
+    flex: 1 1 250px;
+    max-width: 300px;
 }
 
 /* Estilos para el modal */
