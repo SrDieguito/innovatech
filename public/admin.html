@@ -24,9 +24,7 @@
                 <button onclick="obtenerUsuarios('aprobado')">Aprobados</button>
                 <button onclick="obtenerUsuarios('rechazado')">Rechazados</button>
             </div>
-            <div id="contenedor-usuarios" class="usuarios-grid">
-                <!-- Aquí se insertarán los usuarios dinámicamente -->
-            </div>
+            <div id="contenedor-usuarios" class="usuarios-grid"></div>
         </section>
     </main>
 
@@ -40,28 +38,28 @@
     </div>
 
     <script>
-        
        document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        const response = await fetch('/api/verificarSesion', { credentials: "include" }); // Incluye cookies
-        const data = await response.json();
+            try {
+                const response = await fetch('/api/verificarSesion', { credentials: "include" });
+                const data = await response.json();
 
-        if (!data.autenticado) {
-            window.location.href = "/auth/login.html"; // Si no hay sesión, redirige
-        } else {
-            document.body.style.display = "block"; // Muestra la página solo si está autenticado
-            obtenerUsuarios("pendiente"); // Cargar usuarios
-        }
-    } catch (error) {
-        console.error("Error verificando sesión:", error);
-        window.location.href = "/auth/login.html"; // Redirige en caso de error
-    }
-});
-
+                if (!data.autenticado) {
+                    window.location.href = "/auth/login.html"; // Redirige si no está autenticado
+                } else {
+                    document.body.style.display = "block"; // Muestra la página si está autenticado
+                    obtenerUsuarios("pendiente"); // Cargar usuarios
+                }
+            } catch (error) {
+                console.error("Error verificando sesión:", error);
+                window.location.href = "/auth/login.html"; 
+            }
+        });
 
         async function obtenerUsuarios(estado) {
             try {
                 const response = await fetch(`/api/admin?estado=${estado}`, { credentials: "include" });
+                if (!response.ok) throw new Error("Error obteniendo usuarios");
+
                 const data = await response.json();
                 const contenedor = document.getElementById("contenedor-usuarios");
                 if (!contenedor) return;
@@ -97,12 +95,14 @@
 
         async function actualizarEstado(id, accion) {
             try {
-                await fetch(`/api/admin`, {
+                const response = await fetch(`/api/admin`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
                     body: JSON.stringify({ id, accion })
                 });
+                if (!response.ok) throw new Error(`Error al ${accion} usuario`);
+                
                 obtenerUsuarios("pendiente");
             } catch (error) {
                 console.error(`Error al ${accion} usuario:`, error);
@@ -117,12 +117,14 @@
             }
 
             try {
-                await fetch(`/api/rechazar_usuario`, {
+                const response = await fetch(`/api/rechazar_usuario`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
                     body: JSON.stringify({ user_id: id, rejection_reason: motivo })
                 });
+                if (!response.ok) throw new Error("Error al rechazar usuario");
+
                 alert("Usuario rechazado correctamente.");
                 obtenerUsuarios("pendiente");
             } catch (error) {
@@ -136,8 +138,10 @@
                     method: 'POST',
                     credentials: "include"
                 })
-                .then(() => {
-                    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"; // Elimina la cookie
+                .then(response => {
+                    if (!response.ok) throw new Error("Error cerrando sesión");
+                    
+                    document.cookie = "user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=" + window.location.hostname + "; secure; SameSite=None";
                     window.location.href = "/auth/login.html"; // Redirige al login
                 })
                 .catch(error => console.error("Error al cerrar sesión:", error));

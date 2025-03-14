@@ -2,13 +2,15 @@ import express from "express";
 import mysql from "mysql2/promise";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-import { serialize } from "cookie"; // Importamos para manejar cookies
+import { serialize } from "cookie";
+import cookieParser from "cookie-parser"; // 🔹 Importamos cookie-parser
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); // 🔹 Habilitamos el middleware para manejar cookies
 
 // Ruta de login
 app.post("/api/procesarlogin", async (req, res) => {
@@ -42,11 +44,8 @@ app.post("/api/procesarlogin", async (req, res) => {
             return res.status(401).json({ error: "Contraseña incorrecta" });
         }
 
-        // Generamos un "token" simple (puede ser JWT si lo prefieres)
-        const token = `${user.id}-${Date.now()}`;
-
-        // Configurar la cookie
-        res.setHeader("Set-Cookie", serialize("token", token, {
+        // Configurar la cookie con el user_id en lugar de un token manual
+        res.setHeader("Set-Cookie", serialize("user_id", String(user.id), {
             httpOnly: true, 
             secure: true, // Cambia a false si pruebas en localhost
             sameSite: "None",
@@ -59,6 +58,16 @@ app.post("/api/procesarlogin", async (req, res) => {
         return res.status(500).json({ error: "Error en el servidor" });
     } finally {
         if (conn) await conn.end();
+    }
+});
+
+// 🔹 Ahora Express reconocerá `req.cookies.user_id` correctamente
+app.get("/api/verificarSesion", (req, res) => {
+    const userId = req.cookies.user_id;
+    if (userId) {
+        res.json({ autenticado: true, user_id: userId });
+    } else {
+        res.status(401).json({ autenticado: false });
     }
 });
 

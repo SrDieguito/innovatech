@@ -1,7 +1,14 @@
+import { parse } from "cookie";
+
 export default function handler(req, res) {
-    if (req.session && req.session.user_id) {
-        res.status(200).json({ autenticado: true });
-    } else {
-        res.status(401).json({ autenticado: false });
+    try {
+        const cookies = parse(req.headers.cookie || ""); // Obtener cookies
+        if (cookies.user_id) {
+            return res.status(200).json({ autenticado: true });
+        }
+        return res.status(401).json({ autenticado: false });
+    } catch (error) {
+        console.error("Error al verificar la sesión:", error);
+        return res.status(500).json({ error: "Error interno del servidor" });
     }
 }
