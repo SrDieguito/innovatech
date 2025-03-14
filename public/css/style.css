@@ -3850,14 +3850,10 @@ p {
 
             /*!sc*/
             .chTJIG {
-                -webkit-box-flex: 1;
-                -webkit-flex-grow: 1;
-                -ms-flex-positive: 1;
-                flex-grow: 1;
-                margin: 0 24px;
-                position: relative;
-                overflow: hidden;
-                display: none;
+                display: flex !important; /* Asegura que sea visible */
+                align-items: center; /* Alinea verticalmente */
+                justify-content: flex-start; /* Alinea a la izquierda */
+                padding: 10px 20px; /* Márgenes internos */
             }
 
             /*!sc*/
