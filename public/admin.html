@@ -53,7 +53,7 @@
                     div.innerHTML = `
                         <h3>${usuario.nombre}</h3>
                         <p><strong>Email:</strong> ${usuario.email}</p>
-                        <button onclick="verDescripcion(\`${usuario.descripcion ? usuario.descripcion.replace(/`/g, "\\`") : "Sin descripción"}\`)">Ver Descripción</button>
+                        <button onclick="verDescripcion(${JSON.stringify(usuario.descripcion || "Sin descripción")})">Ver Descripción</button>
                         <div class="botones">
                             <button class="btn-aprobar" onclick="actualizarEstado(${usuario.id}, 'aprobar')">Aprobar</button>
                             <button class="btn-rechazar" onclick="rechazarUsuario(${usuario.id})">Rechazar</button>
