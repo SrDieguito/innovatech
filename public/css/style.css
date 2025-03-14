@@ -4430,12 +4430,8 @@ p {
             .jCFvZw {
                 background-image: url("img/UTM-logo2.png");
                 background-repeat: no-repeat;
-                background-size: contain; /* Ajusta sin recortar */
-                background-position: left top; /* La mueve a la esquina superior izquierda */
-                padding-left: 50px; /* Ajusta margen interno si hay contenido */
-                height: 100px; /* Ajusta la altura según el tamaño del logo */
+                background-size: cover;
             }
-            
 
             /*!sc*/
             .jCFvZw .sc-11eee2bc-0 {
@@ -4813,4 +4809,19 @@ Atribute style {
     color: black;
     text-decoration: none;
     cursor: pointer;
+}
+
+/* Asegura que el contenedor usa flexbox para organizar bien los elementos */
+.TabGroup__Container-sc-1k1eo94-0.eIWsfq {
+    display: flex;
+    align-items: center; /* Alinea verticalmente */
+    justify-content: flex-start; /* Alinea a la izquierda */
+    padding: 10px 20px; /* Márgenes internos */
+}
+
+/* Ajusta el logo */
+.TabGroup__Container-sc-1k1eo94-0.eIWsfq img {
+    margin-left: 10px; /* Espacio desde el borde izquierdo */
+    max-width: 150px; /* Tamaño máximo del logo */
+    height: auto;
 }
