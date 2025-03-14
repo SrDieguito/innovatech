@@ -3,37 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administración de Usuarios</title>
-</head>
+    <title>Panel de Administración</title>
     <link rel="stylesheet" href="/css/admin.css">
+</head>
 <body>
-
-    <h2>Usuarios Pendientes</h2>
-    <div id="pendiente">
-        <!-- Aquí se insertarán los usuarios -->
-    </div>
-
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#usuarios" class="active" onclick="mostrarUsuarios('pendiente')">Usuarios</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section id="usuarios">
+            <h2>Usuarios</h2>
+            <div class="filtros">
+                <button onclick="obtenerUsuarios('pendiente')">Pendientes</button>
+                <button onclick="obtenerUsuarios('aprobado')">Aprobados</button>
+                <button onclick="obtenerUsuarios('rechazado')">Rechazados</button>
+            </div>
+            <div id="contenedor-usuarios">
+                <!-- Aquí se insertarán los usuarios dinámicamente -->
+            </div>
+        </section>
+    </main>
+    
     <script>
         async function obtenerUsuarios(estado) {
             try {
                 const response = await fetch(`/api/admin?estado=${estado}`);
                 const data = await response.json();
-
-                const contenedor = document.getElementById(estado);
-                if (!contenedor) {
-                    console.error(`Error: No se encontró el contenedor con ID '${estado}'`);
-                    return;
-                }
-
+                const contenedor = document.getElementById("contenedor-usuarios");
+                if (!contenedor) return;
                 contenedor.innerHTML = "";
-
-                if (data.length === 0) {
-                    contenedor.innerHTML = "<p>No hay usuarios pendientes.</p>";
-                    return;
-                }
-
+                
                 data.forEach(usuario => {
                     const div = document.createElement("div");
+                    div.classList.add("usuario-card");
                     div.innerHTML = `
                         <h3>${usuario.nombre}</h3>
                         <p><strong>Email:</strong> ${usuario.email}</p>
@@ -64,6 +71,5 @@
             obtenerUsuarios("pendiente");
         });
     </script>
-
 </body>
 </html>

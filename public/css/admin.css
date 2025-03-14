@@ -1,46 +1,85 @@
-/* public/css/admin.css */
-
 body {
     font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
-    color: #333;
     margin: 0;
     padding: 0;
+    background-color: #f4f4f4;
 }
 
-h2 {
-    text-align: center;
-    color: #00983d;
-    margin-top: 20px;
-}
-
-#pendiente {
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 20px;
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-div[id^="usuario-"] {
-    padding: 15px;
-    margin: 10px 0;
-    background: #f1f1f1;
-    border-radius: 5px;
-}
-
-button {
+header {
     background-color: #00983d;
-    color: #ffffff;
-    border: none;
-    padding: 8px 12px;
-    margin-right: 5px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.3s;
+    padding: 10px 20px;
+    color: white;
+    text-align: center;
 }
 
-button:hover {
-    background-color: #00702d;
+nav ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+
+nav ul li {
+    margin: 0 15px;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+nav ul li a.active {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.filtros {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.filtros button {
+    background-color: #00983d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.filtros button:hover {
+    background-color: #007a2e;
+}
+
+#contenedor-usuarios {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+}
+
+.usuario-card {
+    background: white;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 250px;
+    text-align: center;
+}
+
+.usuario-card button {
+    background-color: #00983d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.usuario-card button:hover {
+    background-color: #007a2e;
 }
