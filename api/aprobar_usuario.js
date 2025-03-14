@@ -1,7 +1,7 @@
 import express from "express";
 import mysql from "mysql2/promise";
 import nodemailer from "nodemailer";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import crypto from "crypto";
 

@@ -1,7 +1,7 @@
 import express from "express";
 import mysql from "mysql2/promise";
 import session from "express-session";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
