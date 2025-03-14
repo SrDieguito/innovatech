@@ -71,13 +71,59 @@ export default async function handler(req, res) {
       },
     });
 
-    // Enviar correo de confirmación
-    await transporter.sendMail({
-      from: `"UTM 2024" <${process.env.EMAIL_USER}>`,
-      to: "srdieguit@gmail.com",
-      subject: "Nuevo registro de usuario",
-      html: `<p>El usuario ${nombre} (${email}) ha solicitado registrarse.</p>`,
-    });
+// Enviar correo de confirmación
+await transporter.sendMail({
+  from: `"UTM 2024" <${process.env.EMAIL_USER}>`,
+  to: "srdieguit@gmail.com",
+  subject: "Nuevo registro de usuario",
+  html: `
+    <table width="100%" cellspacing="0" cellpadding="0" style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; text-align: center;">
+        <tr>
+            <td align="center">
+                <table width="600px" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); text-align: center;">
+                    <!-- Encabezado -->
+                    <tr>
+                        <td align="center" style="padding: 10px;">
+                            <img src="https://innovatech-eosin.vercel.app/imagenes/logo.png" alt="Logo" width="150">
+                            <h2 style="color: #00983d; margin: 10px 0;">Nueva solicitud de registro</h2>
+                        </td>
+                    </tr>
+                    
+                    <!-- Contenido del correo -->
+                    <tr>
+                        <td style="padding: 20px; color: #333;">
+                            <p style="font-size: 16px; margin-bottom: 20px;">
+                                <strong>${nombre}</strong> (<a href="mailto:${email}" style="color: #00983d; text-decoration: none;">${email}</a>) ha solicitado registrarse en la plataforma.
+                            </p>
+                            <p style="font-size: 14px; color: #777;">
+                                Por favor, revisa y aprueba la solicitud si corresponde.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Botón de acción -->
+                    <tr>
+                        <td align="center" style="padding: 20px;">
+                            <a href="https://innovatech-eosin.vercel.app/auth/login.html" 
+                                style="background-color: #00983d; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 5px; font-size: 16px; display: inline-block;">
+                                Revisar solicitud
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Pie de página -->
+                    <tr>
+                        <td align="center" style="padding: 10px; font-size: 12px; color: #777;">
+                            © 2025 Innovatech. Todos los derechos reservados.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+  `,
+});
+
 
     return res.status(200).json({ message: "Registro enviado correctamente" });
 
