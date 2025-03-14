@@ -75,7 +75,7 @@
             }
 
             try {
-                await fetch(`/api/reject-user`, {
+                await fetch(`/api/rechazar_usuario`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ user_id: id, rejection_reason: motivo })
