@@ -28,7 +28,16 @@
             </div>
         </section>
     </main>
-    
+
+    <!-- Modal para la descripción -->
+    <div id="modalDescripcion" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <h3>Descripción del Usuario</h3>
+            <p id="descripcionUsuario"></p>
+        </div>
+    </div>
+
     <script>
         async function obtenerUsuarios(estado) {
             try {
@@ -44,7 +53,7 @@
                     div.innerHTML = `
                         <h3>${usuario.nombre}</h3>
                         <p><strong>Email:</strong> ${usuario.email}</p>
-                        <p><strong>Descripción:</strong> ${usuario.descripcion || "Sin descripción"}</p>
+                        <button onclick="verDescripcion('${usuario.descripcion || "Sin descripción"}')">Ver Descripción</button>
                         <div class="botones">
                             <button class="btn-aprobar" onclick="actualizarEstado(${usuario.id}, 'aprobar')">Aprobar</button>
                             <button class="btn-rechazar" onclick="rechazarUsuario(${usuario.id})">Rechazar</button>
@@ -55,6 +64,15 @@
             } catch (error) {
                 console.error("Error obteniendo usuarios:", error);
             }
+        }
+
+        function verDescripcion(descripcion) {
+            document.getElementById("descripcionUsuario").textContent = descripcion;
+            document.getElementById("modalDescripcion").style.display = "block";
+        }
+
+        function cerrarModal() {
+            document.getElementById("modalDescripcion").style.display = "none";
         }
 
         async function actualizarEstado(id, accion) {
