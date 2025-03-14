@@ -37,25 +37,26 @@
                 document.getElementById("error-message").textContent = decodeURIComponent(errorMessage);
                 document.getElementById("error-message").style.display = "block";
             }
-
+    
             // Manejo del formulario de login
             document.getElementById("loginForm").addEventListener("submit", async function (event) {
                 event.preventDefault();
-
+    
                 const email = document.getElementById("email").value;
                 const password = document.getElementById("password").value;
-
+    
                 try {
                     const response = await fetch("/api/procesarlogin", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
+                        credentials: "include", // Para incluir cookies en la petición
                         body: JSON.stringify({ email, password }),
                     });
-
+    
                     const result = await response.json();
                     
                     if (response.ok) {
-                        window.location.href = "/admin.html"; // Redirigir si el login es exitoso
+                        window.location.href = result.redirect; // Ahora redirige correctamente según el rol
                     } else {
                         document.getElementById("error-message").textContent = result.error;
                         document.getElementById("error-message").style.display = "block";
@@ -67,5 +68,6 @@
             });
         });
     </script>
+    
 </body>
 </html>

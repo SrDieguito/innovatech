@@ -42,7 +42,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
             try {
-                const response = await fetch('/api/verificarSesion'); // Verifica si hay sesión activa
+                const response = await fetch('/api/verificarSesion', { credentials: "include" }); // Incluir cookies
                 const data = await response.json();
 
                 if (!data.autenticado) {
@@ -59,7 +59,7 @@
 
         async function obtenerUsuarios(estado) {
             try {
-                const response = await fetch(`/api/admin?estado=${estado}`);
+                const response = await fetch(`/api/admin?estado=${estado}`, { credentials: "include" });
                 const data = await response.json();
                 const contenedor = document.getElementById("contenedor-usuarios");
                 if (!contenedor) return;
@@ -98,6 +98,7 @@
                 await fetch(`/api/admin`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: "include",
                     body: JSON.stringify({ id, accion })
                 });
                 obtenerUsuarios("pendiente");
@@ -117,6 +118,7 @@
                 await fetch(`/api/rechazar_usuario`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: "include",
                     body: JSON.stringify({ user_id: id, rejection_reason: motivo })
                 });
                 alert("Usuario rechazado correctamente.");
@@ -128,11 +130,15 @@
 
         document.getElementById("cerrar-sesion").addEventListener("click", function() {
             if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
-                fetch('/api/logout', { method: 'POST' }) // Si tienes un endpoint para cerrar sesión
-                    .then(() => {
-                        window.location.href = "/auth/login.html"; // Redirige al login
-                    })
-                    .catch(error => console.error("Error al cerrar sesión:", error));
+                fetch('/api/logout', { 
+                    method: 'POST',
+                    credentials: "include"
+                })
+                .then(() => {
+                    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"; // Elimina la cookie
+                    window.location.href = "/auth/login.html"; // Redirige al login
+                })
+                .catch(error => console.error("Error al cerrar sesión:", error));
             }
         });
     </script>
