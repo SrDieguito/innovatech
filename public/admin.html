@@ -112,6 +112,17 @@
         document.addEventListener("DOMContentLoaded", () => {
             obtenerUsuarios("pendiente");
         });
+
+        document.getElementById("cerrar-sesion").addEventListener("click", function() {
+    if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
+        fetch('/api/logout', { method: 'POST' }) // Si tienes un endpoint para cerrar sesión
+            .then(() => {
+                window.location.href = "/auth/login.html"; // Redirige al login
+            })
+            .catch(error => console.error("Error al cerrar sesión:", error));
+    }
+});
+
     </script>
 </body>
 </html>
