@@ -4430,8 +4430,12 @@ p {
             .jCFvZw {
                 background-image: url("img/UTM-logo2.png");
                 background-repeat: no-repeat;
-                background-size: cover;
+                background-size: contain; /* Ajusta sin recortar */
+                background-position: left top; /* La mueve a la esquina superior izquierda */
+                padding-left: 50px; /* Ajusta margen interno si hay contenido */
+                height: 100px; /* Ajusta la altura según el tamaño del logo */
             }
+            
 
             /*!sc*/
             .jCFvZw .sc-11eee2bc-0 {
