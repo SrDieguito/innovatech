@@ -10,7 +10,7 @@
     <header>
         <nav>
             <ul>
-                <li><a href="#usuarios" class="active" onclick="mostrarUsuarios('pendiente')">Usuarios</a></li>
+                <li><a href="#usuarios" class="active" onclick="obtenerUsuarios('pendiente')">Usuarios</a></li>
             </ul>
         </nav>
     </header>
@@ -37,7 +37,7 @@
                 const contenedor = document.getElementById("contenedor-usuarios");
                 if (!contenedor) return;
                 contenedor.innerHTML = "";
-                
+
                 data.forEach(usuario => {
                     const div = document.createElement("div");
                     div.classList.add("usuario-card");
@@ -45,7 +45,7 @@
                         <h3>${usuario.nombre}</h3>
                         <p><strong>Email:</strong> ${usuario.email}</p>
                         <button onclick="actualizarEstado(${usuario.id}, 'aprobar')">Aprobar</button>
-                        <button onclick="actualizarEstado(${usuario.id}, 'rechazar')">Rechazar</button>
+                        <button onclick="rechazarUsuario(${usuario.id})">Rechazar</button>
                     `;
                     contenedor.appendChild(div);
                 });
@@ -64,6 +64,26 @@
                 obtenerUsuarios("pendiente");
             } catch (error) {
                 console.error(`Error al ${accion} usuario:`, error);
+            }
+        }
+
+        async function rechazarUsuario(id) {
+            const motivo = prompt("Ingrese el motivo del rechazo:");
+            if (!motivo) {
+                alert("Debe ingresar un motivo para rechazar al usuario.");
+                return;
+            }
+
+            try {
+                await fetch(`/api/reject-user`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: id, rejection_reason: motivo })
+                });
+                alert("Usuario rechazado correctamente.");
+                obtenerUsuarios("pendiente");
+            } catch (error) {
+                console.error("Error al rechazar usuario:", error);
             }
         }
 
