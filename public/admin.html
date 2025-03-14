@@ -40,22 +40,24 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            try {
-                const response = await fetch('/api/verificarSesion', { credentials: "include" }); // Incluir cookies
-                const data = await response.json();
+        
+       document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const response = await fetch('/api/verificarSesion', { credentials: "include" }); // Incluye cookies
+        const data = await response.json();
 
-                if (!data.autenticado) {
-                    window.location.href = "/auth/login.html"; // Si no hay sesión, redirige
-                } else {
-                    document.body.style.display = "block"; // Muestra la página solo si está autenticado
-                    obtenerUsuarios("pendiente"); // Cargar usuarios
-                }
-            } catch (error) {
-                console.error("Error verificando sesión:", error);
-                window.location.href = "/auth/login.html"; // Redirige en caso de error
-            }
-        });
+        if (!data.autenticado) {
+            window.location.href = "/auth/login.html"; // Si no hay sesión, redirige
+        } else {
+            document.body.style.display = "block"; // Muestra la página solo si está autenticado
+            obtenerUsuarios("pendiente"); // Cargar usuarios
+        }
+    } catch (error) {
+        console.error("Error verificando sesión:", error);
+        window.location.href = "/auth/login.html"; // Redirige en caso de error
+    }
+});
+
 
         async function obtenerUsuarios(estado) {
             try {
