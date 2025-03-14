@@ -55,59 +55,63 @@ nav ul li a.active {
 
 #contenedor-usuarios {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 15px;
-    padding: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
     justify-content: center;
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
 }
 
 .usuario-card {
     background: white;
     padding: 15px;
-    border-radius: 10px;
+    border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     text-align: center;
-    border: 2px solid #00983d;
+    height: 100%;
+    min-height: 180px;
 }
 
 .usuario-card h3 {
-    color: #00983d;
-    margin-bottom: 5px;
+    margin: 10px 0;
+    font-size: 18px;
 }
 
 .usuario-card p {
     font-size: 14px;
-    color: #333;
-    margin-bottom: 10px;
+    color: #555;
 }
 
-.botones {
+.usuario-card .botones {
+    margin-top: auto;
     display: flex;
     justify-content: space-between;
-    margin-top: 10px;
 }
 
-.btn-aprobar, .btn-rechazar {
+.usuario-card button {
+    background-color: #00983d;
     color: white;
     border: none;
     padding: 8px 12px;
-    border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
+    flex: 1;
+    margin: 5px;
+    border-radius: 5px;
 }
 
-.btn-aprobar {
-    background: #00983d;
+.usuario-card button:hover {
+    background-color: #007a2e;
 }
 
-.btn-rechazar {
-    background: red;
+.usuario-card button.rechazar {
+    background-color: #d9534f;
 }
 
-.btn-aprobar:hover {
-    background: #007a2e;
-}
-
-.btn-rechazar:hover {
-    background: darkred;
+.usuario-card button.rechazar:hover {
+    background-color: #c9302c;
 }
