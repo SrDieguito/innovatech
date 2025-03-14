@@ -3346,7 +3346,16 @@ p {
 
             /*!sc*/
             data-styled.g188[id="TabGroup__Container-sc-1k1eo94-0"] {
-                content: "eIWsfq,"
+                display: flex;
+                align-items: center; /* Alinea verticalmente */
+                justify-content: flex-start; /* Alinea los elementos a la izquierda */
+                padding: 10px 20px; /* Márgenes internos */            
+            }
+
+            #TabGroup__Container-sc-1k1eo94-0 img {
+                margin-left: 10px; /* Espacio desde el borde izquierdo */
+                max-width: 150px; /* Tamaño máximo del logo */
+                height: auto;
             }
 
             /*!sc*/
