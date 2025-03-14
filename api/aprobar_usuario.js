@@ -1,14 +1,15 @@
 import express from "express";
 import mysql from "mysql2/promise";
 import nodemailer from "nodemailer";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 const app = express();
-app.use(express.json()); // Asegurar que el servidor acepte JSON
+app.use(express.json());
 
-// Configuración de la base de datos (usando pool)
+// Configuración de la base de datos
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -20,19 +21,21 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Ruta para aprobar usuarios y enviar correo
+// Ruta para aprobar usuarios
 app.post('/api/aprobar_usuario', async (req, res) => {
     const { user_id } = req.body;
-    if (!user_id) {
-        return res.status(400).json({ error: 'ID de usuario requerido' });
+
+    // Validar que user_id sea un número
+    if (!user_id || isNaN(user_id)) {
+        return res.status(400).json({ error: 'ID de usuario inválido' });
     }
 
     let connection;
     try {
         connection = await pool.getConnection();
 
-        // Generar contraseña aleatoria y encriptarla
-        const passwordRandom = Math.random().toString(36).slice(-8);
+        // Generar contraseña segura
+        const passwordRandom = crypto.randomBytes(4).toString("hex"); // 8 caracteres aleatorios
         const hashedPassword = await bcrypt.hash(passwordRandom, 10);
         const defaultImage = 'imagenes/default.png';
         const fechaActual = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -46,11 +49,15 @@ app.post('/api/aprobar_usuario', async (req, res) => {
         );
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Usuario no encontrado o no se pudo actualizar' });
+            return res.status(404).json({ error: 'Usuario no encontrado o ya aprobado' });
         }
 
-        // Obtener el email del usuario
-        const [rows] = await connection.execute('SELECT email, nombre FROM usuarios WHERE id = ?', [user_id]);
+        // Obtener el email y nombre del usuario
+        const [rows] = await connection.execute(
+            'SELECT email, nombre FROM usuarios WHERE id = ?', 
+            [user_id]
+        );
+
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
@@ -75,15 +82,12 @@ app.post('/api/aprobar_usuario', async (req, res) => {
                 <tr>
                     <td align="center">
                         <table width="600px" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); text-align: center;">
-                            <!-- Encabezado -->
                             <tr>
                                 <td align="center" style="padding: 10px;">
                                     <img src="https://innovatech-eosin.vercel.app/imagenes/logo.png" alt="Logo" width="150">
                                     <h2 style="color: #00983d; margin: 10px 0;">¡Tu cuenta ha sido aprobada!</h2>
                                 </td>
                             </tr>
-    
-                            <!-- Contenido del correo -->
                             <tr>
                                 <td style="padding: 20px; color: #333; text-align: left;">
                                     <p style="font-size: 16px; margin-bottom: 20px;">
@@ -98,8 +102,6 @@ app.post('/api/aprobar_usuario', async (req, res) => {
                                     </p>
                                 </td>
                             </tr>
-    
-                            <!-- Botón de acceso -->
                             <tr>
                                 <td align="center" style="padding: 20px;">
                                     <a href="https://innovatech-eosin.vercel.app/auth/login.html" 
@@ -108,8 +110,6 @@ app.post('/api/aprobar_usuario', async (req, res) => {
                                     </a>
                                 </td>
                             </tr>
-    
-                            <!-- Pie de página -->
                             <tr>
                                 <td align="center" style="padding: 10px; font-size: 12px; color: #777;">
                                     © 2025 Innovatech. Todos los derechos reservados.
@@ -130,7 +130,7 @@ app.post('/api/aprobar_usuario', async (req, res) => {
         console.error('Error:', error);
         res.status(500).json({ error: 'Error interno', details: error.message });
     } finally {
-        if (connection) connection.release(); // Liberar conexión siempre
+        if (connection) connection.release();
     }
 });
 
