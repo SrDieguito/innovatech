@@ -1,66 +1,42 @@
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
+import mysql from "mysql2/promise";
+import dotenv from "dotenv";
 
-const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+dotenv.config();
 
-// Servir archivos estáticos correctamente
-app.use(express.static("public"));
-
-// Middleware para procesar datos del formulario
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json()); // 👈 Agregado para manejar JSON en req.body
-
-// Ruta para rechazar usuarios
-app.get("/reject-user", (req, res) => {
-    const userId = req.query.id;
-    if (!userId || isNaN(userId)) {
-        return res.status(400).send("Error: ID de usuario no válido.");
-    }
-
-    res.send(`<!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Rechazar Usuario - UTM 2024</title>
-        <link rel="stylesheet" href="/css/admin.css">
-    </head>
-    <body>
-        <header>
-            <h1>Rechazar Usuario</h1>
-            <nav>
-                <a href="/" class="btn-back">Regresar al Panel</a>
-            </nav>
-        </header>
-        <main>
-            <h2>Motivo del Rechazo</h2>
-            <form action="/api/process-rejection" method="post">
-                <input type="hidden" name="user_id" value="${userId}">
-                <label for="rejection_reason">Motivo del rechazo:</label>
-                <textarea id="rejection_reason" name="rejection_reason" rows="4" required></textarea>
-                <button type="submit" class="btn-reject">Enviar Rechazo</button>
-            </form>
-        </main>
-    </body>
-    </html>`);
-});
+// Configuración de la base de datos
+const dbConfig = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT,
+};
 
 // Ruta para procesar el rechazo del usuario
-app.post("/api/process-rejection", (req, res) => {
+app.post("/api/process-rejection", async (req, res) => {
     const { user_id, rejection_reason } = req.body;
 
     if (!user_id || !rejection_reason) {
         return res.status(400).json({ error: "Faltan datos en la solicitud" });
     }
 
-    console.log(`Usuario ${user_id} rechazado por: ${rejection_reason}`);
-    
-    // Redirigir correctamente a la interfaz del administrador
-    res.redirect("/admin/admin.html?status=rejected"); // 👈 Arreglado
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        
+        // ✅ **Actualizar la base de datos con el motivo del rechazo**
+        await connection.execute(
+            "UPDATE usuarios SET estado = ?, motivo_rechazo = ?, fecha_actualizacion = NOW() WHERE id = ?",
+            ["rechazado", rejection_reason, user_id]
+        );
+        
+        await connection.end();
+        
+        console.log(`✅ Usuario ${user_id} rechazado con motivo: ${rejection_reason}`);
+        
+        // Redirigir correctamente a la interfaz del administrador
+        res.redirect("/admin/admin.html?status=rejected");
+    } catch (error) {
+        console.error("❌ Error al actualizar el usuario:", error);
+        res.status(500).json({ error: "Error en el servidor" });
+    }
 });
-
-// Exportar la app para Vercel
-export default app;
