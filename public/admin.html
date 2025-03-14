@@ -66,10 +66,10 @@
             }
         }
 
-        function verDescripcion(descripcion) {
-            document.getElementById("descripcionUsuario").textContent = descripcion;
-            document.getElementById("modalDescripcion").style.display = "block";
-        }
+        function verDescripcion(button) {
+        const descripcion = decodeURIComponent(button.getAttribute("data-desc"));
+        alert(descripcion);
+}
 
         function cerrarModal() {
             document.getElementById("modalDescripcion").style.display = "none";
