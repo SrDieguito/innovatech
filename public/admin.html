@@ -23,7 +23,7 @@
                 <button onclick="obtenerUsuarios('aprobado')">Aprobados</button>
                 <button onclick="obtenerUsuarios('rechazado')">Rechazados</button>
             </div>
-            <div id="contenedor-usuarios">
+            <div id="contenedor-usuarios" class="usuarios-grid">
                 <!-- Aquí se insertarán los usuarios dinámicamente -->
             </div>
         </section>
@@ -44,8 +44,11 @@
                     div.innerHTML = `
                         <h3>${usuario.nombre}</h3>
                         <p><strong>Email:</strong> ${usuario.email}</p>
-                        <button onclick="actualizarEstado(${usuario.id}, 'aprobar')">Aprobar</button>
-                        <button onclick="rechazarUsuario(${usuario.id})">Rechazar</button>
+                        <p><strong>Descripción:</strong> ${usuario.descripcion || "Sin descripción"}</p>
+                        <div class="botones">
+                            <button class="btn-aprobar" onclick="actualizarEstado(${usuario.id}, 'aprobar')">Aprobar</button>
+                            <button class="btn-rechazar" onclick="rechazarUsuario(${usuario.id})">Rechazar</button>
+                        </div>
                     `;
                     contenedor.appendChild(div);
                 });

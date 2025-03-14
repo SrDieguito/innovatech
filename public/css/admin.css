@@ -54,32 +54,60 @@ nav ul li a.active {
 }
 
 #contenedor-usuarios {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
     padding: 20px;
+    justify-content: center;
 }
 
 .usuario-card {
     background: white;
     padding: 15px;
-    margin: 10px;
-    border-radius: 5px;
+    border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 250px;
     text-align: center;
+    border: 2px solid #00983d;
 }
 
-.usuario-card button {
-    background-color: #00983d;
+.usuario-card h3 {
+    color: #00983d;
+    margin-bottom: 5px;
+}
+
+.usuario-card p {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.botones {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.btn-aprobar, .btn-rechazar {
     color: white;
     border: none;
-    padding: 5px 10px;
-    margin: 5px;
+    padding: 8px 12px;
+    border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
 }
 
-.usuario-card button:hover {
-    background-color: #007a2e;
+.btn-aprobar {
+    background: #00983d;
+}
+
+.btn-rechazar {
+    background: red;
+}
+
+.btn-aprobar:hover {
+    background: #007a2e;
+}
+
+.btn-rechazar:hover {
+    background: darkred;
 }
