@@ -18,7 +18,6 @@
     
     <main>
         <section id="usuarios">
-            <h2>Usuarios</h2>
             <div class="filtros">
                 <button onclick="obtenerUsuarios('pendiente')">Pendientes</button>
                 <button onclick="obtenerUsuarios('aprobado')">Aprobados</button>
@@ -28,26 +27,18 @@
         </section>
     </main>
 
-    <!-- Modal para la descripción -->
-    <div id="modalDescripcion" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModal()">&times;</span>
-            <h3>Descripción del Usuario</h3>
-            <p id="descripcionUsuario"></p>
-        </div>
-    </div>
-
     <script>
-       document.addEventListener("DOMContentLoaded", async () => {
+        document.addEventListener("DOMContentLoaded", async () => {
             try {
                 const response = await fetch('/api/verificarSesion', { credentials: "include" });
-                const data = await response.json();
+                if (!response.ok) throw new Error("Error verificando sesión");
 
+                const data = await response.json();
                 if (!data.autenticado) {
-                    window.location.href = "/auth/login.html"; // Redirige si no está autenticado
+                    window.location.href = "/auth/login.html";
                 } else {
-                    document.body.style.display = "block"; // Muestra la página si está autenticado
-                    obtenerUsuarios("pendiente"); // Cargar usuarios
+                    document.body.style.display = "block";
+                    obtenerUsuarios("pendiente");
                 }
             } catch (error) {
                 console.error("Error verificando sesión:", error);
@@ -65,15 +56,20 @@
                 if (!contenedor) return;
                 contenedor.innerHTML = "";
 
+                if (data.length === 0) {
+                    contenedor.innerHTML = `<p>No hay usuarios en este estado.</p>`;
+                    return;
+                }
+
                 data.forEach(usuario => {
                     const div = document.createElement("div");
                     div.classList.add("usuario-card");
                     div.innerHTML = `
                         <h3>${usuario.nombre}</h3>
                         <p><strong>Email:</strong> ${usuario.email}</p>
-                        <button onclick="verDescripcion(this)" data-desc="${encodeURIComponent(usuario.descripcion || "Sin descripción")}">Ver Descripción</button>
+                        <button onclick="verDescripcion(this)" data-desc="${encodeURIComponent(usuario.descripcion || 'Sin descripción')}">Ver Descripción</button>
                         <div class="botones">
-                            <button class="btn-aprobar" onclick="actualizarEstado(${usuario.id}, 'aprobar')">Aprobar</button>
+                            <button class="btn-aprobar" onclick="aprobarUsuario(${usuario.id})">Aprobar</button>
                             <button class="btn-rechazar" onclick="rechazarUsuario(${usuario.id})">Rechazar</button>
                         </div>
                     `;
@@ -89,23 +85,22 @@
             alert(descripcion);
         }
 
-        function cerrarModal() {
-            document.getElementById("modalDescripcion").style.display = "none";
-        }
-
-        async function actualizarEstado(id, accion) {
+        async function aprobarUsuario(id) {
             try {
-                const response = await fetch(`/api/admin`, {
+                const response = await fetch(`/api/aprobar_usuario`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
-                    body: JSON.stringify({ id, accion })
+                    body: JSON.stringify({ user_id: id })
                 });
-                if (!response.ok) throw new Error(`Error al ${accion} usuario`);
-                
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Error aprobando usuario");
+
+                alert("Usuario aprobado correctamente y correo enviado.");
                 obtenerUsuarios("pendiente");
             } catch (error) {
-                console.error(`Error al ${accion} usuario:`, error);
+                console.error("Error al aprobar usuario:", error);
             }
         }
 
@@ -123,6 +118,7 @@
                     credentials: "include",
                     body: JSON.stringify({ user_id: id, rejection_reason: motivo })
                 });
+
                 if (!response.ok) throw new Error("Error al rechazar usuario");
 
                 alert("Usuario rechazado correctamente.");
@@ -132,19 +128,21 @@
             }
         }
 
-        document.getElementById("cerrar-sesion").addEventListener("click", function() {
-            if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
-                fetch('/api/logout', { 
+        document.getElementById("cerrar-sesion").addEventListener("click", async function () {
+            if (!confirm("¿Estás seguro de que quieres cerrar sesión?")) return;
+
+            try {
+                const response = await fetch('/api/logout', {
                     method: 'POST',
                     credentials: "include"
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error("Error cerrando sesión");
-                    
-                    document.cookie = "user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=" + window.location.hostname + "; secure; SameSite=None";
-                    window.location.href = "/auth/login.html"; // Redirige al login
-                })
-                .catch(error => console.error("Error al cerrar sesión:", error));
+                });
+
+                if (!response.ok) throw new Error("Error cerrando sesión");
+
+                document.cookie = "user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=" + window.location.hostname + "; secure; SameSite=None";
+                window.location.href = "/auth/login.html";
+            } catch (error) {
+                console.error("Error al cerrar sesión:", error);
             }
         });
     </script>
