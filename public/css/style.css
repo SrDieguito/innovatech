@@ -4810,18 +4810,3 @@ Atribute style {
     text-decoration: none;
     cursor: pointer;
 }
-
-/* Asegura que el contenedor usa flexbox para organizar bien los elementos */
-.TabGroup__Container-sc-1k1eo94-0.eIWsfq {
-    display: flex;
-    align-items: center; /* Alinea verticalmente */
-    justify-content: flex-start; /* Alinea a la izquierda */
-    padding: 10px 20px; /* Márgenes internos */
-}
-
-/* Ajusta el logo */
-.TabGroup__Container-sc-1k1eo94-0.eIWsfq img {
-    margin-left: 10px; /* Espacio desde el borde izquierdo */
-    max-width: 150px; /* Tamaño máximo del logo */
-    height: auto;
-}
