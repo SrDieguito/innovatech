@@ -40,6 +40,23 @@
     </div>
 
     <script>
+
+            document.addEventListener("DOMContentLoaded", () => {
+        fetch('/api/verificarSesion') // Llama al endpoint que verifica si hay sesión activa
+            .then(response => response.json())
+            .then(data => {
+                if (!data.autenticado) {
+                    window.location.href = "/auth/login.html"; // Redirige al login si no está autenticado
+                } else {
+                    obtenerUsuarios("pendiente"); // Cargar usuarios solo si está autenticado
+                }
+            })
+            .catch(error => {
+                console.error("Error verificando sesión:", error);
+                window.location.href = "/auth/login.html"; // En caso de error, también redirige
+            });
+            
+    });
         async function obtenerUsuarios(estado) {
             try {
                 const response = await fetch(`/api/admin?estado=${estado}`);
