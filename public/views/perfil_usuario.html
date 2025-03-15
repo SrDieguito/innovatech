@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - UTM 2024</title>
+    <link rel="stylesheet" href="/css/perfil.css">
+</head>
+<body>
+    <header class="profile-header">
+        <a href="explorar_perfiles.html" class="btn-custom">Inicio</a>
+        <div class="nav-link dropdown">
+            <button class="dropbtn">Configuración</button>
+            <div class="dropdown-content">
+                <a href="#" id="open-password-modal">Actualizar Contraseña</a>
+                <a href="editar_perfil.html">Editar Perfil</a>
+                <a href="#" id="logout">Cerrar sesión</a>
+            </div>
+        </div>
+    </header>
+    
+    <div class="profile-container">
+        <div class="banner-container">
+            <img id="banner" alt="Banner" class="banner-image">
+            <div class="profile-image-container">
+                <img id="imagen_perfil" alt="Imagen de perfil" class="profile-image">
+            </div>
+        </div>
+        <div class="profile-info">
+            <h2 id="nombre"></h2>
+        </div>
+        <div class="description-container">
+            <p id="descripcion" class="description"></p>
+        </div>
+        <div class="additional-info">
+            <h3>Información Adicional</h3>
+            <p><strong>Gmail:</strong> <span id="email"></span></p>
+            <p><strong>Teléfono:</strong> <span id="telefono"></span></p>
+            <p><strong>Organización:</strong> <span id="organizacion"></span></p>
+            <p><strong>Perfil:</strong> <span id="perfil"></span></p>
+            <p><strong>Ubicación:</strong> <span id="ubicacion"></span></p>
+            <p><strong>Fase:</strong> <span id="fase"></span></p>
+            <p><strong>Deck:</strong> <span id="deck"></span></p>
+            <p><strong>Procedencia:</strong> <span id="procedencia"></span></p>
+            <p><strong>Campo de Acción:</strong> <span id="campo_accion"></span></p>
+        </div>
+    </div>
+
+    <script src="/js/perfil_usuario.js"></script>
+</body>
+</html>

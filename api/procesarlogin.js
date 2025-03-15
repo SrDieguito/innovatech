@@ -52,7 +52,7 @@ app.post("/api/procesarlogin", async (req, res) => {
             path: "/"
         }));
 
-        return res.json({ redirect: user.rol === "admin" ? "/admin.html" : "/views/perfil_usuario.html" });
+        return res.json({ redirect: user.rol === "admin" ? "/admin.html" : "/public/views/perfil_usuario.html" });
     } catch (error) {
         console.error("Error en el servidor:", error);
         return res.status(500).json({ error: "Error en el servidor" });
