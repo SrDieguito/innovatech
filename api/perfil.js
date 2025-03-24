@@ -18,14 +18,13 @@ const pool = mysql.createPool({
 // Middleware para autenticación
 const authMiddleware = async (req, res, next) => {
   if (!req.cookies || !req.cookies.user_id) {
-      return res.status(401).json({ message: 'No autorizado' });
+    return res.status(401).json({ message: 'No autorizado' });
   }
-  req.user_id = req.cookies.user_id; // Asignamos user_id manualmente
+  req.user_id = req.cookies.user_id; // 🔥 Asignamos user_id manualmente
   next();
 };
 
-
-// Obtener perfil del usuario
+// ✅ Obtener perfil del usuario
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -33,8 +32,8 @@ router.get('/', authMiddleware, async (req, res) => {
       cedula_ruc_pasaporte, ubicacion, fase, deck, descripcion, 
       imagen_perfil, banner, campo_accion, organizacion 
       FROM usuarios WHERE id = ?`, 
-      [req.user_id]
-  );  
+      [req.user_id] // 🔥 Usamos req.user_id
+    );
 
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -47,13 +46,13 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Actualizar descripción del usuario
+// ✅ Actualizar descripción del usuario
 router.put('/descripcion', authMiddleware, async (req, res) => {
   const { description } = req.body;
   try {
     await pool.query(
       `UPDATE usuarios SET descripcion = ? WHERE id = ?`,
-      [description, req.session.user_id]
+      [description, req.user_id] // 🔥 Usamos req.user_id
     );
     res.json({ message: 'Descripción actualizada correctamente' });
   } catch (error) {
@@ -62,11 +61,11 @@ router.put('/descripcion', authMiddleware, async (req, res) => {
   }
 });
 
-// Configuración para subir imágenes con multer
+// ✅ Configuración para subir imágenes con multer
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Actualizar imagen de perfil
+// ✅ Actualizar imagen de perfil
 router.post('/imagen_perfil', authMiddleware, upload.single('profile_image'), async (req, res) => {
   try {
     if (!req.file) {
@@ -76,7 +75,7 @@ router.post('/imagen_perfil', authMiddleware, upload.single('profile_image'), as
     const imageUrl = `/imagenes/${req.file.originalname}`; // Simulación de URL de imagen
     await pool.query(
       `UPDATE usuarios SET imagen_perfil = ? WHERE id = ?`,
-      [imageUrl, req.session.user_id]
+      [imageUrl, req.user_id] // 🔥 Usamos req.user_id
     );
 
     res.json({ message: 'Imagen de perfil actualizada', imageUrl });
@@ -86,14 +85,14 @@ router.post('/imagen_perfil', authMiddleware, upload.single('profile_image'), as
   }
 });
 
-// Actualizar contraseña
+// ✅ Actualizar contraseña
 router.put('/password', authMiddleware, async (req, res) => {
   const { old_password, new_password } = req.body;
 
   try {
     const [rows] = await pool.query(
       `SELECT password FROM usuarios WHERE id = ?`,
-      [req.session.user_id]
+      [req.user_id] // 🔥 Usamos req.user_id
     );
 
     if (rows.length === 0) {
@@ -108,7 +107,7 @@ router.put('/password', authMiddleware, async (req, res) => {
     const hashedNewPassword = await bcrypt.hash(new_password, 10);
     await pool.query(
       `UPDATE usuarios SET password = ? WHERE id = ?`,
-      [hashedNewPassword, req.session.user_id]
+      [hashedNewPassword, req.user_id] // 🔥 Usamos req.user_id
     );
 
     res.json({ message: 'Contraseña actualizada correctamente' });
