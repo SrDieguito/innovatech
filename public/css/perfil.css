@@ -3,7 +3,7 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f9f9f9; /* Más claro para un look moderno */
+    background-color: #f9f9f9; /* Fondo claro para un look moderno */
     margin: 0;
     padding: 0;
     color: #333; /* Texto oscuro para mejor legibilidad */
@@ -52,17 +52,48 @@ body {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); /* Sombra más profunda */
 }
 
-/* Imagen de perfil */
+/* --- Banner estilo Facebook --- */
+.banner-container {
+    position: relative;
+    width: 100%;
+    height: 300px; /* Tamaño del banner */
+    overflow: hidden;
+    border-radius: 16px 16px 0 0; /* Esquinas superiores redondeadas */
+}
+
+.banner-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ajustar imagen manteniendo proporción */
+    filter: brightness(0.9); /* Oscurece ligeramente la imagen */
+}
+
+/* Difuminado en el banner */
+.banner-container::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 80px; /* Altura del difuminado */
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.9));
+}
+
+/* Imagen de perfil superpuesta */
 .profile-image-container {
-    text-align: center;
-    margin-bottom: 20px;
+    position: absolute;
+    bottom: -70px; /* Superpone la imagen sobre el banner */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10; /* Se asegura que esté por encima */
 }
 
 .profile-image {
     width: 140px;
     height: 140px;
     border-radius: 50%;
-    border: 4px solid #00983d;
+    border: 4px solid white; /* Borde blanco alrededor */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra suave */
     transition: transform 0.3s ease;
 }
 
@@ -75,7 +106,7 @@ body {
     text-align: center;
     font-size: 1.4em;
     font-weight: 400;
-    margin-bottom: 30px;
+    margin-top: 80px; /* Ajusta para evitar superposición */
     color: #555; /* Un gris más suave */
 }
 
@@ -94,7 +125,17 @@ body {
         flex-direction: column;
         text-align: center;
     }
+
     .profile-container {
         padding: 20px;
+    }
+
+    .banner-container {
+        height: 200px; /* Reducir tamaño del banner en pantallas pequeñas */
+    }
+
+    .profile-image {
+        width: 100px;
+        height: 100px; /* Imagen de perfil más pequeña en móvil */
     }
 }
