@@ -24,7 +24,7 @@ body {
 .banner-container {
     position: relative;
     width: 100%;
-    height: 360px; /* Ajustado para que cubra como en Facebook */
+    height: 360px; /* Tamaño ajustado a Facebook */
     overflow: hidden;
     border-radius: 8px 8px 0 0;
 }
@@ -56,15 +56,15 @@ body {
 /* Imagen de perfil estilo Facebook */
 .profile-image-container {
     position: absolute;
-    bottom: -80px; /* Ahora ocupa solo la mitad inferior de la portada */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 180px;
-    height: 180px;
+    bottom: -50px; /* Ahora está más abajo, como en Facebook */
+    left: 10%; /* Ajustado para que no esté en el centro */
+    width: 168px;
+    height: 168px;
     border-radius: 50%;
     overflow: hidden;
     border: 4px solid white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: white;
 }
 
 .profile-image {
@@ -75,8 +75,8 @@ body {
 
 /* Información del perfil */
 .profile-info {
-    text-align: center;
-    margin-top: 100px; /* Separación para que la imagen de perfil no lo tape */
+    text-align: left; /* Ajustado para alinear como Facebook */
+    margin-top: 50px; /* Ajustado para que no tape la imagen */
     padding: 20px;
 }
 
@@ -113,12 +113,13 @@ body {
     }
 
     .profile-image-container {
-        width: 140px;
-        height: 140px;
-        bottom: -60px;
+        width: 120px;
+        height: 120px;
+        bottom: -40px;
+        left: 5%;
     }
 
     .profile-info {
-        margin-top: 80px;
+        margin-top: 40px;
     }
 }
