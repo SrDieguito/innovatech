@@ -20,7 +20,7 @@
 
     <div class="profile-container">
         <div class="banner-container">
-            <img id="banner" src="/imagenes/" alt="Banner" class="banner-image">
+            <img id="banner" src="/public/imagenes/" alt="Banner" class="banner-image">
             <div class="profile-image-container">
                 <img id="profile-image" src="" alt="Imagen de perfil" class="profile-image">
             </div>
@@ -74,7 +74,7 @@
                 document.getElementById("user-organization").textContent = usuario.organizacion || "No especificada";
                 document.getElementById("user-location").textContent = usuario.ubicacion || "No especificada";
 
-                document.getElementById("profile-image").src = usuario.imagen_perfil || "/imagenes/default.png";
+                document.getElementById("profile-image").src = usuario.imagen_perfil || "public/imagenes/default.png";
                 document.getElementById("banner").src = usuario.banner || "/imagenes/default-banner.jpg";
 
             } catch (error) {
