@@ -3,28 +3,28 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f0f2f5; /* Color de fondo como Facebook */
+    background-color: #f0f2f5;
     margin: 0;
     padding: 0;
     color: #333;
     line-height: 1.6;
 }
 
-/* --- Contenedor del perfil --- */
+/* Contenedor del perfil */
 .profile-container {
     max-width: 940px;
-    margin: 40px auto;
+    margin: 0 auto;
     background: white;
-    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
-/* --- Banner estilo Facebook --- */
+/* Banner estilo Facebook */
 .banner-container {
     position: relative;
     width: 100%;
-    height: 320px;
+    height: 360px; /* Ajustado para que cubra como en Facebook */
     overflow: hidden;
     border-radius: 8px 8px 0 0;
 }
@@ -33,12 +33,6 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-/* Zoom en la portada */
-.banner-container:hover .banner-image {
-    transform: scale(1.03);
 }
 
 /* Botón de editar portada */
@@ -59,18 +53,18 @@ body {
     background: rgba(0, 0, 0, 0.8);
 }
 
-/* --- Imagen de perfil estilo Facebook --- */
+/* Imagen de perfil estilo Facebook */
 .profile-image-container {
     position: absolute;
-    bottom: -50px;
-    left: 20px;
-    width: 168px;
-    height: 168px;
+    bottom: -80px; /* Ahora ocupa solo la mitad inferior de la portada */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 180px;
+    height: 180px;
     border-radius: 50%;
     overflow: hidden;
-    border: 3px solid white;
+    border: 4px solid white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    background: white;
 }
 
 .profile-image {
@@ -79,11 +73,10 @@ body {
     object-fit: cover;
 }
 
-/* Nombre y botones */
+/* Información del perfil */
 .profile-info {
-    display: flex;
-    align-items: center;
-    margin-top: 60px;
+    text-align: center;
+    margin-top: 100px; /* Separación para que la imagen de perfil no lo tape */
     padding: 20px;
 }
 
@@ -94,14 +87,15 @@ body {
 
 /* Botón estilo Facebook */
 .btn-custom {
-    margin-left: auto;
-    background: #1877f2; /* Azul de Facebook */
+    background: #1877f2;
     color: white;
     text-decoration: none;
     font-weight: 600;
     padding: 8px 16px;
     border-radius: 5px;
     transition: background 0.3s;
+    display: inline-block;
+    margin-top: 10px;
 }
 
 .btn-custom:hover {
@@ -115,17 +109,16 @@ body {
     }
 
     .banner-container {
-        height: 200px;
+        height: 240px; /* Ajustado para móviles */
     }
 
     .profile-image-container {
-        width: 120px;
-        height: 120px;
-        bottom: -40px;
+        width: 140px;
+        height: 140px;
+        bottom: -60px;
     }
 
     .profile-info {
-        flex-direction: column;
-        text-align: center;
+        margin-top: 80px;
     }
 }
