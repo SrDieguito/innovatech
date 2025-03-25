@@ -17,7 +17,8 @@ body {
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    position: relative;
+    position: relative; /* Asegura que los elementos hijos estén posicionados correctamente */
+    padding-top: 120px; /* Asegura que haya suficiente espacio para la imagen */
 }
 
 /* Banner estilo Facebook */
@@ -65,7 +66,7 @@ body {
     border: 4px solid white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     background: white;
-    z-index: 9999; /* Asegura que esté por encima de otros elementos, más alto */
+    z-index: 9999; /* Asegura que esté por encima de otros elementos */
 }
 
 /* Imagen de perfil */
