@@ -72,8 +72,9 @@ body {
 .profile-image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain; /* Ajusta la imagen sin recortarla */
 }
+
 
 /* Información del perfil */
 .profile-info {
