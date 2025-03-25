@@ -3,158 +3,129 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f9f9f9; /* Fondo claro para un look moderno */
+    background-color: #f0f2f5; /* Color de fondo como Facebook */
     margin: 0;
     padding: 0;
-    color: #333; /* Texto oscuro para mejor legibilidad */
+    color: #333;
     line-height: 1.6;
 }
 
-/* --- Encabezado del perfil --- */
-.profile-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #00983d; /* Verde principal */
-    padding: 20px;
-    color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.profile-header h1 {
-    margin: 0;
-    font-size: 1.8em;
-}
-
-/* Botón personalizado */
-.btn-custom {
-    color: white;
-    text-decoration: none;
-    font-weight: 600;
-    padding: 8px 16px;
-    border: 2px solid white;
-    border-radius: 8px;
-    transition: background 0.3s, color 0.3s;
-}
-
-.btn-custom:hover {
-    background: white;
-    color: #00983d; /* Invertir colores al pasar el mouse */
-}
-
-/* --- Contenedor principal --- */
+/* --- Contenedor del perfil --- */
 .profile-container {
-    max-width: 900px; 
+    max-width: 940px;
     margin: 40px auto;
     background: white;
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* --- Banner estilo Facebook --- */
 .banner-container {
     position: relative;
     width: 100%;
-    height: 320px; /* Tamaño del banner */
+    height: 320px;
     overflow: hidden;
-    border-radius: 16px 16px 0 0;
+    border-radius: 8px 8px 0 0;
 }
 
 .banner-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ajustar imagen manteniendo proporción */
-    filter: brightness(0.85); /* Oscurece ligeramente el banner */
+    object-fit: cover;
     transition: transform 0.3s ease;
 }
 
-/* Efecto de zoom en el banner */
+/* Zoom en la portada */
 .banner-container:hover .banner-image {
-    transform: scale(1.03); /* Ligeramente más grande al pasar el mouse */
+    transform: scale(1.03);
 }
 
-/* Difuminado en el banner (sutil y moderno) */
-.banner-container::after {
-    content: "";
+/* Botón de editar portada */
+.edit-cover-button {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100px;
-    background: linear-gradient(transparent, rgba(255, 255, 255, 0.95));
+    bottom: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
 }
 
-/* --- Imagen de perfil superpuesta estilo Facebook --- */
+.edit-cover-button:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* --- Imagen de perfil estilo Facebook --- */
 .profile-image-container {
     position: absolute;
-    bottom: -85px; /* Más bajo para una mejor superposición */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10; /* Por encima del banner */
-    width: 160px; /* Tamaño grande */
-    height: 160px;
+    bottom: -50px;
+    left: 20px;
+    width: 168px;
+    height: 168px;
     border-radius: 50%;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     overflow: hidden;
+    border: 3px solid white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: white;
 }
 
-/* Imagen dentro del contenedor */
 .profile-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Recorta sin deformar */
-    border: 5px solid white; /* Borde blanco como en Facebook */
-    transition: transform 0.3s ease;
+    object-fit: cover;
 }
 
-/* Efecto de zoom en la imagen de perfil */
-.profile-image-container:hover .profile-image {
-    transform: scale(1.1);
-}
-
-/* --- Descripción debajo de la imagen --- */
-.description {
-    text-align: center;
-    font-size: 1.4em;
-    font-weight: 400;
-    margin-top: 100px; /* Más espacio para evitar que se superponga */
-    color: #555;
-}
-
-/* --- Información adicional --- */
-.additional-info {
-    margin-top: 30px;
+/* Nombre y botones */
+.profile-info {
+    display: flex;
+    align-items: center;
+    margin-top: 60px;
     padding: 20px;
-    background-color: #e8f5e9;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* --- Ajustes responsivos --- */
+.profile-name {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* Botón estilo Facebook */
+.btn-custom {
+    margin-left: auto;
+    background: #1877f2; /* Azul de Facebook */
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.btn-custom:hover {
+    background: #0f5dc0;
+}
+
+/* Responsivo */
 @media (max-width: 768px) {
-    .profile-header {
-        flex-direction: column;
-        text-align: center;
-    }
-
     .profile-container {
-        padding: 20px;
+        padding: 15px;
     }
 
-    /* Reducir tamaño del banner */
     .banner-container {
-        height: 220px; 
+        height: 200px;
     }
 
-    /* Imagen de perfil más pequeña en móvil */
     .profile-image-container {
         width: 120px;
         height: 120px;
-        bottom: -60px; 
+        bottom: -40px;
     }
 
-    .description {
-        margin-top: 80px; /* Ajustar la distancia */
+    .profile-info {
+        flex-direction: column;
+        text-align: center;
     }
 }
