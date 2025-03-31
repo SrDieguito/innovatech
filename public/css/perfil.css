@@ -262,3 +262,56 @@ body {
     color: #00983d; /* Cambia a verde cuando se pasa el mouse */
     text-decoration: none;
 }
+
+/* Estilo de los campos de entrada */
+.modal-content form div {
+    margin-bottom: 20px; /* Espacio entre cada campo */
+}
+
+.modal-content form label {
+    display: block;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 8px; /* Separación entre la etiqueta y el campo */
+    font-weight: 600; /* Un poco de énfasis en las etiquetas */
+}
+
+.modal-content form input {
+    width: 100%;
+    padding: 12px 15px; /* Tamaño adecuado para los campos */
+    border-radius: 8px; /* Bordes redondeados */
+    border: 1px solid #ddd; /* Borde suave y sutil */
+    font-size: 16px;
+    background-color: #f7f7f7; /* Fondo claro para los campos */
+    color: #333;
+    box-sizing: border-box; /* Asegura que el padding no afecte el tamaño total */
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.modal-content form input:focus {
+    border-color: #00983d; /* Resalta el borde cuando el campo está enfocado */
+    background-color: #fff; /* Fondo blanco cuando está enfocado */
+    outline: none; /* Elimina el contorno por defecto */
+}
+
+.modal-content form input::placeholder {
+    color: #aaa; /* Color más suave para los textos de los placeholders */
+}
+
+/* Botón para cambiar contraseña */
+.modal-content form button {
+    width: 100%;
+    padding: 12px;
+    background-color: #00983d;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-content form button:hover {
+    background-color: #007a2d; /* Efecto al pasar el mouse */
+}
