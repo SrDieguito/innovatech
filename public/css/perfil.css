@@ -226,24 +226,11 @@ body {
 
 .modal-content {
     background-color: white;
-    margin: 10% auto;
+    margin: 15% auto;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 5px;
     width: 400px;
     max-width: 90%; /* Ajusta el modal a pantallas pequeñas */
-    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
-    animation: slide-up 0.3s ease-out;
-}
-
-@keyframes slide-up {
-    from {
-        opacity: 0;
-        transform: translateY(50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .close-btn {
@@ -262,63 +249,3 @@ body {
     text-decoration: none;
     cursor: pointer;
 }
-
-h2 {
-    font-size: 22px;
-    color: #333;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-/* Estilo para los inputs */
-input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 2px solid #ddd;
-    border-radius: 5px;
-    font-size: 16px;
-    transition: border-color 0.3s ease;
-}
-
-input[type="password"]:focus {
-    border-color: #00983d;
-    outline: none;
-}
-
-/* Estilo para el formulario */
-form div {
-    margin-bottom: 20px;
-}
-
-form div label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 8px;
-    display: inline-block;
-}
-
-/* Botón de Cambiar Contraseña */
-button[type="submit"] {
-    width: 100%;
-    background-color: #00983d;
-    color: white;
-    padding: 12px;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button[type="submit"]:hover {
-    background-color: #007a2d;
-}
-
-/* Estilo de los bordes */
-input[type="password"]:focus, button[type="submit"]:hover {
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-}
-
-
