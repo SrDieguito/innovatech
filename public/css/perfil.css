@@ -12,7 +12,7 @@ body {
 
 /* Barra de navegación */
 .profile-header {
-    background-color: #1877f2;
+    background-color: #00983d; /* Color verde */
     padding: 10px 20px;
     color: white;
     display: flex;
@@ -44,7 +44,7 @@ body {
 }
 
 .dropbtn {
-    background-color: #1877f2;
+    background-color: #00983d; /* Color verde */
     color: white;
     border: none;
     cursor: pointer;
@@ -54,7 +54,7 @@ body {
 }
 
 .dropbtn:hover {
-    background-color: #0f5dc0;
+    background-color: #007a2d; /* Verde más oscuro */
 }
 
 .dropdown-content {
@@ -167,9 +167,9 @@ body {
     color: #333; /* Color de texto moderno */
 }
 
-/* Botón estilo Facebook */
+/* Botón estilo verde */
 .btn-custom {
-    background: #1877f2;
+    background: #00983d; /* Color verde */
     color: white;
     text-decoration: none;
     font-weight: 600;
@@ -178,10 +178,11 @@ body {
     transition: background 0.3s ease;
     display: inline-block;
     margin-top: 10px;
+    float: right; /* Alinea los botones a la derecha */
 }
 
 .btn-custom:hover {
-    background: #0f5dc0;
+    background: #007a2d; /* Verde más oscuro */
 }
 
 /* Responsivo */
