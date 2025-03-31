@@ -124,14 +124,14 @@
                 if (!response.ok) throw new Error("Error cargando el perfil");
 
                 const usuario = await response.json();
-                document.getElementById("user-name").textContent = usuario.nombre || "Usuario";
-                document.getElementById("user-description").textContent = usuario.descripcion || "Sin descripción.";
-                document.getElementById("user-email").textContent = usuario.email || "No disponible";
-                document.getElementById("user-phone").textContent = usuario.telefono || "No disponible";
-                document.getElementById("user-organization").textContent = usuario.organizacion || "No especificada";
-                document.getElementById("user-location").textContent = usuario.ubicacion || "No especificada";
+                document.getElementById("nombre").textContent = usuario.nombre || "Usuario";
+                document.getElementById("descripcion").textContent = usuario.descripcion || "Sin descripción.";
+                document.getElementById("email").textContent = usuario.email || "No disponible";
+                document.getElementById("telefono").textContent = usuario.telefono || "No disponible";
+                document.getElementById("organizacion").textContent = usuario.organizacion || "No especificada";
+                document.getElementById("ubicacion").textContent = usuario.ubicacion || "No especificada";
 
-                document.getElementById("profile-image").src = usuario.imagen_perfil || "public/imagenes/default.png";
+                document.getElementById("imagen_perfil").src = usuario.imagen_perfil || "public/imagenes/default.png";
                 document.getElementById("banner").src = usuario.banner || "/imagenes/default-banner.jpg";
 
             } catch (error) {

@@ -9,14 +9,14 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const data = await response.json();
 
-        document.getElementById("user-name").textContent = data.nombre;
-        document.getElementById("user-description").textContent = data.descripcion;
-        document.getElementById("profile-image").src = data.imagen_perfil || "default-avatar.png";
+        document.getElementById("nombre").textContent = data.nombre;
+        document.getElementById("descripcion").textContent = data.descripcion;
+        document.getElementById("imagen_perfil").src = data.imagen_perfil || "default-avatar.png";
         document.getElementById("banner").src = data.banner || "default-banner.jpg";
-        document.getElementById("user-email").textContent = data.email;
-        document.getElementById("user-phone").textContent = data.telefono;
-        document.getElementById("user-organization").textContent = data.organizacion;
-        document.getElementById("user-location").textContent = data.ubicacion;
+        document.getElementById("email").textContent = data.email;
+        document.getElementById("telefono").textContent = data.telefono;
+        document.getElementById("organizacion").textContent = data.organizacion;
+        document.getElementById("ubicacicion").textContent = data.ubicacion;
     } catch (error) {
         console.error("Error cargando perfil:", error);
         // Evitar redirigir automáticamente sin verificar si es un problema temporal
