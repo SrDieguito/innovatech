@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Ruta para cambiar la contraseña
-todoapp.put("/api/cambiar-contrasena", async (req, res) => {
+todoapp.put("/api/cambiar_contra", async (req, res) => {
     const { old_password, new_password } = req.body;
     const userId = req.cookies.user_id; // Obtener ID de usuario desde la cookie
 
