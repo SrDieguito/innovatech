@@ -22,7 +22,7 @@ body {
 
 /* Estilos de los botones en la barra de navegación */
 .navbar {
-    display: flex;
+    display: ruby;
     align-items: center;
 }
 
