@@ -76,6 +76,13 @@ body {
     box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
 }
 
+/* Fuente común para todos los botones */
+.dropbtn, .btn-custom {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+}
+
 .dropdown-content a {
     color: black;
     padding: 12px 16px;
