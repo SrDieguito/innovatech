@@ -2,6 +2,7 @@ import { Router } from 'express';
 import mysql from 'mysql2/promise';
 import multer from 'multer';
 import bcrypt from 'bcryptjs';
+import app from './procesarlogin';
 
 const router = Router();
 
@@ -117,4 +118,4 @@ router.put('/password', authMiddleware, async (req, res) => {
   }
 });
 
-export default router;
+export default app;
