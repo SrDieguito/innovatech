@@ -12,45 +12,40 @@ body {
 
 /* Barra de navegación */
 .profile-header {
-    background-color: #00983d; /* Color verde */
+    background-color: #00983d;
     padding: 10px 20px;
     color: white;
     display: flex;
-    justify-content: flex-end; /* Botones a la derecha */
+    justify-content: space-between;
     align-items: center;
 }
 
-/* Estilos de los botones en la barra de navegación */
 .navbar {
-    display: ruby;
+    display: flex;
     align-items: center;
 }
 
-/* Estilo de los enlaces (inicio, configuración, etc.) */
 .navbar a {
     color: white;
     font-weight: 600;
     text-decoration: none;
-    margin-left: 20px; /* Para que los botones no se amontonen */
+    margin-left: 20px;
     font-size: 16px;
-    padding: 10px 15px; /* Añadí padding para uniformidad */
+    padding: 10px 15px;
     border-radius: 5px;
-    transition: background-color 0.3s ease, color 0.3s ease; /* Animación al pasar el cursor */
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Hover para los enlaces */
 .navbar a:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Ligero fondo en hover */
-    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Estilos para el dropdown */
 .nav-link {
     position: relative;
 }
 
 .dropbtn {
-    background-color: #00983d; /* Color verde */
+    background-color: #00983d;
     color: white;
     border: none;
     cursor: pointer;
@@ -60,12 +55,10 @@ body {
     transition: background 0.3s ease;
 }
 
-/* Hover para el botón de configuración */
 .dropbtn:hover {
-    background-color: #007a2d; /* Verde más oscuro */
+    background-color: #007a2d;
 }
 
-/* Contenido desplegable */
 .dropdown-content {
     display: none;
     position: absolute;
@@ -76,11 +69,8 @@ body {
     box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* Fuente común para todos los botones */
-.dropbtn, .btn-custom {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 16px;
+.nav-link:hover .dropdown-content {
+    display: block;
 }
 
 .dropdown-content a {
@@ -92,46 +82,32 @@ body {
 }
 
 .dropdown-content a:hover {
-    background-color: #f1f1f1;
-}
-
-.nav-link:hover .dropdown-content {
-    display: block;
-}
-
-.dropdown-content a:hover {
     background-color: #ddd;
 }
 
 /* Contenedor del perfil */
 .profile-container {
-    max-width: 1500px;
-    margin: 0 auto;
+    max-width: 1200px;
+    margin: 20px auto;
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    position: relative;
-    padding-top: 100px; /* Espacio suficiente arriba */
-    overflow: hidden; /* Para evitar desbordamientos si el contenido es muy grande */
+    overflow: hidden;
 }
 
-/* Banner estilo Facebook */
 .banner-container {
     position: relative;
     width: 100%;
-    height: 360px; /* Tamaño ajustado a Facebook */
-    overflow: hidden;
-    border-radius: 8px 8px 0 0;
-    background-color: #f0f2f5; /* Color de fondo si no carga la imagen */
+    height: 300px;
+    background-color: #f0f2f5;
 }
 
 .banner-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Asegura que la imagen cubra el contenedor sin distorsionarse */
+    object-fit: cover;
 }
 
-/* Botón de editar portada */
 .edit-cover-button {
     position: absolute;
     bottom: 15px;
@@ -142,50 +118,31 @@ body {
     font-size: 14px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background 0.3s ease;
 }
 
-.edit-cover-button:hover {
-    background: rgba(0, 0, 0, 0.8);
-}
-
-/* Imagen de perfil estilo Facebook */
 .profile-image-container {
     position: absolute;
-    bottom: -100px; /* Ajusta esta distancia para dar más espacio a la imagen */
-    left: 3%; /* Alineación ajustada para que no esté en el centro */
-    width: 170px;
-    height: 170px;
-    border-radius: 50%; /* Redondea la imagen */
+    bottom: -60px;
+    left: 20px;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
     overflow: hidden;
     border: 4px solid white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    background: white;
-    z-index: 10; /* Asegura que esté encima de otros elementos */
 }
 
-.profile-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Esto asegura que la imagen cubra el contenedor sin distorsionarse */
-}
-
-/* Información del perfil */
 .profile-info {
-    text-align: left; /* Alineación como Facebook */
-    margin-top: 100px; /* Asegura que la información no esté superpuesta a la imagen */
-    padding: 20px;
+    padding: 80px 20px 20px;
 }
 
 .profile-name {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: bold;
-    color: #333; /* Color de texto moderno */
+    color: #333;
 }
 
-/* Botón estilo verde */
 .btn-custom {
-    background: #00983d; /* Color verde */
+    background: #00983d;
     color: white;
     text-decoration: none;
     font-weight: 600;
@@ -194,75 +151,13 @@ body {
     transition: background 0.3s ease;
     display: inline-block;
     margin-top: 10px;
-    margin-left: 10px; /* Espaciado entre los botones */
 }
 
-/* Cambiar color al pasar el cursor */
 .btn-custom:hover {
-    background: #007a2d; /* Verde más oscuro */
+    background: #007a2d;
 }
 
-/* Responsivo */
-@media (max-width: 768px) {
-    .profile-container {
-        padding: 15px;
-    }
-
-    .banner-container {
-        height: 240px; /* Ajustado para móviles */
-    }
-
-    .profile-image-container {
-        width: 120px;
-        height: 120px;
-        bottom: -40px;
-        left: 5%;
-    }
-
-    .profile-info {
-        margin-top: 80px; /* Ajuste para móviles */
-    }
-}
-
-/* Estilo para el Modal */
-.modal {
-    display: none; /* Inicialmente oculto */
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4); /* Fondo oscuro */
-}
-
-.modal-content {
-    background-color: white;
-    margin: 15% auto;
-    padding: 20px;
-    border-radius: 5px;
-    width: 400px;
-}
-
-.close-btn {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    cursor: pointer;
-}
-
-.close-btn:hover,
-.close-btn:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-/* Contenedor de la descripción y la información adicional */
+/* Secciones de información */
 .profile-details {
     display: flex;
     flex-wrap: wrap;
@@ -271,37 +166,26 @@ body {
     padding: 20px;
 }
 
-/* Sección de descripción */
-.profile-description {
-    flex: 1;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-right: 20px;
-    min-width: 300px;
-}
-
-.profile-description h3 {
-    font-size: 20px;
-    color: #00983d;
-    margin-bottom: 10px;
-}
-
-/* Información adicional */
-.additional-info {
+.profile-description, .additional-info {
     flex: 1;
     background: white;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     min-width: 300px;
+    margin: 10px;
 }
 
-.additional-info h3 {
+.profile-description h3, .additional-info h3 {
     font-size: 20px;
     color: #00983d;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.profile-description h3 i, .additional-info h3 i {
+    margin-right: 10px;
 }
 
 .info-item {
@@ -322,6 +206,7 @@ body {
     .profile-details {
         flex-direction: column;
     }
+
     .profile-description, .additional-info {
         margin-right: 0;
         margin-bottom: 20px;
