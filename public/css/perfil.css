@@ -16,7 +16,7 @@ body {
     padding: 10px 20px;
     color: white;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start; /* Botones a la izquierda */
     align-items: center;
 }
 
@@ -178,9 +178,10 @@ body {
     transition: background 0.3s ease;
     display: inline-block;
     margin-top: 10px;
-    float: right; /* Alinea los botones a la derecha */
+    margin-right: 10px; /* Añadido para espaciar botones */
 }
 
+/* Cambiar color al pasar el cursor */
 .btn-custom:hover {
     background: #007a2d; /* Verde más oscuro */
 }
