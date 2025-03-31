@@ -44,6 +44,13 @@ body {
     position: relative;
 }
 
+/* Fuente común para todos los botones */
+.dropbtn, .btn-custom {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+}
+
 .dropbtn {
     background-color: #00983d;
     color: white;
@@ -150,6 +157,7 @@ body {
     border-radius: 5px;
     transition: background 0.3s ease;
     display: inline-block;
+    margin-left: 10px; /* Espaciado entre los botones */
     margin-top: 10px;
 }
 
