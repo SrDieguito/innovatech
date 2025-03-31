@@ -10,6 +10,83 @@ body {
     line-height: 1.6;
 }
 
+/* Barra de navegación */
+.profile-header {
+    background-color: #1877f2;
+    padding: 10px 20px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+}
+
+.navbar a {
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    margin-right: 20px;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #0f5dc0;
+}
+
+/* Estilos para el dropdown */
+.nav-link {
+    position: relative;
+}
+
+.dropbtn {
+    background-color: #1877f2;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 10px 15px;
+    transition: background 0.3s ease;
+}
+
+.dropbtn:hover {
+    background-color: #0f5dc0;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    z-index: 1;
+    border-radius: 5px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.nav-link:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
 /* Contenedor del perfil */
 .profile-container {
     max-width: 1500px;
@@ -90,9 +167,9 @@ body {
     color: #333; /* Color de texto moderno */
 }
 
-/* Botón estilo verde */
+/* Botón estilo Facebook */
 .btn-custom {
-    background: #00983d; /* Color verde */
+    background: #1877f2;
     color: white;
     text-decoration: none;
     font-weight: 600;
@@ -101,58 +178,10 @@ body {
     transition: background 0.3s ease;
     display: inline-block;
     margin-top: 10px;
-    float: right; /* Mueve los botones a la derecha */
 }
 
 .btn-custom:hover {
-    background: #007a2d; /* Verde más oscuro */
-}
-
-/* Estilos para el menú desplegable */
-.nav-link {
-    position: relative;
-    display: inline-block;
-    float: right; /* Desplaza el menú de navegación a la derecha */
-}
-
-.dropbtn {
-    background-color: #00983d;
-    color: white;
-    padding: 10px 16px;
-    font-size: 16px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-.dropbtn:hover {
-    background-color: #007a2d;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    right: 0;
-    background-color: white;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1;
-    border-radius: 5px;
-}
-
-.dropdown-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-}
-
-.dropdown-content a:hover {
-    background-color: #f1f1f1;
-}
-
-.nav-link:hover .dropdown-content {
-    display: block;
+    background: #0f5dc0;
 }
 
 /* Responsivo */
