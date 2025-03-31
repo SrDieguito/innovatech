@@ -221,31 +221,44 @@ body {
     width: 100%;
     height: 100%;
     overflow: auto; /* Permite desplazarse dentro del modal si es necesario */
-    background-color: rgba(0, 0, 0, 0.4); /* Fondo oscuro */
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro con un poco más de opacidad */
 }
 
 .modal-content {
     background-color: white;
-    margin: 15% auto;
-    padding: 20px;
-    border-radius: 5px;
-    width: 400px;
-    max-width: 90%; /* Ajusta el modal a pantallas pequeñas */
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 10px; /* Bordes más redondeados */
+    width: 450px; /* Ancho más grande */
+    max-width: 95%; /* Ajusta el modal a pantallas pequeñas */
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    animation: slide-up 0.3s ease-out;
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .close-btn {
-    color: #aaa;
-    font-size: 28px;
+    color: #999;
+    font-size: 30px; /* Aumenta el tamaño del botón de cerrar */
     font-weight: bold;
     position: absolute;
     top: 10px;
-    right: 20px;
+    right: 15px;
     cursor: pointer;
+    transition: color 0.3s ease;
 }
 
 .close-btn:hover,
 .close-btn:focus {
-    color: black;
+    color: #00983d; /* Cambia a verde cuando se pasa el mouse */
     text-decoration: none;
-    cursor: pointer;
 }
