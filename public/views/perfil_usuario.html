@@ -41,6 +41,63 @@
             <p><strong>Ubicación:</strong> <span id="user-location"></span></p>
         </div>
     </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+    // Mostrar el modal de cambiar contraseña al hacer clic en el enlace
+    document.getElementById("open-password-modal").addEventListener("click", () => {
+        document.getElementById("password-modal").style.display = "block";
+    });
+
+    // Cerrar el modal al hacer clic en el botón de cerrar (x)
+    document.querySelector(".close-btn").addEventListener("click", () => {
+        document.getElementById("password-modal").style.display = "none";
+    });
+
+    // Cerrar el modal si el usuario hace clic fuera del modal
+    window.onclick = function(event) {
+        if (event.target === document.getElementById("password-modal")) {
+            document.getElementById("password-modal").style.display = "none";
+        }
+    };
+
+    // Manejar el envío del formulario de cambio de contraseña
+    document.getElementById("change-password-form").addEventListener("submit", async (e) => {
+        e.preventDefault(); // Prevenir el comportamiento por defecto (enviar el formulario)
+
+        const oldPassword = document.getElementById("old-password").value;
+        const newPassword = document.getElementById("new-password").value;
+        const confirmPassword = document.getElementById("confirm-password").value;
+
+        // Verificar que las contraseñas coincidan
+        if (newPassword !== confirmPassword) {
+            alert("Las contraseñas no coinciden.");
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/cambiar-contraseña', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+                credentials: 'include', // Para enviar las cookies de sesión
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al cambiar la contraseña');
+            }
+
+            alert("Contraseña cambiada con éxito.");
+            document.getElementById("password-modal").style.display = "none"; // Cerrar el modal
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Hubo un problema al cambiar la contraseña. Intenta de nuevo.");
+        }
+    });
+});
+
+    </script>
 
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
@@ -90,5 +147,29 @@
             }
         });
     </script>
+    <!-- Modal de Cambiar Contraseña -->
+<div id="password-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Cambiar Contraseña</h2>
+        <form id="change-password-form">
+            <div>
+                <label for="old-password">Contraseña Actual</label>
+                <input type="password" id="old-password" name="old-password" required>
+            </div>
+            <div>
+                <label for="new-password">Nueva Contraseña</label>
+                <input type="password" id="new-password" name="new-password" required>
+            </div>
+            <div>
+                <label for="confirm-password">Confirmar Nueva Contraseña</label>
+                <input type="password" id="confirm-password" name="confirm-password" required>
+            </div>
+            <button type="submit" class="btn-custom">Cambiar Contraseña</button>
+        </form>
+    </div>
+</div>
+
+
 </body>
 </html>
