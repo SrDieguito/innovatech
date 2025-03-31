@@ -1,63 +1,46 @@
-import express from "express";
 import mysql from "mysql2/promise";
 import bcrypt from "bcryptjs";
-import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
+import { authMiddleware } from "./middleware.js";
+import { pool } from "./db.js";
 
-dotenv.config();
+export default async function handler(req, res) {
+  if (req.method !== "PUT") {
+    return res.status(405).json({ error: "Método no permitido" });
+  }
 
-const app = express();
-app.use(express.json());
-app.use(cookieParser());
+  try {
+    const userId = await authMiddleware(req, res); // 🔥 Autenticación
+    if (!userId) return;
 
-// Ruta para cambiar la contraseña
-app.put("/api/cambiar_contra", async (req, res) => {
     const { old_password, new_password } = req.body;
-    const userId = req.cookies.user_id; // Obtener ID de usuario desde la cookie
-
-    if (!userId) {
-        return res.status(401).json({ error: "No autorizado" });
-    }
 
     if (!old_password || !new_password) {
-        return res.status(400).json({ error: "Se requieren ambas contraseñas" });
+      return res.status(400).json({ error: "Se requieren ambas contraseñas" });
     }
 
-    let conn;
-    try {
-        conn = await mysql.createConnection({
-            host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASS,
-            database: process.env.DB_NAME,
-            port: process.env.DB_PORT,
-        });
+    const [rows] = await pool.query(
+      "SELECT password FROM usuarios WHERE id = ?",
+      [userId]
+    );
 
-        // Obtener la contraseña actual del usuario
-        const [rows] = await conn.execute("SELECT password FROM usuarios WHERE id = ?", [userId]);
-
-        if (rows.length === 0) {
-            return res.status(404).json({ error: "Usuario no encontrado" });
-        }
-
-        const user = rows[0];
-        const passwordMatch = await bcrypt.compare(old_password, user.password);
-
-        if (!passwordMatch) {
-            return res.status(401).json({ error: "Contraseña actual incorrecta" });
-        }
-
-        // Cifrar la nueva contraseña y actualizarla en la base de datos
-        const hashedPassword = await bcrypt.hash(new_password, 10);
-        await conn.execute("UPDATE usuarios SET password = ? WHERE id = ?", [hashedPassword, userId]);
-
-        res.json({ message: "Contraseña cambiada con éxito" });
-    } catch (error) {
-        console.error("Error al cambiar la contraseña:", error);
-        res.status(500).json({ error: "Error en el servidor" });
-    } finally {
-        if (conn) await conn.end();
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
     }
-});
 
-export default app;
+    const passwordMatch = await bcrypt.compare(old_password, rows[0].password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Contraseña actual incorrecta" });
+    }
+
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+    await pool.query(
+      "UPDATE usuarios SET password = ? WHERE id = ?",
+      [hashedPassword, userId]
+    );
+
+    res.json({ message: "Contraseña cambiada con éxito" });
+  } catch (error) {
+    console.error("Error al cambiar la contraseña:", error);
+    res.status(500).json({ error: "Error en el servidor" });
+  }
+}
