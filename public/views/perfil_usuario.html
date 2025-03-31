@@ -8,23 +8,26 @@
 </head>
 <body style="display: none;">
     <header class="profile-header">
-        <a href="explorar_perfiles.html" class="btn-custom">Inicio</a>
-        <div class="nav-link dropdown">
-            <button class="dropbtn">Configuración</button>
-            <div class="dropdown-content">
-                <a href="#" id="open-password-modal">Cambiar Contraseña</a>
-                <a href="#" id="logout">Cerrar sesión</a>
+        <nav class="navbar">
+            <a href="explorar_perfiles.html" class="btn-custom">Inicio</a>
+            <div class="nav-link dropdown">
+                <button class="dropbtn">Configuración</button>
+                <div class="dropdown-content">
+                    <a href="#" id="open-password-modal">Cambiar Contraseña</a>
+                    <a href="#" id="logout">Cerrar sesión</a>
+                </div>
             </div>
-        </div>
+        </nav>
     </header>
 
     <div class="profile-container">
         <div class="banner-container">
             <img id="banner" src="/imagenes/cintillo_web_innovatech.jpg" alt="Banner" class="banner-image">
-    <div class="profile-image-container">
-        <img id="profile-image" src="/imagenes/default.png" alt="Imagen de perfil" class="profile-image">
-    </div>
-</div>
+            <div class="profile-image-container">
+                <img id="profile-image" src="/imagenes/default.png" alt="Imagen de perfil" class="profile-image">
+            </div>
+        </div>
+
         <div class="profile-info">
             <h2 id="user-name"></h2>
             <p id="user-description" class="description"></p>
@@ -42,7 +45,6 @@
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
             try {
-                // 1. Verificar la sesión
                 const response = await fetch('/api/verificarSesion', { credentials: "include" });
                 if (!response.ok) throw new Error("Error verificando sesión");
 
@@ -59,7 +61,6 @@
             }
         });
 
-        // 2. Cargar el perfil del usuario
         async function cargarPerfil() {
             try {
                 const response = await fetch('/api/perfil', { credentials: "include" });
@@ -81,18 +82,11 @@
             }
         }
 
-        // 3. Cerrar sesión
         document.getElementById("logout").addEventListener("click", async () => {
-            if (!confirm("¿Estás seguro de que quieres cerrar sesión?")) return;
-
-            try {
-                await fetch('/api/logout', { method: 'POST', credentials: "include" });
-
-                // Eliminar la cookie
-                document.cookie = "user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; SameSite=None";
+            if (!confirm("¿Estás seguro de que deseas cerrar sesión?")) return;
+            const response = await fetch("/api/logout", { method: "POST" });
+            if (response.ok) {
                 window.location.href = "/auth/login.html";
-            } catch (error) {
-                console.error("Error al cerrar sesión:", error);
             }
         });
     </script>

@@ -10,6 +10,83 @@ body {
     line-height: 1.6;
 }
 
+/* Barra de navegación */
+.profile-header {
+    background-color: #1877f2;
+    padding: 10px 20px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+}
+
+.navbar a {
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    margin-right: 20px;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #0f5dc0;
+}
+
+/* Estilos para el dropdown */
+.nav-link {
+    position: relative;
+}
+
+.dropbtn {
+    background-color: #1877f2;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 10px 15px;
+    transition: background 0.3s ease;
+}
+
+.dropbtn:hover {
+    background-color: #0f5dc0;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    z-index: 1;
+    border-radius: 5px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.nav-link:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
 /* Contenedor del perfil */
 .profile-container {
     max-width: 1500px;
@@ -18,7 +95,8 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     position: relative;
-    padding-top: 100px; /* Aseguramos que haya espacio suficiente arriba */
+    padding-top: 100px; /* Espacio suficiente arriba */
+    overflow: hidden; /* Para evitar desbordamientos si el contenido es muy grande */
 }
 
 /* Banner estilo Facebook */
@@ -28,12 +106,13 @@ body {
     height: 360px; /* Tamaño ajustado a Facebook */
     overflow: hidden;
     border-radius: 8px 8px 0 0;
+    background-color: #f0f2f5; /* Color de fondo si no carga la imagen */
 }
 
 .banner-image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* Asegura que la imagen cubra el contenedor sin distorsionarse */
 }
 
 /* Botón de editar portada */
@@ -43,7 +122,7 @@ body {
     right: 15px;
     background: rgba(0, 0, 0, 0.6);
     color: white;
-    padding: 6px 12px;
+    padding: 8px 16px;
     font-size: 14px;
     border-radius: 5px;
     cursor: pointer;
@@ -69,7 +148,6 @@ body {
     z-index: 10; /* Asegura que esté encima de otros elementos */
 }
 
-/* Imagen de perfil */
 .profile-image {
     width: 100%;
     height: 100%;
@@ -86,6 +164,7 @@ body {
 .profile-name {
     font-size: 22px;
     font-weight: bold;
+    color: #333; /* Color de texto moderno */
 }
 
 /* Botón estilo Facebook */
@@ -94,9 +173,9 @@ body {
     color: white;
     text-decoration: none;
     font-weight: 600;
-    padding: 8px 16px;
+    padding: 10px 18px;
     border-radius: 5px;
-    transition: background 0.3s;
+    transition: background 0.3s ease;
     display: inline-block;
     margin-top: 10px;
 }
