@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import mysql from 'mysql2/promise';
 import multer from 'multer';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const router = Router();
 
