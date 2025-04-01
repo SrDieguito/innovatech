@@ -174,5 +174,73 @@
         });
     </script>
 
+    <!-- Modal para Cambiar Foto de Perfil -->
+<div id="change-photo-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Cambiar Foto de Perfil</h2>
+        <form id="change-photo-form" enctype="multipart/form-data">
+            <div>
+                <label for="profile-photo">Selecciona una nueva foto</label>
+                <input type="file" id="profile-photo" name="profile-photo" accept="image/*" required>
+            </div>
+            <button type="submit" class="btn-custom">Actualizar Foto</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const changePhotoModal = document.getElementById("change-photo-modal");
+        const openChangePhotoBtn = document.getElementById("open-change-photo-modal"); // Botón que abre el modal
+        const closeChangePhotoBtn = document.querySelector(".close-btn");
+
+        if (openChangePhotoBtn && changePhotoModal) {
+            openChangePhotoBtn.addEventListener("click", () => {
+                changePhotoModal.style.display = "block";
+            });
+        }
+
+        if (closeChangePhotoBtn && changePhotoModal) {
+            closeChangePhotoBtn.addEventListener("click", () => {
+                changePhotoModal.style.display = "none";
+            });
+        }
+
+        window.onclick = function (event) {
+            if (changePhotoModal && event.target === changePhotoModal) {
+                changePhotoModal.style.display = "none";
+            }
+        };
+
+        document.getElementById("change-photo-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const fileInput = document.getElementById("profile-photo");
+            const formData = new FormData();
+            formData.append("profile-photo", fileInput.files[0]);
+
+            try {
+                const response = await fetch('/api/cambiar_foto_perfil', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include',
+                });
+
+                if (!response.ok) throw new Error('Error al cambiar la foto de perfil');
+
+                alert("Foto de perfil actualizada con éxito.");
+                // Actualizar la foto de perfil en la página
+                const newPhotoUrl = await response.json(); // Asumiendo que la respuesta contiene la nueva URL de la foto
+                document.querySelector(".profile-image img").src = newPhotoUrl;
+                changePhotoModal.style.display = "none";
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Hubo un problema al cambiar la foto. Intenta de nuevo.");
+            }
+        });
+    });
+</script>
+
 </body>
 </html>
