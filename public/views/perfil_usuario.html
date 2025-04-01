@@ -174,5 +174,63 @@
         });
     </script>
 
+<div class="profile-container">
+    <div class="banner-container">
+        <img class="banner-image" src="banner.jpg" alt="Banner">
+        <button class="edit-cover-button">Editar portada</button>
+    </div>
+
+    <div class="profile-image-container">
+        <img class="profile-image" src="profile.jpg" alt="Foto de perfil">
+        <div class="camera-icon">
+            <i class="fa fa-camera"></i>
+        </div>
+    </div>
+
+    <div class="profile-info">
+        <div class="profile-name">Nombre del Usuario</div>
+        <a href="#" class="btn-custom">Editar Perfil</a>
+    </div>
+</div>
+
+<!-- Modal para cambiar la foto de perfil -->
+<div id="photoModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Cambiar Foto de Perfil</h2>
+        <form>
+            <div>
+                <label for="profilePhoto">Selecciona una nueva foto</label>
+                <input type="file" id="profilePhoto" name="profilePhoto" accept="image/*">
+            </div>
+            <button type="submit">Subir Foto</button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Abrir modal cuando se haga clic en el ícono de la cámara
+const cameraIcon = document.querySelector('.camera-icon');
+const photoModal = document.getElementById('photoModal');
+const closeBtn = document.querySelector('.close-btn');
+
+// Mostrar el modal
+cameraIcon.addEventListener('click', () => {
+    photoModal.style.display = 'block';
+});
+
+// Cerrar el modal
+closeBtn.addEventListener('click', () => {
+    photoModal.style.display = 'none';
+});
+
+// Cerrar el modal si se hace clic fuera del contenido
+window.addEventListener('click', (event) => {
+    if (event.target === photoModal) {
+        photoModal.style.display = 'none';
+    }
+});
+</script>
+
 </body>
 </html>
