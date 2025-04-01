@@ -242,5 +242,63 @@
     });
 </script>
 
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const photoModal = document.getElementById("photo-modal");
+        const openPhotoBtn = document.getElementById("open-photo-modal");
+        const closePhotoBtn = document.querySelector(".close-photo-btn");
+    
+        if (openPhotoBtn && photoModal) {
+            openPhotoBtn.addEventListener("click", () => {
+                photoModal.style.display = "block";
+            });
+        }
+    
+        if (closePhotoBtn && photoModal) {
+            closePhotoBtn.addEventListener("click", () => {
+                photoModal.style.display = "none";
+            });
+        }
+    
+        window.onclick = function (event) {
+            if (event.target === photoModal) {
+                photoModal.style.display = "none";
+            }
+        };
+    
+        // Manejo del formulario de subida de foto
+        document.getElementById("upload-photo-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById("profile-photo");
+            const file = fileInput.files[0];
+    
+            if (!file) {
+                alert("Por favor, selecciona una imagen.");
+                return;
+            }
+    
+            const formData = new FormData();
+            formData.append("profile_photo", file);
+    
+            try {
+                const response = await fetch("/api/upload_profile_photo", {
+                    method: "POST",
+                    body: formData,
+                    credentials: "include"
+                });
+    
+                if (!response.ok) throw new Error("Error al actualizar la foto.");
+    
+                const data = await response.json();
+                document.querySelector(".profile-image").src = data.imageUrl; // Actualiza la imagen de perfil
+                photoModal.style.display = "none";
+            } catch (error) {
+                console.error("Error:", error);
+                alert("No se pudo actualizar la foto. Inténtalo de nuevo.");
+            }
+        });
+    });
+    </script>
+    
 </body>
 </html>
