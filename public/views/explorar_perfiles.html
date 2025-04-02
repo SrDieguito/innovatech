@@ -31,7 +31,7 @@
                     const profileCard = document.createElement("div");
                     profileCard.classList.add("profile-card");
                     profileCard.innerHTML = `
-                        <img src="${usuario.imagen_perfil ? '/imagenes/' + usuario.imagen_perfil : '/default.png'}" alt="Imagen de perfil">
+                        <img src="${usuario.imagen_perfil ? '/imagenes/' + usuario.imagen_perfil.split('/').pop() : '/imagenes/default.png'}" alt="Imagen de perfil">
                         <h3>${usuario.nombre}</h3>
                         <p>${usuario.descripcion || "Sin descripción"}</p>
                         <p><strong>Ubicación:</strong> ${usuario.ubicacion || "No especificada"}</p>
