@@ -37,7 +37,7 @@ app.post('/api/aprobar_usuario', async (req, res) => {
         // Generar contraseña segura
         const passwordRandom = crypto.randomBytes(4).toString("hex"); // 8 caracteres aleatorios
         const hashedPassword = await bcrypt.hash(passwordRandom, 10);
-        const defaultImage = 'imagenes/default.png';
+        const defaultImage = '/imagenes/default.png';
         const fechaActual = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         // Actualizar usuario en la base de datos
