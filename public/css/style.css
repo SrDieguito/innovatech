@@ -473,13 +473,13 @@ p {
 
             /*!sc*/
             .gMZAES:hover:not(:disabled):not(.Button__StyledButton-sc-1gfts8g-0[aria-disabled="true"]) {
-                background-color: rgba(35,35,35,0.05);
+                background-color: #00983d;
                 border-color: rgba(35,35,35,1);
             }
 
             /*!sc*/
             .gMZAES:active:not(:disabled):not(.Button__StyledButton-sc-1gfts8g-0[aria-disabled="true"]) {
-                background-color: rgba(35,35,35,0.1);
+                background-color: #00983d;
                 border-color: rgba(35,35,35,1);
             }
 
