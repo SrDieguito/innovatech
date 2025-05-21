@@ -3874,7 +3874,7 @@ p {
 
             /*!sc*/
             .ktHNXA {
-                position: relative;
+                position: absolute;
                 left: 20px; /* Mueve el logo hacia la izquierda */
                 bottom: 2px; /* Mantiene la posición en la parte inferior */
                 max-width: 100%;
