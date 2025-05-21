@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - UTM 2024</title>
+    <link rel="stylesheet" href="/css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <img src="/imagenes/logo.svg" alt="Logo" class="logo">
+        <h2>Iniciar Sesión</h2>
+        
+        <!-- Botón de regresar -->
+        <a href="/index.html" class="btn-regresar">Regresar</a>
+        
+        <!-- Mensaje de error dinámico -->
+        <p id="error-message" class="error-message" style="display: none;"></p>
+
+        <form id="loginForm">
+            <div class="input-box">
+                <input type="email" name="email" id="email" placeholder="Email" required>
+            </div>
+            <div class="input-box">
+                <input type="password" name="password" id="password" placeholder="Contraseña" required>
+            </div>
+            <button type="submit" class="btn-login">Entrar</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Capturar error de la URL si existe
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorMessage = urlParams.get("error");
+            if (errorMessage) {
+                document.getElementById("error-message").textContent = decodeURIComponent(errorMessage);
+                document.getElementById("error-message").style.display = "block";
+            }
+    
+            // Manejo del formulario de login
+            document.getElementById("loginForm").addEventListener("submit", async function (event) {
+                event.preventDefault();
+    
+                const email = document.getElementById("email").value;
+                const password = document.getElementById("password").value;
+    
+                try {
+                    const response = await fetch("/api/procesarlogin", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include", // Para incluir cookies en la petición
+                        body: JSON.stringify({ email, password }),
+                    });
+    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        window.location.href = result.redirect; // Ahora redirige correctamente según el rol
+                    } else {
+                        document.getElementById("error-message").textContent = result.error;
+                        document.getElementById("error-message").style.display = "block";
+                    }
+                } catch (error) {
+                    document.getElementById("error-message").textContent = "Error de conexión con el servidor.";
+                    document.getElementById("error-message").style.display = "block";
+                }
+            });
+        });
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorar Perfiles</title>
+    <link rel="stylesheet" href="/css/perfil.css">
+</head>
+<body>
+    <header class="profile-header">
+        <nav class="navbar">
+            <a href="perfil_usuario.html" class="btn-custom">Mi Perfil</a>
+        </nav>
+    </header>
+
+    <div class="profiles-container" id="profiles-container">
+        <!-- Aquí se mostrarán los perfiles aprobados -->
+    </div>
+
+    <script>
+        async function cargarPerfiles() {
+            try {
+                const response = await fetch('/api/usuarios_aprobados'); // Asegúrate de usar la ruta correcta
+                if (!response.ok) throw new Error("Error al obtener los perfiles");
+
+                const usuarios = await response.json();
+                const container = document.getElementById("profiles-container");
+                container.innerHTML = '';
+
+                usuarios.forEach(usuario => {
+                    const profileCard = document.createElement("div");
+                    profileCard.classList.add("profile-card");
+                    profileCard.innerHTML = `
+                        <img src="${usuario.imagen_perfil ? '/imagenes/' + usuario.imagen_perfil.split('/').pop() : '/imagenes/default.png'}" alt="Imagen de perfil">
+                        <h3>${usuario.nombre}</h3>
+                        <p>${usuario.descripcion || "Sin descripción"}</p>
+                        <p><strong>Ubicación:</strong> ${usuario.ubicacion || "No especificada"}</p>
+                        <p><strong>Organización:</strong> ${usuario.organizacion || "No especificada"}</p>
+                        <!-- Botón de "Ver Perfil" -->
+                        <a href="ver-perfil.html?id=${usuario.id}" class="btn-custom">Ver Perfil</a>
+                    `;
+                    container.appendChild(profileCard);
+                });
+            } catch (error) {
+                console.error("Error al cargar los perfiles:", error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", cargarPerfiles);
+    </script>
+
+    <style>
+        .profiles-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+        }
+        .profile-card {
+            width: 250px;
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .profile-card img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .btn-custom {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+        .btn-custom:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</body>
+</html>

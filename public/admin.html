@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body style="display: none;">
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#usuarios" class="active" onclick="obtenerUsuarios('pendiente')">Usuarios</a></li>
+                <li><button id="cerrar-sesion">Cerrar Sesión</button></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section id="usuarios">
+            <div class="filtros">
+                <button onclick="obtenerUsuarios('pendiente')">Pendientes</button>
+                <button onclick="obtenerUsuarios('aprobado')">Aprobados</button>
+                <button onclick="obtenerUsuarios('rechazado')">Rechazados</button>
+            </div>
+            <div id="contenedor-usuarios" class="usuarios-grid"></div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch('/api/verificarSesion', { credentials: "include" });
+                if (!response.ok) throw new Error("Error verificando sesión");
+
+                const data = await response.json();
+                if (!data.autenticado) {
+                    window.location.href = "/auth/login.html";
+                } else {
+                    document.body.style.display = "block";
+                    obtenerUsuarios("pendiente");
+                }
+            } catch (error) {
+                console.error("Error verificando sesión:", error);
+                window.location.href = "/auth/login.html"; 
+            }
+        });
+
+        async function obtenerUsuarios(estado) {
+            try {
+                const response = await fetch(`/api/admin?estado=${estado}`, { credentials: "include" });
+                if (!response.ok) throw new Error("Error obteniendo usuarios");
+
+                const data = await response.json();
+                const contenedor = document.getElementById("contenedor-usuarios");
+                if (!contenedor) return;
+                contenedor.innerHTML = "";
+
+                if (data.length === 0) {
+                    contenedor.innerHTML = `<p>No hay usuarios en este estado.</p>`;
+                    return;
+                }
+
+                data.forEach(usuario => {
+                    const div = document.createElement("div");
+                    div.classList.add("usuario-card");
+                    div.innerHTML = `
+                        <h3>${usuario.nombre}</h3>
+                        <p><strong>Email:</strong> ${usuario.email}</p>
+                        <button onclick="verDescripcion(this)" data-desc="${encodeURIComponent(usuario.descripcion || 'Sin descripción')}">Ver Descripción</button>
+                        <div class="botones">
+                            <button class="btn-aprobar" onclick="aprobarUsuario(${usuario.id})">Aprobar</button>
+                            <button class="btn-rechazar" onclick="rechazarUsuario(${usuario.id})">Rechazar</button>
+                        </div>
+                    `;
+                    contenedor.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Error obteniendo usuarios:", error);
+            }
+        }
+
+        function verDescripcion(button) {
+            const descripcion = decodeURIComponent(button.getAttribute("data-desc"));
+            alert(descripcion);
+        }
+
+        async function aprobarUsuario(id) {
+            try {
+                const response = await fetch(`/api/aprobar_usuario`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ user_id: id })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Error aprobando usuario");
+
+                alert("Usuario aprobado correctamente y correo enviado.");
+                obtenerUsuarios("pendiente");
+            } catch (error) {
+                console.error("Error al aprobar usuario:", error);
+            }
+        }
+
+        async function rechazarUsuario(id) {
+            const motivo = prompt("Ingrese el motivo del rechazo:");
+            if (!motivo) {
+                alert("Debe ingresar un motivo para rechazar al usuario.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/rechazar_usuario`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ user_id: id, rejection_reason: motivo })
+                });
+
+                if (!response.ok) throw new Error("Error al rechazar usuario");
+
+                alert("Usuario rechazado correctamente.");
+                obtenerUsuarios("pendiente");
+            } catch (error) {
+                console.error("Error al rechazar usuario:", error);
+            }
+        }
+
+        document.getElementById("cerrar-sesion").addEventListener("click", async function () {
+            if (!confirm("¿Estás seguro de que quieres cerrar sesión?")) return;
+
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST',
+                    credentials: "include"
+                });
+
+                if (!response.ok) throw new Error("Error cerrando sesión");
+
+                document.cookie = "user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=" + window.location.hostname + "; secure; SameSite=None";
+                window.location.href = "/auth/login.html";
+            } catch (error) {
+                console.error("Error al cerrar sesión:", error);
+            }
+        });
+    </script>
+</body>
+</html>

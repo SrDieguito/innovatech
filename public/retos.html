@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INNOVATECH III EDICIÓN</title>
+</head>
+<link href="vendor/bootstrap//css/bootstrap.min.css" rel="stylesheet">
+<link href="vendor/font-awesome//css/font-awesome.min.css" rel="stylesheet">
+<link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'>
+<link
+    href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+    rel='stylesheet'>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/style2.css">
+<link rel="stylesheet" href="/css/animacion.css">
+
+<body>
+    <div id="header"></div>
+
+    <div class="retos">
+        <div id="seguridad"></div>
+        <div id="empleo"></div>
+        <div id="salud"></div>
+        <div id="arquitectura"></div>
+    </div>
+
+    <div style="height: 50px; width: 120px;"></div>
+    <script src="/js/sweetalert2.all.min.js"></script>
+    <script src="/js/headers.js"></script>
+    <script src="/js/jsRestos.js"></script>
+    <script>
+        // script.js
+        document.addEventListener('DOMContentLoaded', () => {
+            const fadeInLeftElements = document.querySelectorAll('.fade-in-left');
+
+            const checkVisibility = () => {
+                const windowHeight = window.innerHeight;
+                const scrollY = window.scrollY;
+
+                fadeInLeftElements.forEach(element => {
+                    const elementTop = element.getBoundingClientRect().top + scrollY;
+                    const elementBottom = elementTop + element.offsetHeight;
+
+                    if (elementBottom > scrollY && elementTop < scrollY + windowHeight) {
+                        element.classList.add('visible');
+                    } else {
+                        element.classList.remove('visible');
+                    }
+                });
+            };
+
+            window.addEventListener('scroll', checkVisibility);
+            checkVisibility(); // Ejecuta la función al cargar la página
+        });
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,317 @@
+/* Fuente moderna */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Barra de navegación */
+.profile-header {
+    background-color: #00983d;
+    padding: 10px 20px;
+    color: white;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.navbar {
+    display: ruby;
+    align-items: center;
+}
+
+.navbar a, .dropbtn {
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 16px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.navbar a:hover, .dropbtn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link {
+    position: relative;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    z-index: 1;
+    border-radius: 5px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.nav-link:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+/* Contenedor del perfil */
+.profile-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.banner-container {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    background-color: #f0f2f5;
+}
+
+.banner-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.edit-cover-button {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.profile-image-container {
+    position: absolute;
+    bottom: -60px;
+    left: 20px;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profile-info {
+    padding: 80px 20px 20px;
+}
+
+.profile-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.btn-custom {
+    background: #00983d;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.btn-custom:hover {
+    background: #007a2d;
+}
+
+/* Secciones de información */
+.profile-details {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 20px;
+}
+
+.profile-description, .additional-info {
+    flex: 1;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: 300px;
+    margin: 10px;
+}
+
+.profile-description h3, .additional-info h3 {
+    font-size: 20px;
+    color: #00983d;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.profile-description h3 i, .additional-info h3 i {
+    margin-right: 10px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.info-item i {
+    color: #00983d;
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .profile-details {
+        flex-direction: column;
+    }
+
+    .profile-description, .additional-info {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+}
+
+/* Estilo para el Modal */
+.modal {
+    display: none; /* Inicialmente oculto */
+    position: fixed; /* Fijo en la pantalla */
+    z-index: 1000; /* Asegura que el modal esté encima de otros elementos */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Permite desplazarse dentro del modal si es necesario */
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro con un poco más de opacidad */
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 10px; /* Bordes más redondeados */
+    width: 450px; /* Ancho más grande */
+    max-width: 95%; /* Ajusta el modal a pantallas pequeñas */
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    animation: slide-up 0.3s ease-out;
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.close-btn {
+    color: #999;
+    font-size: 30px; /* Aumenta el tamaño del botón de cerrar */
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: #00983d; /* Cambia a verde cuando se pasa el mouse */
+    text-decoration: none;
+}
+
+/* Estilo de los campos de entrada */
+.modal-content form div {
+    margin-bottom: 20px; /* Espacio entre cada campo */
+}
+
+.modal-content form label {
+    display: block;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 8px; /* Separación entre la etiqueta y el campo */
+    font-weight: 600; /* Un poco de énfasis en las etiquetas */
+}
+
+.modal-content form input {
+    width: 100%;
+    padding: 12px 15px; /* Tamaño adecuado para los campos */
+    border-radius: 8px; /* Bordes redondeados */
+    border: 1px solid #ddd; /* Borde suave y sutil */
+    font-size: 16px;
+    background-color: #f7f7f7; /* Fondo claro para los campos */
+    color: #333;
+    box-sizing: border-box; /* Asegura que el padding no afecte el tamaño total */
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.modal-content form input:focus {
+    border-color: #00983d; /* Resalta el borde cuando el campo está enfocado */
+    background-color: #fff; /* Fondo blanco cuando está enfocado */
+    outline: none; /* Elimina el contorno por defecto */
+}
+
+.modal-content form input::placeholder {
+    color: #aaa; /* Color más suave para los textos de los placeholders */
+}
+
+/* Botón para cambiar contraseña */
+.modal-content form button {
+    width: 100%;
+    padding: 12px;
+    background-color: #00983d;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-content form button:hover {
+    background-color: #007a2d; /* Efecto al pasar el mouse */
+}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Perfil</title>
+    <link rel="stylesheet" href="/css/perfil.css">
+</head>
+<body>
+
+    <header>
+        <h1>Perfil de Usuario</h1>
+    </header>
+
+    <div class="profile-container">
+        <!-- Aquí irá la información del perfil -->
+        <div class="profile-info">
+            <h2 id="user-name"></h2>
+            <p id="user-description"></p>
+            <p id="email"></p>
+            <p id="telefono"></p>
+            <p id="organizacion"></p>
+            <p id="ubicacion"></p>
+            <img id="profile-image" src="" alt="Imagen de perfil">
+            <img id="banner" src="" alt="Banner">
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Obtener el ID del usuario desde la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get("id");
+
+            if (!userId) {
+                alert("No se ha proporcionado un ID de usuario válido.");
+                return;
+            }
+
+            try {
+                // Solicitar los datos del perfil usando el ID de usuario
+                const response = await fetch(`/api/ver_perfil?id=${userId}`);
+                if (!response.ok) throw new Error("Error al obtener el perfil");
+
+                const usuario = await response.json();
+
+                // Cargar la información del perfil en la página
+                document.getElementById("user-name").textContent = usuario.nombre || "Usuario";
+                document.getElementById("user-description").textContent = usuario.descripcion || "Sin descripción.";
+                document.getElementById("email").textContent = `Email: ${usuario.email || "No disponible"}`;
+                document.getElementById("telefono").textContent = `Teléfono: ${usuario.telefono || "No disponible"}`;
+                document.getElementById("organizacion").textContent = `Organización: ${usuario.organizacion || "No especificada"}`;
+                document.getElementById("ubicacion").textContent = `Ubicación: ${usuario.ubicacion || "No especificada"}`;
+                document.getElementById("profile-image").src = usuario.imagen_perfil || "/imagenes/default.png";
+                document.getElementById("banner").src = usuario.banner || "/imagenes/cintillo_web_innovatech.jpg";
+            } catch (error) {
+                console.error("Error al cargar el perfil:", error);
+                alert("No se pudo cargar el perfil.");
+            }
+        });
+    </script>
+
+</body>
+</html>

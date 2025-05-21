@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTM 2024 - Registro</title>
+    <link rel="stylesheet" href="/css/formulario.css"> <!-- Asegúrate de que la ruta a tu archivo CSS sea correcta -->
+
+</head>
+<body>
+    <header>
+        <div class="banner-container">
+            <img src="/imagenes/logo.png" alt="UTM 2024 Banner" class="banner-image">
+        </div>
+    </header>
+    <div class="container">
+        <div class="form-container">
+            <div class="header-box">
+                <h2>UTM 2024 - Registro</h2>
+                <p>Regístrate y asegura tu presencia en UTM 2024. ¡No dejes pasar la oportunidad de ser parte de nuestro exclusivo evento!</p>
+            </div>
+    
+
+            <!-- Aquí empieza el formulario -->
+            <form id="registroForm">
+                <div class="question-box">
+                    <label for="nombre">Nombre y apellidos *</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+
+                <div class="question-box">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="question-box">
+                    <label for="telefono">Teléfono Movil *</label>
+                    <input type="tel" id="telefono" name="telefono" required>
+                </div>
+
+                <div class="question-box">
+                    <label for="perfil">Perfil de participante *</label>
+                    <select id="campo_accion" name="campo_accion" required>
+                        <option value="Seguridad">Seguridad</option>
+                        <option value="Turismo">Turismo</option>
+                        <option value="Empleo">Empleo</option>
+                        <option value="Salud">Salud</option>
+                        <option value="Agricultura">Agricultura</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                    
+                </div>
+
+                <!-- Campo de texto que aparecerá cuando se elija "Otro" -->
+                <div class="question-box" id="otro-perfil-box" style="display: none;">
+                    <label for="otro-perfil">Especifica tu perfil *</label>
+                    <input type="text" id="otro-perfil" name="otro-perfil">
+                </div>
+
+                <div class="question-box">
+                    <label for="organizacion">Organización a la que pertenece *</label>
+                    <input type="text" id="organizacion" name="organizacion" required>
+                </div>
+
+                <div class="question-box">
+                    <label for="cedula_ruc_pasaporte">Cédula, RUC o Pasaporte.</label>
+                    <input type="text" id="cedula_ruc_pasaporte" name="cedula_ruc_pasaporte">
+                </div>
+
+                <div class="question-box">
+                    <label for="ubicacion">País, Provincia, Código Postal *</label>
+                    <input type="text" id="ubicacion" name="ubicacion" required>
+                </div>
+
+                <div class="question-box">
+                    <label for="fase">¿En qué fase te encuentras? (solo startups)</label>
+                    <select id="fase" name="fase">
+                        <option value="idea">Tengo la idea de negocio</option>
+                        <option value="modelo_negocio">Tengo un modelo de negocio definido</option>
+                        <option value="mvp">Desarrollo MVP y validación</option>
+                        <option value="product_market_fit">Product-market fit</option>
+                    </select>
+                </div>
+
+                <div class="question-box">
+                    <label for="pitches">¿Quieres participar en el concurso de pitches? *</label>
+                    <select id="pitches" name="pitches" required>
+                        <option value="si">Sí</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+
+                <div class="question-box">
+                    <label for="deck">Sube anexos de tus productos o servicios a un espacio de acceso público y pega aquí la URL. Para cualquier duda contacta a <a href="mailto:emprendimiento@utm.edu.ec">emprendimiento@utm.edu.ec</a></label>
+                    <input type="text" id="deck" name="deck">
+                </div>
+
+                <!-- Campo de descripción -->
+                <div class="question-box">
+                    <label for="descripcion">Descripción (máximo 1000 caracteres)</label>
+                    <textarea id="descripcion" name="descripcion" maxlength="1000" rows="4" placeholder="Escribe una breve descripción aquí..."></textarea>
+                </div>
+
+                <!-- Campo de procedencia -->
+                <div class="question-box">
+                    <label for="procedencia">Procedencia *</label>
+                    <select id="procedencia" name="procedencia" required>
+                        <option value="utm">UTM</option>
+                        <option value="externo">Externo</option>
+                    </select>
+                </div>
+
+                <!-- Campo de acción -->
+                <div class="question-box">
+                    <label for="campo_accion">Campo de acción *</label>
+                    <select id="campo_accion" name="campo_accion" required onchange="mostrarOtroCampo()">
+                        <option value="Seguridad">Seguridad</option>
+                        <option value="Turismo">Turismo</option>
+                        <option value="Empleo">Empleo</option>
+                        <option value="Salud">Salud</option>
+                        <option value="Agricultura">Agricultura</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                </div>
+
+                <!-- Campo de texto para "Otros" -->
+                <div class="question-box" id="otros-campo-accion-box" style="display: none;">
+                    <label for="campo_accion_otro">Especifica tu campo de acción *</label>
+                    <input type="text" id="campo_accion_otro" name="campo_accion_otro">
+                </div>
+
+                <div class="privacy-box">
+                    <p>
+                        El/la responsable de tratamiento de los datos personales será la Fundación Universitaria San Antonio. Sus datos personales serán tratados para la gestión de las actividades de información y asesoramiento, atención de su consulta y el envío de comunicaciones promocionales y de servicios vinculados a la Institución. El/la interesado/a podrá ejercer los derechos de acceso, rectificación, supresión y portabilidad de sus datos, y la limitación u oposición a su tratamiento, presencialmente a través de la cumplimentación de un formulario disponible en la Secretaría General, enviando una comunicación escrita, junto con la fotocopia del Documento Nacional de Identidad a la siguiente dirección: Secretaría General de la UCAM, en Avda los Jeronimos 135 30107 Guadalupe (Murcia), o enviando su petición por email a través de su delegada de protección de datos en la dirección electrónica: dpd@ucam.edu. Puede consultar las políticas de privacidad de la UCAM en <a href="https://www.ucam.edu/aviso-legal" target="_blank">https://www.ucam.edu/aviso-legal</a>.
+                    </p>
+                </div>
+
+                <input type="submit" value="Enviar">
+            </form>
+
+            <!-- Botón de regresar -->
+            <a href="/index.html" class="btn-regresar">Regresar a Inicio</a>
+        </div>
+    </div>
+
+    <!-- Modal para mensajes de éxito o error -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="messageText"></p>
+        </div>
+    </div>
+
+    <script>
+        // Mostrar el modal si hay parámetros en la URL
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const successMessage = urlParams.get('success');
+            const errorMessage = urlParams.get('error');
+            
+            if (successMessage || errorMessage) {
+                const modal = document.getElementById('messageModal');
+                const messageText = document.getElementById('messageText');
+                const span = document.getElementsByClassName('close')[0];
+                
+                if (successMessage) {
+                    messageText.textContent = decodeURIComponent(successMessage);
+                } else if (errorMessage) {
+                    messageText.textContent = decodeURIComponent(errorMessage);
+                }
+                
+                modal.style.display = 'block';
+
+                span.onclick = function() {
+                    modal.style.display = 'none';
+                }
+
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                }
+            }
+        });
+
+        // Función para mostrar el campo de texto si se selecciona "Otros" en "Campo de acción"
+        function mostrarOtroCampo() {
+            const campoAccionSelect = document.getElementById('campo_accion');
+            const otrosCampoAccionBox = document.getElementById('otros-campo-accion-box');
+            const campoAccionOtroInput = document.getElementById('campo_accion_otro');
+
+            if (campoAccionSelect.value === 'otros') {
+                otrosCampoAccionBox.style.display = 'block';
+                campoAccionOtroInput.required = true; // Hacer obligatorio el campo si "Otros" está seleccionado
+            } else {
+                otrosCampoAccionBox.style.display = 'none';
+                campoAccionOtroInput.required = false; // Hacer opcional el campo si no se selecciona "Otros"
+            }
+        }
+    </script>
+        <!-- Enlace al archivo JavaScript -->
+        <script src="js/script.js"></script>
+</body>
+</html>

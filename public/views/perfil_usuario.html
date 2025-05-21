@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Usuario</title>
+    <link rel="stylesheet" href="/css/perfil.css">
+</head>
+<body style="display: none;">
+    <header class="profile-header">
+        <nav class="navbar">
+            <a href="explorar_perfiles.html" class="btn-custom">Inicio</a>
+            <div class="nav-link dropdown">
+                <button class="dropbtn">Configuración</button>
+                <div class="dropdown-content">
+                    <a href="#" id="open-password-modal">Cambiar Contraseña</a>
+                    <a href="#" id="open-edit-profile-modal">Editar Perfil</a>
+                    <a href="#" id="logout">Cerrar sesión</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="profile-container">
+        <div class="banner-container">
+            <img id="banner" src="/imagenes/cintillo_web_innovatech.jpg" alt="Banner" class="banner-image">
+            <div class="profile-image-container">
+                <img id="profile-image" src="/imagenes/default.png" alt="Imagen de perfil" class="profile-image">
+            </div>
+        </div>
+
+        <div class="profile-info">
+            <h2 id="user-name"></h2>
+            <p id="user-description" class="description"></p>
+        </div>
+
+        <div class="additional-info">
+            <h3>Información Adicional</h3>
+            <p><strong>Email:</strong> <span id="email"></span></p>
+            <p><strong>Teléfono:</strong> <span id="telefono"></span></p>
+            <p><strong>Organización:</strong> <span id="organizacion"></span></p>
+            <p><strong>Ubicación:</strong> <span id="ubicacion"></span></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch('/api/verificarSesion', { credentials: "include" });
+                if (!response.ok) throw new Error("Error verificando sesión");
+
+                const data = await response.json();
+                if (!data.autenticado) {
+                    window.location.href = "/auth/login.html";
+                } else {
+                    document.body.style.display = "block";
+                    cargarPerfil();
+                }
+            } catch (error) {
+                console.error("Error verificando sesión:", error);
+                window.location.href = "/auth/login.html";
+            }
+        });
+
+        async function cargarPerfil() {
+            try {
+                const response = await fetch('/api/perfil', { credentials: "include" });
+                if (!response.ok) throw new Error("Error cargando el perfil");
+
+                const usuario = await response.json();
+                console.log("Datos del usuario:", usuario);
+
+                // Asignación de valores corregida
+                document.getElementById("user-name").textContent = usuario.nombre || "Usuario";
+                document.getElementById("user-description").textContent = usuario.descripcion || "Sin descripción.";
+                document.getElementById("email").textContent = usuario.email || "No disponible";
+                document.getElementById("telefono").textContent = usuario.telefono || "No disponible";
+                document.getElementById("organizacion").textContent = usuario.organizacion || "No especificada";
+                document.getElementById("ubicacion").textContent = usuario.ubicacion || "No especificada";
+
+                // Asignación de imágenes corregida
+                document.getElementById("imagen_perfil").src = usuario.imagen_perfil || "/imagenes/default.png";
+                document.getElementById("banner").src = usuario.banner || "/imagenes/cintillo_web_innovatech.jpg";
+
+            } catch (error) {
+                console.error("Error al cargar el perfil:", error);
+            }
+        }
+
+        document.getElementById("logout").addEventListener("click", async () => {
+            if (!confirm("¿Estás seguro de que deseas cerrar sesión?")) return;
+            const response = await fetch("/api/logout", { method: "POST" });
+            if (response.ok) {
+                window.location.href = "/auth/login.html";
+            }
+        });
+    </script>
+
+    <!-- Modal de Cambiar Contraseña -->
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Cambiar Contraseña</h2>
+            <form id="change-password-form">
+                <div>
+                    <label for="old-password">Contraseña Actual</label>
+                    <input type="password" id="old-password" name="old-password" required>
+                </div>
+                <div>
+                    <label for="new-password">Nueva Contraseña</label>
+                    <input type="password" id="new-password" name="new-password" required>
+                </div>
+                <div>
+                    <label for="confirm-password">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="confirm-password" name="confirm-password" required>
+                </div>
+                <button type="submit" class="btn-custom">Cambiar Contraseña</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const passwordModal = document.getElementById("password-modal");
+            const openModalBtn = document.getElementById("open-password-modal");
+            const closeModalBtn = document.querySelector(".close-btn");
+
+            if (openModalBtn && passwordModal) {
+                openModalBtn.addEventListener("click", () => {
+                    passwordModal.style.display = "block";
+                });
+            }
+
+            if (closeModalBtn && passwordModal) {
+                closeModalBtn.addEventListener("click", () => {
+                    passwordModal.style.display = "none";
+                });
+            }
+
+            window.onclick = function (event) {
+                if (passwordModal && event.target === passwordModal) {
+                    passwordModal.style.display = "none";
+                }
+            };
+
+            document.getElementById("change-password-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const oldPassword = document.getElementById("old-password").value;
+                const newPassword = document.getElementById("new-password").value;
+                const confirmPassword = document.getElementById("confirm-password").value;
+
+                if (newPassword !== confirmPassword) {
+                    alert("Las contraseñas no coinciden.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/cambiar_contra', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+                        credentials: 'include',
+                    });
+
+                    if (!response.ok) throw new Error('Error al cambiar la contraseña');
+
+                    alert("Contraseña cambiada con éxito.");
+                    passwordModal.style.display = "none";
+                } catch (error) {
+                    console.error("Error:", error);
+                    alert("Hubo un problema al cambiar la contraseña. Intenta de nuevo.");
+                }
+            });
+        });
+    </script>
+
