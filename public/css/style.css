@@ -431,8 +431,8 @@ p {
                 border: 1px solid #2f69ab;
                 border-radius: 8px;
                 cursor: pointer;
-                color: rgba(35,35,35,1);
-                background-color: transparent;
+                color: rgb(255, 255, 255);
+                background-color: #00983d;
                 border-color: rgba(35,35,35,0.15);
                 min-width: 84px;
                 padding: 7px 13px;
