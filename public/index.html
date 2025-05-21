@@ -1,129 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INNOVATECH III EDICIÓN</title>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet">
-
-    <!-- Estilos personalizados -->
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/style2.css">
-    <link rel="stylesheet" href="/css/animacion.css">
-
+    <title>Plataforma EduTech</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body class="bg-gradient-to-b from-white to-green-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="text-center mb-20 animate-fade-in">
+            <img src="/imagenes/cintillo_web_innovatech.gif" alt="Tiempo de Estudio" class="w-[500px] mx-auto rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-300">
+            <p class="text-2xl mt-6 text-gray-700 font-medium">¿Cansado de que estudiar sea tan difícil?</p>
+        </div>
 
-<body>
-    <div id="header"></div>
-    <div class="sc-11eee2bc-0 jAwpjL" style="margin-top: 120px;">
-        <div class="sc-11eee2bc-2 cHPxBG">
-            <div
-                style="width: 1200px; height: 500px; background-image: url('/imagenes/cintillo_web_innovatech.gif');background-size: contain;background-repeat: no-repeat;background-position: center;border-radius: 20px;overflow: hidden;
-">
+        <div class="relative mb-24 rounded-2xl overflow-hidden group">
+            <img src="https://images.unsplash.com/photo-1531403009284-440f080d1e12?ixlib=rb-4.0.3" alt="Interfaz de la Plataforma" class="w-full rounded-2xl shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
+            <button class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 p-8 rounded-full hover:scale-110 transition-transform duration-300 hover:bg-[#00983d] hover:text-white">
+                <svg class="w-14 h-14" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="text-center mb-24">
+            <button class="bg-[#00983d] text-white px-10 py-5 rounded-full text-2xl font-bold hover:scale-105 hover:shadow-xl transition-all transform duration-300 animate-pulse">
+                ¡Comienza a Aprender Hoy!
+            </button>
+            <p class="mt-4 text-gray-600">Únete a miles de estudiantes satisfechos</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-10 mb-24">
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3" alt="Estudiante 1" class="w-20 h-20 rounded-full mx-auto mb-6 border-4 border-green-100">
+                <p class="italic text-gray-700 mb-6 text-lg">"¡Esta plataforma transformó completamente mi experiencia de aprendizaje!"</p>
+                <p class="font-bold text-lg">Sara Martínez</p>
+                <p class="text-md text-gray-500">Estudiante de Ciencias de la Computación</p>
+            </div>
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3" alt="Estudiante 2" class="w-20 h-20 rounded-full mx-auto mb-6 border-4 border-green-100">
+                <p class="italic text-gray-700 mb-6 text-lg">"¡Las lecciones interactivas hacen que aprender sea divertido y entretenido!"</p>
+                <p class="font-bold text-lg">Miguel García</p>
+                <p class="text-md text-gray-500">Estudiante de Ciencia de Datos</p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="group relative cursor-pointer overflow-hidden rounded-2xl">
+                <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3" alt="Panel de Control" class="rounded-2xl transform group-hover:scale-110 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                    <p class="text-white font-semibold text-lg">Panel de Control Intuitivo</p>
+                </div>
+            </div>
+            <div class="group relative cursor-pointer overflow-hidden rounded-2xl">
+                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3" alt="Vista del Curso" class="rounded-2xl transform group-hover:scale-110 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                    <p class="text-white font-semibold text-lg">Cursos Interactivos</p>
+                </div>
+            </div>
+            <div class="group relative cursor-pointer overflow-hidden rounded-2xl">
+                <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3" alt="Interfaz de Aprendizaje" class="rounded-2xl transform group-hover:scale-110 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                    <p class="text-white font-semibold text-lg">Interfaz Moderna</p>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="sc-cb3e04ea-0 gxSeln">
-
-        <div class="Card__Container-sc-10h519i-0 lokgCi sc-abc067c5-0 kqdPN fade-in">
-            <h2 class="Heading__StyledHeading-sc-12q62of-0 kkNHpG sc-d34334de-2 jwJGzL mb-12 text-wrap"
-                style="text-align: center;">
-           
-            </h2>
-        </div>
-
-        <div class="Card__Container-sc-10h519i-0 lokgCi sc-abc067c5-0 kqdPN">
-            <h2 class="Heading__StyledHeading-sc-12q62of-0 kkNHpG sc-d34334de-2 jwJGzL mb-12 text-wrap fade-in"
-                style="text-align: center; transform: translateX(-40px);">
-                SOPORTE
-            </h2>
-            <div class="sc-f7c6fa33-0 EVdKX soporte">
-            </div>
-        </div>
-
-        <div class="Card__Container-sc-10h519i-0 lokgCi sc-abc067c5-0 kqdPN fade-in">
-            <h2 class="Heading__StyledHeading-sc-12q62of-0 kkNHpG sc-d34334de-2 jwJGzL mb-12 text-wrap"
-                style="text-align: center;">SPONSORS</h2>
-            <div class="sc-f7c6fa33-0 EVdKX">
-                <div class="sc-f7c6fa33-1 iVwNbe"><img src="/imagenes/malaga.jpg" alt="UTM-LOGO" width="450" height="350"
-                    class="sc-a28d35a8-0 fnqpil">
-            </div><br>
-                <div class="sc-f7c6fa33-1 iVwNbe"><img src="/imagenes/cordoba.jpg" alt="UTM-LOGO" width="350"
-                        class="sc-a28d35a8-0 fnqpil">
-                </div><br>
-
-                <div class="sc-f7c6fa33-1 iVwNbe"><img src="/imagenes/granada.jpg" alt="UTM-LOGO" width="350"
-                        class="sc-a28d35a8-0 fnqpil">
-                </div><br>
-                <div class="sc-f7c6fa33-1 iVwNbe"><img src="/imagenes/ucam.jpg" alt="UTM-LOGO" width="350"
-                        class="sc-a28d35a8-0 fnqpil">
-                </div><br>
-            </div>
-        </div>
-
-        <div class="Card__Container-sc-10h519i-0 lokgCi sc-abc067c5-0 kqdPN fade-in">
-            <h2 class="Heading__StyledHeading-sc-12q62of-0 kkNHpG sc-d34334de-2 jwJGzL mb-12 text-wrap">
-                Que es INNOVATECH
-            </h2>
-            <p>
-                Espacio de innovación y creatividad, en el que se reúnen startups, inversionistas, emprendedores,
-                empresas e investigadores para hablar sobre inversión en startups de base científico-tecnológica y temas
-                de innovación abierta alrededor de la seguridad, empleo, salud y agricultura, enmarcados en la Ley
-                Orgánica para la Transformación Digital y Audiovisual.
-            </p>
-            <br /> <br /> 
-
-            <div>
-                <h3>¿ Que busca INNOVATECH ?</h3>
-                <ul id="listInovatech">
-                    <li>
-                        Fortalecer las relaciones de proximidad Universidad-Empresa para el ecosistema de la innovación.
-                    </li>
-                    <li>
-                        Incrementar las redes de colaboración para el fomento de la transferencia tecnológica de
-                        investigaciones universitarias a la industria provincial y/o nacional.
-                    </li>
-                    <li>
-                        Detectar, fomentar y conservar talento humano especializado.
-                    </li>
-                    <li>
-                        Fomentar el uso de video juegos como herramienta de desarrollo creativo y trabajo en equipo.
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    
-    <script src="/js/sweetalert2.all.min.js"></script>
-    <script src="/js/headers.js"></script>
-    <script>
-        document.getElementById('inscripcion').onclick = (e) => window.location.href = `/formulario.html`;
-
-        // script.js
-        document.addEventListener('DOMContentLoaded', () => {
-            const fadeInElements = document.querySelectorAll('.fade-in');
-
-            const checkVisibility = () => {
-                const windowHeight = window.innerHeight;
-                fadeInElements.forEach(element => {
-                    const elementTop = element.getBoundingClientRect().top;
-                    if (elementTop < windowHeight) {
-                        element.classList.add('visible');
-                    } else {
-                        element.classList.remove('visible');
-                    }
-                });
-            };
-
-            window.addEventListener('scroll', checkVisibility);
-            checkVisibility(); // Ejecuta la función al cargar la página
-        });
-    </script>
 </body>
-
 </html>
