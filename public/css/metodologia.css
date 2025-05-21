@@ -8,7 +8,7 @@
     text-align: center;
     padding: 4rem 0;
     background: linear-gradient(135deg, #00983d 0%, #4FBDBA 100%);
-    color: white;
+    color: rgb(0, 0, 0);
     border-radius: 15px;
     margin-bottom: 3rem;
   }
