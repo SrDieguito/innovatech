@@ -1,301 +1,140 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INNOVATECH III EDICIÓN</title>
+    <title>Preguntas Frecuentes - EduTech Educación Virtual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        edugreen: '#00983d',
+                        blanco: '#ffffff',
+                        gris: '#f9fafb',
+                        texto: '#4b5563'
+                    }
+                }
+            }
+        }
+    </script>
+    <script defer src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-<link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet">
-<link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'>
-<link
-    href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
-    rel='stylesheet'>
-<link rel="stylesheet" href="/css/style.css">
-<link rel="stylesheet" href="/css/style2.css">
-<link rel="stylesheet" href="/css/animacion.css">
-
-</head>
-
-<body>
-    <div id="header"></div>
-    <div class="Card__Container-sc-10h519i-0 lokgCi sc-abc067c5-0 kqdPN container actividades1"
-        style="margin-left: 120px; margin-top: 150px;">
-        <div>
-            <h2 class="Heading__StyledHeading-sc-12q62of-0 kkNHpG sc-d34334de-2 jwJGzL mb-12 text-wrap" style="font-size: 30px; font-weight: bold;">FAQ</h2>
-            <p>Déjate llevar por la magia, la inmersión en el mundo de las tecnologías mediante la realidad virtual,
-                inteligencias artificiales, impresión 3D e impresión laser, y de las creaciones de ideas innovadoras
-                desde
-                la academia para el mundo.
-            </p>
-            <p>
-                Durante tres días podrás disfrutar en cualquier de nuestras actividades planificadas (IdeaTECH,
-                GameTECH,
-                ProtoTECH); cada una de ellas con escenarios adaptados a cada público, en el que se disfrutará de
-                ciencia,
-                tecnología, negocios y juegos inmersivos. Las actividades planteadas buscan dar una visión de lo que
-                depara
-                el futuro y de cómo la academia lo está afrontando es así que se describe las siguientes actividades:
-            </p>
+<body class="bg-gris">
+    <div class="max-w-4xl mx-auto px-4 py-12">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-edugreen mb-2">Preguntas Frecuentes</h2>
+            <p class="text-texto">Encuentra respuestas a las preguntas más comunes sobre nuestra plataforma de educación virtual</p>
         </div>
-        <img src="/imagenes/Robot.png" width="350" height="450" />
+
+        <div class="space-y-4" x-data="{selected:null}">
+            <!-- PREGUNTA 1 -->
+            <div class="border border-gray-200 rounded-lg shadow-sm">
+                <button @click="selected !== 1 ? selected = 1 : selected = null"
+                    class="flex justify-between items-center w-full p-4 text-left bg-white hover:bg-gris transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-edugreen">
+                    <span class="text-lg font-medium text-gray-900">¿Cómo me registro en un curso?</span>
+                    <svg class="w-5 h-5 text-texto" :class="{'rotate-180': selected == 1}" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="selected == 1" x-collapse class="p-4 bg-gris border-t border-gray-200">
+                    <p class="text-texto">Visita nuestro catálogo de cursos, selecciona el curso que deseas y haz clic en el botón "Registrarse". Necesitarás crear una cuenta si aún no la tienes, luego sigue los pasos para completar el registro y el pago.</p>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 2 -->
+            <div class="border border-gray-200 rounded-lg shadow-sm">
+                <button @click="selected !== 2 ? selected = 2 : selected = null"
+                    class="flex justify-between items-center w-full p-4 text-left bg-white hover:bg-gris transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-edugreen">
+                    <span class="text-lg font-medium text-gray-900">¿Qué requisitos técnicos necesito?</span>
+                    <svg class="w-5 h-5 text-texto" :class="{'rotate-180': selected == 2}" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="selected == 2" x-collapse class="p-4 bg-gris border-t border-gray-200">
+                    <p class="text-texto">Necesitas una conexión a internet confiable, un navegador actualizado (Chrome, Firefox o Safari), y una computadora con audio y video. Algunos cursos pueden requerir software adicional, lo cual se especificará en la descripción del curso.</p>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 3 -->
+            <div class="border border-gray-200 rounded-lg shadow-sm">
+                <button @click="selected !== 3 ? selected = 3 : selected = null"
+                    class="flex justify-between items-center w-full p-4 text-left bg-white hover:bg-gris transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-edugreen">
+                    <span class="text-lg font-medium text-gray-900">¿Los cursos son autodidactas?</span>
+                    <svg class="w-5 h-5 text-texto" :class="{'rotate-180': selected == 3}" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="selected == 3" x-collapse class="p-4 bg-gris border-t border-gray-200">
+                    <p class="text-texto">Sí, la mayoría de nuestros cursos son autodidactas, lo que te permite aprender a tu propio ritmo. Sin embargo, algunos cursos pueden tener fechas de inicio y fin específicas, las cuales se indicarán claramente en los detalles del curso.</p>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 4 -->
+            <div class="border border-gray-200 rounded-lg shadow-sm">
+                <button @click="selected !== 4 ? selected = 4 : selected = null"
+                    class="flex justify-between items-center w-full p-4 text-left bg-white hover:bg-gris transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-edugreen">
+                    <span class="text-lg font-medium text-gray-900">¿Cómo accedo al material del curso?</span>
+                    <svg class="w-5 h-5 text-texto" :class="{'rotate-180': selected == 4}" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="selected == 4" x-collapse class="p-4 bg-gris border-t border-gray-200">
+                    <p class="text-texto">Después de inscribirte, inicia sesión en tu panel de estudiante. Allí encontrarás todos los materiales del curso, incluyendo videos, tareas y lecturas organizadas por módulo. Puedes acceder a ellos las 24 horas, los 7 días de la semana, desde nuestra plataforma de aprendizaje.</p>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 5 -->
+            <div class="border border-gray-200 rounded-lg shadow-sm">
+                <button @click="selected !== 5 ? selected = 5 : selected = null"
+                    class="flex justify-between items-center w-full p-4 text-left bg-white hover:bg-gris transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-edugreen">
+                    <span class="text-lg font-medium text-gray-900">¿Qué soporte está disponible durante el curso?</span>
+                    <svg class="w-5 h-5 text-texto" :class="{'rotate-180': selected == 5}" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="selected == 5" x-collapse class="p-4 bg-gris border-t border-gray-200">
+                    <p class="text-texto">Ofrecemos soporte técnico 24/7, foros de discusión para interactuar con otros estudiantes y mensajería directa con los instructores. También puedes agendar consultas virtuales uno a uno para dudas específicas.</p>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 6 -->
+            <div class="border border-gray-200 rounded-lg shadow-sm">
+                <button @click="selected !== 6 ? selected = 6 : selected = null"
+                    class="flex justify-between items-center w-full p-4 text-left bg-white hover:bg-gris transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-edugreen">
+                    <span class="text-lg font-medium text-gray-900">¿Cómo se emiten los certificados?</span>
+                    <svg class="w-5 h-5 text-texto" :class="{'rotate-180': selected == 6}" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="selected == 6" x-collapse class="p-4 bg-gris border-t border-gray-200">
+                    <p class="text-texto">Al completar con éxito el curso y todas las actividades requeridas, recibirás un certificado digital. Podrás descargarlo directamente desde tu panel y compartirlo en redes profesionales como LinkedIn.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTACTO -->
+        <div class="mt-12 text-center p-6 bg-edugreen text-white rounded-xl">
+            <h3 class="text-xl font-semibold mb-2">¿Aún tienes preguntas?</h3>
+            <p class="mb-4">Nuestro equipo de soporte está disponible para ayudarte 24/7</p>
+            <button class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md bg-white text-edugreen hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-colors">
+                Contactar Soporte
+            </button>
+        </div>
     </div>
-
-
-    <div class="Card__Container-sc-10h519i-0 lokgCi sc-abc067c5-0 kqdPN"
-        style="margin-left: 120px; margin-top: 40px; display: flex; flex-direction: column; gap: 100px;">
-        <div class="aos-init fade-in">
-            <strong class="strong_day"> DIA 1 (18 Noviembre)</strong>
-            <div class="item actividad" style="margin-top: 20px;">
-                <h3 class="event not" style="font-weight: bold;">Inauguración Evento</h3>
-                <span class="time">Hora 9:00</span>
-            </div>
-            <br />
-            <div class="item actividad">
-                <span class="event not"> Charla Magistral Innovación - Presencial <strong>Industria, Innovación y
-                        Sostenibilidad</strong></span>
-                <span class="time"> Hora 9:00</span>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 30px;">
-                <div class="days">
-                    <div style="" class="eventsH2 h2Videojuegos"> </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <div class="item actividad">
-                            <span class="event">2 Partidas 4 grupos</span>
-                            <span class="time">hora 11:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">2 Partidas 4 grupos</span>
-                            <span class="time">hora 12:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">2 Partidas 4 grupos</span>
-                            <span class="time">hora 13:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">Almuerzo</span><span class="time">hora
-                                14:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">2 Partidas 4 grupos</span>
-                            <span class="time">hora 15:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">2 Partidas 4 grupos</span>
-                            <span class="time">hora 16:00</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="days day_inv">
-                    <div>
-                        <div class="eventsH2 h2Ideación"></div>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <div class="item actividad">
-                                <span class="event">Conformación de Equipos</span>
-                                <span class="time">hora 11:00</span>
-                            </div>
-                            <div class="item actividad">
-                                <span class="event">Capacitación motivación a la
-                                    innovación</span>
-                                <span class="time">hora 12:00</span>
-                            </div>
-                            <div class="item actividad">
-                                <span class="event">
-                                    Capacitación pensamiento de diseño
-                                </span>
-                                <span class="time">hora 13:00</span>
-                            </div>
-                            <div class="item actividad">
-                                <span class="event">Almuerzo</span>
-                                <span class="time">hora 14:00</span>
-                            </div>
-                            <div class="item actividad">
-                                <span class="event">Preparación y presentación de
-                                    idas</span>
-                                <span class="time">hora 15:00</span>
-                            </div>
-                            <div class="item actividad">
-                                <span class="event">Preparación y presentación de
-                                    idas</span>
-                                <span class="time">hora 16:00</span>
-                            </div>
-                            <div class="item actividad">
-                                <span class="event">Capacitación estudio de mercadeo</span>
-                                <span class="time">hora 17:00</span>
-                            </div>
-                            <div class="item actividad">
-                                <span class="event">Diseño y aplicación de instrumento de
-                                    mercado mercadeo </span>
-                                <span class="time">hora 18:00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="aos-init fade-in">
-            <strong class="strong_day"> DIA 2 (19 Noviembre)</strong>
-
-            <div style="display: flex; flex-direction: column; gap: 30px;">
-                <div class="days">
-                    <div style="" class="eventsH2 h2Videojuegos"> </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <div class="item actividad">
-                            <span class="event">2 Partidas 4 grupos</span>
-                            <span class="time">hora 11:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">2 Partidas 4 grupos</span>
-                            <span class="time">hora 12:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">2 Partidas 4 grupos</span>
-                            <span class="time">hora 13:00</span>
-                        </div>
-                        <div class="item actividad almuerzo"></div>
-                        <div class="item actividad">
-                            <span class="event">Semifinal</span>
-                            <span class="time">hora 15:00 a 18:00</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="days">
-                    <div class="eventsH2 h2Prototipo"></div>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <div class="item actividad">
-                            <span class="event">Ubicación en Stand</span><span class="time">hora 09:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">Presentación de inventos / Evaluación</span><span class="time">hora
-                                10:00 a 13:00</span>
-                        </div>
-                        <div class="item actividad almuerzo"></div>
-                        <div class="item actividad">
-                            <span class="event">Reuniones con inversores</span><span class="time">hora 15:00 a
-                                18:00</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="days ">
-                    <div class="eventsH2 h2Ideación"> </div>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <div class="item actividad">
-                            <span class="event">Modelado de idea</span>
-                            <span class="time">hora 09:00 a 13:00</span>
-                        </div>
-                        <div class="item actividad almuerzo"></div>
-                        <div class="item actividad">
-                            <span class="event">Capacitacion en costos</span><span class="time">hora 15:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">Arma tu Pitch-Capacitación</span><span class="time">hora
-                                16:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">Mentoria para el modelo de negocio</span>
-                            <span class="time">hora 17:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">Mentoria para el modelo de negocio</span>
-                            <span class="time">hora 18:00</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="days day_inv">
-                    <div class="eventsH2 h2Conferencia"> </div>
-                    <div class="display: flex; flex-direction: column; gap: 10px;">
-                        <div class="item actividad">
-                            <span class="event">
-                                Mesa Redonda 2 Virtual - Internacional (UMA,UGR)+ 2 Presencial - Nacional Tema:
-                                Acreditación internacional incubadoras
-                            </span>
-                            <span class="time">hora 11:00 a 12:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">
-                                Conferencia la IA en el desarrollo de la Innovación</span>
-                            <span class="time">hora 16:00</span>
-                        </div>
-                        <div class="item actividad">
-                            <span class="event">
-                                La incidencia de la IA en la seguridad jurídica de las personas
-                            </span>
-                            <span class="time">hora 17:00</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="aos-init fade-in">
-            <strong style="font-size: 50px; color: rgb(193, 18, 31); margin-bottom: 20px;">DIA 3 (20 Noviembre)</strong>
-
-            <div style="display: flex; flex-direction: column; gap: 30px;">
-                <div class="days">
-                    <div class="eventsH2 h2Videojuegos"></div>
-                    <div class="item actividad">
-                        <span class="event">Final</span>
-                        <span class="time">hora 09:00 a 13:00</span>
-                    </div>
-                </div>
-                <div class="days day_inv">
-                    <div class="eventsH2 h2Prototipo"> </div>
-                    <div class="item actividad">
-                        <span class="event">Reuniones con inversores</span>
-                        <span class="time">hora 09:00 a 13:00</span>
-                    </div>
-                </div>
-                <div class="days ">
-                    <div class="eventsH2 h2Ideación"></div>
-                    <div class="item actividad">
-                        <span class="event">Ajustes de Pitch</span>
-                        <span class="time">hora 09:00 a 13:00</span>
-                    </div>
-                </div>
-
-                <div class="days day_inv">
-                    <div class="eventsH2 h2Conferencia"> </div>
-                    <div class="item actividad">
-                        <span class="event">Mesa Redonda 2 Virtual-Internacional (UCO- UCAM)+ 2 Presencial-Nacional
-                            Tema:Relación universidad EmpresaPara: Responsables de TT,</span>
-                        <span class="time">hora 10:00 a 11:00</span>
-                    </div>
-                </div>
-
-                <div class="item actividad" style="margin-top: 40px;">
-                    <span style="font-weight: 600; font-size: 18px; max-width: 80%;">
-                        PREMIACIÓN, Espacio artístico, Networking, Autoridades y Entrega de reconocimientos</span>
-                    <span class="time">Hora 15:00 a 18:00</span>
-                </div>
-            </div>
-        </div>
-        <script src="/js/sweetalert2.all.min.js"></script>
-        <script src="/js/headers.js"></script>
-        <script src="/js/element.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const fadeInElements = document.querySelectorAll('.fade-in');
-
-                const checkVisibility = () => {
-                    const windowHeight = window.innerHeight;
-                    fadeInElements.forEach(element => {
-                        const elementTop = element.getBoundingClientRect().top;
-                        if (elementTop < windowHeight) {
-                            element.classList.add('visible');
-                        } else {
-                            element.classList.remove('visible');
-                        }
-                    });
-                };
-
-                window.addEventListener('scroll', checkVisibility);
-                checkVisibility(); // Ejecuta la función al cargar la página
-            });
-        </script>
 </body>
-
 </html>
