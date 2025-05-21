@@ -47,7 +47,7 @@ const htmlContent = `
                     <a class="TabLink__TabAnchor-sc-e9hfzw-0 bATmFG text-uppercase px-24 px-tablet-40"
                         id="btnNav_Inicio" href="./index.html" tabindex="0">Inicio</a>
                     <a class="TabLink__TabAnchor-sc-e9hfzw-0 bATmFG text-uppercase px-24 px-tablet-40"
-                        id="btnNav_Metodologia" href="./metodologias.html" tabindex="0">¿Quiénes somos</a>
+                        id="btnNav_Metodologia" href="./metodologias.html" tabindex="0">¿Quiénes somos?</a>
                     <a class="TabLink__TabAnchor-sc-e9hfzw-0 bATmFG text-uppercase px-24 px-tablet-40" id="btnNav_Retos"
                         href="./retos.html" tabindex="0">¿Cómo funciona?</a>
                     <a class="TabLink__TabAnchor-sc-e9hfzw-0 bATmFG text-uppercase px-24 px-tablet-40"
