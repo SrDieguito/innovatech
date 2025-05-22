@@ -470,18 +470,18 @@ p {
             .gMZAES:disabled .Icon-sc-2q4m72-0,.gMZAES[aria-disabled="true"] .Icon-sc-2q4m72-0 {
                 color: rgba(35,35,35,0.55);
             }
+            .gMZAES.btn_loing:hover:not(:disabled):not(.Button__StyledButton-sc-1gfts8g-0[aria-disabled="true"]) {
+                background-color: #e0b800 !important;
+                color: white !important;
+                border-color: #e0b800 !important;
+}
 
-            /*!sc*/
-            .gMZAES:hover:not(:disabled):not(.Button__StyledButton-sc-1gfts8g-0[aria-disabled="true"]) {
-                background-color: #00983d;
-                border-color: rgba(35,35,35,1);
-            }
+            .gMZAES.btn_loing:active:not(:disabled):not(.Button__StyledButton-sc-1gfts8g-0[aria-disabled="true"]) {
+                background-color: #e0b800 !important;
+                color: white !important;
+                border-color: #e0b800 !important;
+}
 
-            /*!sc*/
-            .gMZAES:active:not(:disabled):not(.Button__StyledButton-sc-1gfts8g-0[aria-disabled="true"]) {
-                background-color: #00983d;
-                border-color: rgba(35,35,35,1);
-            }
 
             /*!sc*/
             .gMZAES:focus {
@@ -4711,6 +4711,7 @@ Atributo style {
 .modal-login .btn {
     background: #70c5c0;
     border: none;
+
     line-height: normal;
 }
 .modal-login .btn:hover, .modal-login .btn:focus {
