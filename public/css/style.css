@@ -428,7 +428,7 @@ p {
                 font-size: 16px;
                 line-height: 24px;
                 font-weight: 600;
-                border: 1px solid #2f69ab;
+                border: 1px solid #00983d;
                 border-radius: 8px;
                 cursor: pointer;
                 color: rgb(255, 255, 255);
@@ -486,14 +486,14 @@ p {
             /*!sc*/
             .gMZAES:focus {
                 outline-offset: 4px;
-                outline: 1px solid #2f69ab;
+                outline: 1px solid #00983d;
             }
 
             /*!sc*/
             .gMZAES:focus-visible {
                 outline: none;
                 box-shadow: 0 0 0 4px rgba(47,105,171,0.25);
-                border-color: #2f69ab;
+                border-color: #00983d;
             }
 
             /*!sc*/
@@ -523,7 +523,7 @@ p {
                 vertical-align: middle;
                 font-size: 20px;
                 cursor: pointer;
-                border: 1px solid #2f69ab;
+                border: 1px solid #00983d;
                 border-radius: 8px;
                 padding: 7px;
                 width: 40px;
@@ -557,14 +557,14 @@ p {
             /*!sc*/
             .dMqGsV:focus {
                 outline-offset: 4px;
-                outline: 1px solid #2f69ab;
+                outline: 1px solid #00983d;
             }
 
             /*!sc*/
             .dMqGsV:focus-visible {
                 outline: none;
                 box-shadow: 0 0 0 4px rgba(47,105,171,0.25);
-                border-color: #2f69ab;
+                border-color: #00983d;
             }
 
             /*!sc*/
@@ -3241,7 +3241,7 @@ p {
 
             /*!sc*/
             .gZPzuj:hover,.gZPzuj:focus {
-                color: #2f69ab;
+                color: #00983d;
                 -webkit-text-decoration: underline;
                 text-decoration: underline;
             }
@@ -3253,7 +3253,7 @@ p {
 
             /*!sc*/
             .gZPzuj:focus {
-                border-color: #2f69ab;
+                border-color: #00983d;
                 box-shadow: 0 0 0 4px rgba(47,105,171,0.25);
             }
 
@@ -3285,7 +3285,7 @@ p {
 
             /*!sc*/
             .hJIjSR:hover,.hJIjSR:focus {
-                color: #2f69ab;
+                color: #00983d;
                 -webkit-text-decoration: underline;
                 text-decoration: underline;
             }
@@ -3297,7 +3297,7 @@ p {
 
             /*!sc*/
             .hJIjSR:focus {
-                border-color: #2f69ab;
+                border-color: #00983d;
                 box-shadow: 0 0 0 4px rgba(47,105,171,0.25);
             }
 
@@ -3422,7 +3422,7 @@ p {
                 -moz-user-select: none;
                 -ms-user-select: none;
                 user-select: none;
-                color: #2f69ab;
+                color: #00983d;
                 -webkit-text-decoration: none;
                 text-decoration: none;
             }
@@ -3453,12 +3453,12 @@ p {
 
             /*!sc*/
             .fRDGyE:hover,.fRDGyE:focus {
-                color: #2f69ab;
+                color: #00983d;
             }
 
             /*!sc*/
             .fRDGyE:hover:before,.fRDGyE:focus:before {
-                background-color: #2f69ab;
+                background-color: #00983d;
                 display: block;
             }
 
@@ -3488,7 +3488,7 @@ p {
 
             /*!sc*/
             .fRDGyE:before {
-                background-color: #2f69ab;
+                background-color: #00983d;
                 display: block;
             }
 
@@ -3552,12 +3552,12 @@ p {
 
             /*!sc*/
             .bATmFG:hover,.bATmFG:focus {
-                color: #2f69ab;
+                color: #00983d;
             }
 
             /*!sc*/
             .bATmFG:hover:before,.bATmFG:focus:before {
-                background-color: #2f69ab;
+                background-color: #00983d;
                 display: block;
             }
 
@@ -3730,7 +3730,7 @@ p {
                 width: 100%;
                 border-right: 1px solid rgba(233,233,233,1);
                 background-color: rgba(255,255,255,1);
-                color: #2f69ab;
+                color: #00983d;
             }
 
             /*!sc*/
@@ -4011,14 +4011,14 @@ p {
             /*!sc*/
             .fUtifq:focus {
                 outline-offset: 4px;
-                outline: 1px solid #2f69ab;
+                outline: 1px solid #00983d;
             }
 
             /*!sc*/
             .fUtifq:focus-visible {
                 outline: none;
                 box-shadow: 0 0 0 4px rgba(47,105,171,0.25);
-                border-color: #2f69ab;
+                border-color: #00983d;
             }
 
             /*!sc*/
@@ -4132,7 +4132,7 @@ p {
 
             /*!sc*/
             .color-brand {
-                color: #2f69ab;
+                color: #00983d;
             }
 
             /*!sc*/
