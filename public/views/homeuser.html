@@ -151,17 +151,21 @@
 
 <script>
   // Obtiene nombre e iniciales desde la API
-  fetch('/api/perfil') // Asegúrate que la ruta sea correcta
+  fetch('/api/perfil') // Asegúrate que esta ruta es correcta
     .then(response => {
       if (!response.ok) throw new Error("No autorizado o error en la API");
       return response.json();
     })
     .then(data => {
-      const userName = data.nombre || "Usuario";
-      const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+      const fullName = data.nombre || "Usuario";
+      const nameParts = fullName.trim().split(/\s+/);
 
-      document.getElementById('user-name').textContent = userName.toUpperCase();
-      document.getElementById('user-initials').textContent = userInitials;
+      const firstName = nameParts[0] || '';
+      const firstLastName = nameParts[1] || '';
+      const initials = (firstName[0] || '') + (firstLastName[0] || '');
+
+      document.getElementById('user-name').textContent = fullName.toUpperCase();
+      document.getElementById('user-initials').textContent = initials.toUpperCase();
     })
     .catch(error => {
       console.error('Error al obtener el usuario:', error);
@@ -201,5 +205,6 @@
     if (dayCount > daysInMonth) break;
   }
 </script>
+
  </body>
 </html>
