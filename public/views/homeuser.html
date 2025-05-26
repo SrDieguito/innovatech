@@ -1,0 +1,196 @@
+<html lang="es">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Bienvenido Usuario
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <style>
+   /* Custom green color override */
+   .bg-green-900 {
+    background-color: #00983d !important;
+   }
+   .border-green-800 {
+    border-color: #00983d !important;
+   }
+   .peer-checked\:bg-green-600:checked {
+    background-color: #00983d !important;
+   }
+   .peer-focus\:ring-green-300:focus {
+    --tw-ring-color: #00983d !important;
+   }
+   .peer-focus\:ring-green-800:focus {
+    --tw-ring-color: #00983d !important;
+   }
+   .text-green-700 {
+    color: #00983d !important;
+   }
+   .bg-green-200 {
+    background-color: #c6f0cc !important;
+   }
+  </style>
+ </head>
+ <body class="bg-white text-gray-900 font-sans">
+  <header class="bg-green-900 text-white flex items-center justify-between px-4 sm:px-6 md:px-8 h-12">
+   <nav class="flex space-x-4 text-sm">
+    <a class="hover:underline" href="#">
+     Área personal
+    </a>
+    <a class="hover:underline" href="#">
+     Mis cursos
+    </a>
+   </nav>
+   <div class="flex items-center space-x-4 text-sm">
+    <button aria-label="Notificaciones" class="relative focus:outline-none">
+     <i class="fas fa-bell">
+     </i>
+    </button>
+    <button aria-label="Mensajes" class="relative focus:outline-none">
+     <i class="fas fa-comment-alt">
+     </i>
+    </button>
+    <div class="flex items-center space-x-2 border-l border-green-800 pl-4">
+     <div aria-label="User initials" class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-green-900 font-semibold text-sm" id="user-initials">
+      US
+     </div>
+     <button aria-label="User menu" class="focus:outline-none">
+      <i class="fas fa-chevron-down">
+      </i>
+     </button>
+    </div>
+    <div class="border-l border-green-800 pl-4 flex items-center space-x-2 text-gray-400 select-none">
+     <span class="text-sm">
+      Modo de edición
+     </span>
+     <label class="relative inline-flex items-center cursor-pointer" for="toggle-edit">
+      <input class="sr-only peer" id="toggle-edit" type="checkbox" value=""/>
+      <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:bg-green-600 transition-colors">
+      </div>
+      <div class="absolute left-0.5 top-0.5 bg-white border border-gray-300 rounded-full w-5 h-5 transition-transform peer-checked:translate-x-5">
+      </div>
+     </label>
+    </div>
+   </div>
+  </header>
+  <main class="flex flex-col md:flex-row max-w-7xl mx-auto mt-6 px-4 sm:px-6 md:px-8 space-y-6 md:space-y-0 md:space-x-6">
+   <section class="flex-1 rounded border border-gray-300 p-6 max-w-4xl flex flex-col">
+    <h1 class="text-2xl font-extrabold mb-6" id="welcome-message">
+     ¡Bienvenido/a,
+     <span class="uppercase" id="user-name">
+      USUARIO
+     </span>
+     !
+     <span>
+      👋
+     </span>
+    </h1>
+    <article class="bg-gray-100 rounded border border-gray-300 p-6 max-w-3xl flex-grow">
+     <img alt="Logo o imagen representativa de Coordinación General de Tutorías" class="mb-2" height="60" src="https://storage.googleapis.com/a1aa/image/e5493b0f-72c1-46a1-a99d-8b6600e36418.jpg" width="120"/>
+     <p class="mb-4 text-sm text-gray-700">
+      General de Tutorías
+     </p>
+    </article>
+   </section>
+   <aside class="w-full md:w-80 rounded border border-gray-300 p-4">
+    <button aria-label="Cerrar" class="text-gray-600 hover:text-gray-900 float-right focus:outline-none">
+     ×
+    </button>
+    <h3 class="font-semibold mb-4 text-gray-900">
+     Elementos accedidos recientemente
+    </h3>
+    <div class="border border-gray-200 rounded p-4 text-center text-gray-400">
+     <img alt="Icono de lista con líneas y puntos representando elementos recientes" class="mx-auto mb-2" height="48" src="https://storage.googleapis.com/a1aa/image/cda9149f-76a1-4642-7cf2-9256e772d96b.jpg" width="48"/>
+     <p class="text-sm">
+      Sin elementos recientes
+     </p>
+    </div>
+   </aside>
+  </main>
+  <section class="max-w-7xl mx-auto mt-6 px-4 sm:px-6 md:px-8">
+   <div class="rounded border border-gray-300 p-6 max-w-4xl mx-auto">
+    <h2 class="text-xl font-semibold mb-4 text-gray-900">
+     Calendario
+    </h2>
+    <div class="w-full overflow-auto">
+     <table class="w-full border-collapse border border-gray-300 text-center">
+      <thead class="bg-green-900 text-white">
+       <tr>
+        <th class="border border-gray-300 px-2 py-1 text-sm">
+         Dom
+        </th>
+        <th class="border border-gray-300 px-2 py-1 text-sm">
+         Lun
+        </th>
+        <th class="border border-gray-300 px-2 py-1 text-sm">
+         Mar
+        </th>
+        <th class="border border-gray-300 px-2 py-1 text-sm">
+         Mié
+        </th>
+        <th class="border border-gray-300 px-2 py-1 text-sm">
+         Jue
+        </th>
+        <th class="border border-gray-300 px-2 py-1 text-sm">
+         Vie
+        </th>
+        <th class="border border-gray-300 px-2 py-1 text-sm">
+         Sáb
+        </th>
+       </tr>
+      </thead>
+      <tbody id="calendar-body" class="text-sm text-gray-900">
+       <!-- Calendar days will be inserted here by JS -->
+      </tbody>
+     </table>
+    </div>
+   </div>
+  </section>
+  <script>
+   // Example user data - replace with real session data
+   const userName = "Henry Daniel";
+   const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+
+   // Set user name and initials in header and welcome message
+   document.getElementById('user-name').textContent = userName.toUpperCase();
+   document.getElementById('user-initials').textContent = userInitials;
+
+   // Calendar generation
+   const calendarBody = document.getElementById('calendar-body');
+   const today = new Date();
+   const year = today.getFullYear();
+   const month = today.getMonth();
+
+   // Get first day of the month (0=Sunday)
+   const firstDay = new Date(year, month, 1).getDay();
+   // Get number of days in the month
+   const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+   let dayCount = 1;
+   for(let week=0; week<6; week++) {
+     let row = document.createElement('tr');
+     for(let day=0; day<7; day++) {
+       let cell = document.createElement('td');
+       cell.className = "border border-gray-300 px-2 py-1 h-10 align-top";
+       if(week === 0 && day < firstDay) {
+         cell.textContent = "";
+       } else if(dayCount > daysInMonth) {
+         cell.textContent = "";
+       } else {
+         cell.textContent = dayCount;
+         // Highlight today
+         if(dayCount === today.getDate()) {
+           cell.classList.add("bg-green-200", "font-bold");
+         }
+         dayCount++;
+       }
+       row.appendChild(cell);
+     }
+     calendarBody.appendChild(row);
+     if(dayCount > daysInMonth) break;
+   }
+  </script>
+ </body>
+</html>
