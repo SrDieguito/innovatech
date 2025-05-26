@@ -148,49 +148,58 @@
     </div>
    </div>
   </section>
-  <script>
-   // Example user data - replace with real session data
-   const userName = "Henry Daniel";
-   const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+  
+<script>
+  // Obtiene nombre e iniciales desde la API
+  fetch('/api/usuario') // Asegúrate que la ruta sea correcta
+    .then(response => {
+      if (!response.ok) throw new Error("No autorizado o error en la API");
+      return response.json();
+    })
+    .then(data => {
+      const userName = data.nombre || "Usuario";
+      const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
 
-   // Set user name and initials in header and welcome message
-   document.getElementById('user-name').textContent = userName.toUpperCase();
-   document.getElementById('user-initials').textContent = userInitials;
+      document.getElementById('user-name').textContent = userName.toUpperCase();
+      document.getElementById('user-initials').textContent = userInitials;
+    })
+    .catch(error => {
+      console.error('Error al obtener el usuario:', error);
+      document.getElementById('user-name').textContent = "USUARIO";
+      document.getElementById('user-initials').textContent = "US";
+    });
 
-   // Calendar generation
-   const calendarBody = document.getElementById('calendar-body');
-   const today = new Date();
-   const year = today.getFullYear();
-   const month = today.getMonth();
+  // Calendario
+  const calendarBody = document.getElementById('calendar-body');
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
 
-   // Get first day of the month (0=Sunday)
-   const firstDay = new Date(year, month, 1).getDay();
-   // Get number of days in the month
-   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-   let dayCount = 1;
-   for(let week=0; week<6; week++) {
-     let row = document.createElement('tr');
-     for(let day=0; day<7; day++) {
-       let cell = document.createElement('td');
-       cell.className = "border border-gray-300 px-2 py-1 h-10 align-top";
-       if(week === 0 && day < firstDay) {
-         cell.textContent = "";
-       } else if(dayCount > daysInMonth) {
-         cell.textContent = "";
-       } else {
-         cell.textContent = dayCount;
-         // Highlight today
-         if(dayCount === today.getDate()) {
-           cell.classList.add("bg-green-200", "font-bold");
-         }
-         dayCount++;
-       }
-       row.appendChild(cell);
-     }
-     calendarBody.appendChild(row);
-     if(dayCount > daysInMonth) break;
-   }
-  </script>
+  let dayCount = 1;
+  for (let week = 0; week < 6; week++) {
+    let row = document.createElement('tr');
+    for (let day = 0; day < 7; day++) {
+      let cell = document.createElement('td');
+      cell.className = "border border-gray-300 px-2 py-1 h-10 align-top";
+      if (week === 0 && day < firstDay) {
+        cell.textContent = "";
+      } else if (dayCount > daysInMonth) {
+        cell.textContent = "";
+      } else {
+        cell.textContent = dayCount;
+        if (dayCount === today.getDate()) {
+          cell.classList.add("bg-green-200", "font-bold");
+        }
+        dayCount++;
+      }
+      row.appendChild(cell);
+    }
+    calendarBody.appendChild(row);
+    if (dayCount > daysInMonth) break;
+  }
+</script>
  </body>
 </html>
