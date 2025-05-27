@@ -30,48 +30,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-    <!-- Header Navigation -->
-    <header class="bg-gradient-to-r from-green-600 to-green-700 shadow-lg">
-        <div class="container mx-auto px-6">
-            <div class="flex items-center justify-between h-14">
-                <nav class="flex items-center space-x-8">
-                    <span class="font-bold text-lg text-white">avirtual</span>
-                    <div class="hidden md:flex items-center space-x-6">
-                        <a href="#" class="text-green-100 hover:text-white transition-colors duration-200 font-medium">
-                            Página Principal
-                        </a>
-                        <a href="#" class="text-green-100 hover:text-white transition-colors duration-200 font-medium">
-                            Área personal
-                        </a>
-                        <a href="#" class="text-green-100 hover:text-white transition-colors duration-200 font-medium">
-                            Mis cursos
-                        </a>
-                    </div>
-                </nav>
 
-                <div class="flex items-center space-x-4">
-                    <div class="relative">
-                        <button class="text-white hover:bg-green-500/20 p-2 rounded transition-colors">
-                            <i class="fas fa-bell text-lg"></i>
-                        </button>
-                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] h-5 flex items-center justify-center border-2 border-white">
-                            49
-                        </span>
-                    </div>
-
-                    <div class="h-9 w-9 bg-white text-green-600 font-bold border-2 border-green-200 rounded-full flex items-center justify-center">
-                        <span class="text-sm">DS</span>
-                    </div>
-
-                    <span class="text-green-100 text-sm font-medium hidden sm:block">Modo de edición</span>
-
-                    <button class="text-white hover:bg-green-500/20 p-2 rounded transition-colors">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
+<div id="header-container"></div>
 
     <!-- Main Content -->
     <div class="container mx-auto px-6 py-8">
@@ -253,11 +213,26 @@
 
     <!-- JavaScript for interactivity -->
     <script>
-        // Toggle dark mode
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark');
-        }
+    
+    fetch('/views/header.html')
+    .then(res => res.text())
+    .then(html => {
+      const container = document.getElementById('header-container');
+      container.innerHTML = html;
 
+      // Ejecutar cualquier <script> incluido dentro de header.html
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(newScript);
+        oldScript.remove();
+      });
+    });
         // Add click handlers
         document.addEventListener('DOMContentLoaded', function() {
             // Add hover effects and click handlers here
