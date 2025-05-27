@@ -212,9 +212,8 @@
     </div>
 
     <!-- JavaScript for interactivity -->
-    <script>
-    
-    fetch('/views/header.html')
+<script>
+  fetch('/views/header.html')
     .then(res => res.text())
     .then(html => {
       const container = document.getElementById('header-container');
@@ -233,11 +232,6 @@
         oldScript.remove();
       });
     });
-        // Add click handlers
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add hover effects and click handlers here
-            console.log('Moodle Profile Interface Loaded');
-        });
-    </script>
+  </script>
 </body>
 </html>
