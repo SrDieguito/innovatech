@@ -62,7 +62,7 @@
   </button>
 
   <!-- Dropdown con z-index alto y shadow -->
-  <div id="user-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded shadow-xl z-50">
+  <div id="user-dropdown" class="rounded-lg	hidden absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded shadow-xl z-50">
     <!-- Opciones del menú -->
     <a href="perfil.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Perfil</a>
     <a href="calificaciones.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Calificaciones</a>
@@ -71,7 +71,7 @@
     <a href="informes.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Informes</a>
     <a href="preferencias.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Preferencias</a>
     <a href="idioma.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Idioma</a>
-    <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-100">Cerrar sesión</a>
+    <a id="logout-link" href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-100">Cerrar sesión</a>
   </div>
 </div>
 
@@ -258,6 +258,20 @@ userDropdown.addEventListener('click', (e) => {
   e.stopPropagation();
 });
 
+  const logoutLink = document.getElementById('logout-link');
+  if (logoutLink) {
+    logoutLink.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      const response = await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      if (response.ok) {
+        window.location.href = '/login'; // redirige al login
+      } else {
+        alert('Error al cerrar sesión');
+      }
+    });
+  }
+  
 </script>
 
 
