@@ -52,14 +52,18 @@
      <i class="fas fa-comment-alt">
      </i>
     </button>
-    <div class="flex items-center space-x-2 border-l border-green-800 pl-4 relative">
+<div class="flex items-center space-x-2 border-l border-green-800 pl-4 relative">
   <div aria-label="User initials" class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-green-900 font-semibold text-sm" id="user-initials">
     US
   </div>
-  <button id="user-menu-button" aria-label="User menu" class="focus:outline-none relative">
+  <!-- Botón con más padding -->
+  <button id="user-menu-button" aria-label="User menu" class="focus:outline-none p-2 hover:bg-white/20 rounded-full transition">
     <i class="fas fa-chevron-down"></i>
   </button>
-  <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-50">
+
+  <!-- Dropdown con z-index alto y shadow -->
+  <div id="user-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded shadow-xl z-50">
+    <!-- Opciones del menú -->
     <a href="perfil.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Perfil</a>
     <a href="calificaciones.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Calificaciones</a>
     <a href="calendario.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Calendario</a>
@@ -70,6 +74,7 @@
     <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-100">Cerrar sesión</a>
   </div>
 </div>
+
 
     <div class="border-l border-green-800 pl-4 flex items-center space-x-2 text-gray-400 select-none">
      <span class="text-sm">
@@ -242,11 +247,12 @@ userMenuButton.addEventListener('click', (e) => {
   userDropdown.classList.toggle('hidden');
 });
 
-window.addEventListener('click', () => {
-  if (!userDropdown.classList.contains('hidden')) {
+window.addEventListener('click', (event) => {
+  if (!userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
     userDropdown.classList.add('hidden');
   }
 });
+
 
 userDropdown.addEventListener('click', (e) => {
   e.stopPropagation();
