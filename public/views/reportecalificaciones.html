@@ -29,6 +29,8 @@
     </style>
 </head>
 <body class="min-h-screen bg-gray-50">
+      <div id="header-container"></div>
+
     <!-- Breadcrumb -->
     <div class="bg-white border-b border-gray-200 px-4 py-2">
         <div class="max-w-7xl mx-auto">
@@ -320,6 +322,27 @@
     </div>
 
     <script>
+
+          fetch('/views/header.html')
+    .then(res => res.text())
+    .then(html => {
+      const container = document.getElementById('header-container');
+      container.innerHTML = html;
+
+      // Ejecutar cualquier <script> incluido dentro de header.html
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(newScript);
+        oldScript.remove();
+      });
+    });
+    
         // Script para funcionalidad de expandir/contraer
         document.addEventListener('DOMContentLoaded', function() {
             const expandButtons = document.querySelectorAll('button i.fa-chevron-down');
