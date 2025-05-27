@@ -125,26 +125,9 @@
                 });
             });
         });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/perfil')  // Ajusta esta URL según tu backend
-      .then(res => res.json())
-      .then(data => {
-        const userNameElement = document.getElementById('user-name');
-        if (data && data.nombre) {
-          userNameElement.textContent = data.nombre.toUpperCase();
-        } else {
-          userNameElement.textContent = "USUARIO DESCONOCIDO";
-        }
-      })
-      .catch(() => {
-        document.getElementById('user-name').textContent = "USUARIO DESCONOCIDO";
-      });
-  });
     </script>
 
 <script src="/js/user-info.js"></script>
-
 
 </body>
 </html>

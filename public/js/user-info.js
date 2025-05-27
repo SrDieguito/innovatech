@@ -1,24 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
-  fetch('/api/perfil', { credentials: 'include' })
+  fetch('/api/perfil')
     .then(res => res.json())
     .then(data => {
-      if (!data || !data.nombre) throw new Error("Sin datos de usuario");
+      // Mostrar nombre completo
+      const userNameElement = document.getElementById('user-name');
+      if (data && data.nombre) {
+        userNameElement.textContent = data.nombre.toUpperCase();
+      } else {
+        userNameElement.textContent = "USUARIO DESCONOCIDO";
+      }
 
-      const nombre = data.nombre.trim().toUpperCase();
-      const parts = nombre.split(/\s+/);
-      const iniciales = (parts[0]?.[0] || '') + (parts[1]?.[0] || '');
-
-      const userNameEl = document.getElementById('user-name');
-      const userInitialsEl = document.getElementById('user-initials');
-
-      if (userNameEl) userNameEl.textContent = nombre;
-      if (userInitialsEl) userInitialsEl.textContent = iniciales;
+      // Mostrar iniciales
+      const initialsElement = document.getElementById('user-initials');
+      if (data && data.nombre) {
+        const palabras = data.nombre.trim().split(/\s+/);
+        const iniciales = palabras.map(p => p[0].toUpperCase()).slice(0, 2).join('');
+        initialsElement.textContent = iniciales;
+      } else {
+        initialsElement.textContent = "--";
+      }
     })
     .catch(() => {
-      const userNameEl = document.getElementById('user-name');
-      const userInitialsEl = document.getElementById('user-initials');
-
-      if (userNameEl) userNameEl.textContent = "USUARIO DESCONOCIDO";
-      if (userInitialsEl) userInitialsEl.textContent = "UD";
+      document.getElementById('user-name').textContent = "USUARIO DESCONOCIDO";
+      document.getElementById('user-initials').textContent = "--";
     });
 });
