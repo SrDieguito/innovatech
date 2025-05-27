@@ -10,18 +10,21 @@ document.addEventListener('DOMContentLoaded', () => {
         userNameElement.textContent = "USUARIO DESCONOCIDO";
       }
 
-      // Mostrar iniciales
-      const initialsElement = document.getElementById('user-initials');
-      if (data && data.nombre) {
-        const palabras = data.nombre.trim().split(/\s+/);
-        const iniciales = palabras.map(p => p[0].toUpperCase()).slice(0, 2).join('');
-        initialsElement.textContent = iniciales;
-      } else {
-        initialsElement.textContent = "--";
-      }
-    })
-    .catch(() => {
-      document.getElementById('user-name').textContent = "USUARIO DESCONOCIDO";
-      document.getElementById('user-initials').textContent = "--";
-    });
+  // Generar iniciales
+    const partes = nombre.trim().split(' ');
+    let iniciales = '';
+    if (partes.length >= 2) {
+      iniciales = partes[0][0] + partes[1][0];
+    } else if (partes.length === 1) {
+      iniciales = partes[0][0];
+    }
+
+    const initialsElement = document.getElementById('user-initials');
+    if (initialsElement) {
+      initialsElement.textContent = iniciales.toUpperCase();
+    }
+  })
+  .catch(error => {
+    console.error('Error al obtener perfil:', error);
+  });
 });
