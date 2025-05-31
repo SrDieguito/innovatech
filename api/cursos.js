@@ -30,22 +30,22 @@ export default async function handler(req, res) {
       return res.status(200).json(estudiantesCurso);
     }
 
-        // GET /api/cursos/:id
-    if (method === "GET" && urlParts.length === 3 && urlParts[1] === "cursos") {
-    const cursoId = urlParts[2];
-    const [curso] = await conn.execute(`
-        SELECT c.id, c.nombre, c.descripcion, u.id AS profesorId, u.nombre AS profesorNombre
-        FROM cursos c
-        JOIN usuarios u ON c.profesor_id = u.id
-        WHERE c.id = ?
-    `, [cursoId]);
+ // GET /api/cursos/:id
+if (method === "GET" && urlParts.length === 2 && urlParts[0] === "cursos") {
+  const cursoId = urlParts[1];
+  const [curso] = await conn.execute(`
+    SELECT c.id, c.nombre, c.descripcion, u.id AS profesorId, u.nombre AS profesorNombre
+    FROM cursos c
+    JOIN usuarios u ON c.profesor_id = u.id
+    WHERE c.id = ?
+  `, [cursoId]);
 
-    if (curso.length === 0) {
-        return res.status(404).json({ error: "Curso no encontrado" });
-    }
+  if (curso.length === 0) {
+    return res.status(404).json({ error: "Curso no encontrado" });
+  }
 
-    return res.status(200).json(curso[0]);
-    }
+  return res.status(200).json(curso[0]);
+}
 
 
     // POST /api/cursos?cursoId=...  --> para matricular múltiples estudiantes
