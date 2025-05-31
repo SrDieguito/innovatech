@@ -38,12 +38,12 @@ export default async function handler(req, res) {
       const cursoId = cursoRes.insertId;
 
       for (const estudiante of estudiantes) {
-        const { nombre, correo } = estudiante;
-        if (!nombre || !correo) continue;
+        const { nombre, email } = estudiante;
+        if (!nombre || !email) continue;
 
         const [existe] = await conn.execute(
-          "SELECT id FROM usuarios WHERE correo = ?",
-          [correo]
+          "SELECT id FROM usuarios WHERE email = ?",
+          [email]
         );
 
         let estudianteId;
@@ -51,8 +51,8 @@ export default async function handler(req, res) {
           estudianteId = existe[0].id;
         } else {
           const [nuevo] = await conn.execute(
-            "INSERT INTO usuarios (nombre, correo, rol) VALUES (?, ?, 'usuario')",
-            [nombre, correo]
+            "INSERT INTO usuarios (nombre, email, rol) VALUES (?, ?, 'usuario')",
+            [nombre, email]
           );
           estudianteId = nuevo.insertId;
         }
