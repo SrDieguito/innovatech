@@ -15,6 +15,9 @@ export default async function handler(req, res) {
   try {
     const { method, url, query } = req;
     const urlParts = url.split("/").filter(Boolean);
+
+console.log("urlParts:", urlParts);
+
     const { cursoId, estudianteId, estudiantes } = query;
 
     // ========== NUEVAS RUTAS BASADAS EN QUERY STRINGS ==========
@@ -31,8 +34,9 @@ export default async function handler(req, res) {
     }
 
  // GET /api/cursos/:id
-if (method === "GET" && urlParts.length === 2 && urlParts[0] === "cursos") {
-  const cursoId = urlParts[1];
+if (method === "GET" && urlParts.length === 3 && urlParts[1] === "cursos") {
+  const cursoId = urlParts[2];
+
   const [curso] = await conn.execute(`
     SELECT c.id, c.nombre, c.descripcion, u.id AS profesorId, u.nombre AS profesorNombre
     FROM cursos c
