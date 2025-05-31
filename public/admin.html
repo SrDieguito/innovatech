@@ -143,7 +143,7 @@
       lista.innerHTML = "";
       estudiantes.forEach(est => {
         const li = document.createElement("li");
-        li.textContent = `${est["nombre"]} (${est["correo"]})`;
+        li.textContent = `${est["nombre"]} (${est["email"]})`;
         lista.appendChild(li);
       });
       window.estudiantesCargados = estudiantes;
