@@ -11,11 +11,15 @@ export default async function handler(req, res) {
     }
 
     try {
-      // Ahora sin filtro de estado
+      console.log("Parámetro rol:", rol);
+
       const [rows] = await pool.query(
         "SELECT id, nombre FROM usuarios WHERE rol = ?",
         [rol]
       );
+
+      console.log("Usuarios encontrados:", rows);
+
       return res.status(200).json(rows);
     } catch (error) {
       console.error("Error al obtener usuarios:", error);
