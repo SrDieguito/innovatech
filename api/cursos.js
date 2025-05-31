@@ -51,7 +51,7 @@ export default async function handler(req, res) {
           estudianteId = existe[0].id;
         } else {
           const [nuevo] = await conn.execute(
-            "INSERT INTO usuarios (nombre, correo, rol) VALUES (?, ?, 'estudiante')",
+            "INSERT INTO usuarios (nombre, correo, rol) VALUES (?, ?, 'usuario')",
             [nombre, correo]
           );
           estudianteId = nuevo.insertId;
