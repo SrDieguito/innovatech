@@ -136,7 +136,7 @@ async function cargarCursos() {
   document.getElementById("editar-descripcion").value = curso.descripcion;
   const select = document.getElementById("editar-profesor");
   select.innerHTML = document.getElementById("profesor-tutor").innerHTML;
-  select.value = curso.profesorId || "";
+  select.value = curso.profesor_id || "";
 
   document.getElementById("modal-editar").classList.remove("hidden");
 }
@@ -165,13 +165,13 @@ async function cargarCursos() {
         e.preventDefault();
         const nombre = document.getElementById("nombre-curso").value;
         const descripcion = document.getElementById("descripcion-curso").value;
-        const profesorId = document.getElementById("profesor-tutor").value;
+        const profesor_id = document.getElementById("profesor-tutor").value;
         const estudiantes = window.estudiantesCargados || [];
-        if (!nombre || !profesorId || estudiantes.length === 0) {
+        if (!nombre || !profesor_id || estudiantes.length === 0) {
             alert("Debes completar todos los campos y subir una lista de estudiantes.");
             return;
         }
-        const curso = { nombre, descripcion, profesorId, estudiantes };
+        const curso = { nombre, descripcion, profesor_id, estudiantes };
         try {
             const response = await fetch("/api/cursos", {
             method: "POST",
@@ -197,7 +197,7 @@ async function cargarCursos() {
     document.getElementById("editar-descripcion").value = curso.descripcion;
     const select = document.getElementById("editar-profesor");
     select.innerHTML = document.getElementById("profesor-tutor").innerHTML;
-    select.value = curso.profesorId || "";
+    select.value = curso.profesor_id || "";
 
     document.getElementById("modal-editar").classList.remove("hidden");
     }
@@ -212,13 +212,13 @@ async function cargarCursos() {
     const id = document.getElementById("editar-id").value;
     const nombre = document.getElementById("editar-nombre").value;
     const descripcion = document.getElementById("editar-descripcion").value;
-    const profesorId = document.getElementById("editar-profesor").value;
+    const profesor_id = document.getElementById("editar-profesor").value;
 
     try {
         const res = await fetch(`/api/cursos/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, descripcion, profesorId })
+        body: JSON.stringify({ nombre, descripcion, profesor_id })
         });
         if (!res.ok) throw new Error("Error actualizando curso");
         alert("Curso actualizado correctamente");
