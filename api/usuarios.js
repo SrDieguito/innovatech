@@ -11,8 +11,9 @@ export default async function handler(req, res) {
     }
 
     try {
+      // Ahora sin filtro de estado
       const [rows] = await pool.query(
-        "SELECT id, nombre FROM usuarios WHERE rol = ? AND estado = 'aprobado'",
+        "SELECT id, nombre FROM usuarios WHERE rol = ?",
         [rol]
       );
       return res.status(200).json(rows);
