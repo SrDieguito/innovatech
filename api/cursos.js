@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     const { method, url, query } = req;
     const urlParts = url.split("/").filter(Boolean);
 
-console.log("urlParts:", urlParts);
+    console.log("urlParts:", urlParts);
 
     const { cursoId, estudianteId, estudiantes } = query;
 
@@ -33,24 +33,23 @@ console.log("urlParts:", urlParts);
       return res.status(200).json(estudiantesCurso);
     }
 
- // GET /api/cursos/:id
-if (method === "GET" && urlParts.length === 3 && urlParts[1] === "cursos") {
-  const cursoId = urlParts[2];
+    // GET /api/cursos/:id
+    if (method === "GET" && urlParts.length === 3 && urlParts[0] === "api" && urlParts[1] === "cursos") {
+      const cursoId = urlParts[2];
 
-  const [curso] = await conn.execute(`
-    SELECT c.id, c.nombre, c.descripcion, u.id AS profesorId, u.nombre AS profesorNombre
-    FROM cursos c
-    JOIN usuarios u ON c.profesor_id = u.id
-    WHERE c.id = ?
-  `, [cursoId]);
+      const [curso] = await conn.execute(`
+        SELECT c.id, c.nombre, c.descripcion, u.id AS profesorId, u.nombre AS profesorNombre
+        FROM cursos c
+        JOIN usuarios u ON c.profesor_id = u.id
+        WHERE c.id = ?
+      `, [cursoId]);
 
-  if (curso.length === 0) {
-    return res.status(404).json({ error: "Curso no encontrado" });
-  }
+      if (curso.length === 0) {
+        return res.status(404).json({ error: "Curso no encontrado" });
+      }
 
-  return res.status(200).json(curso[0]);
-}
-
+      return res.status(200).json(curso[0]);
+    }
 
     // POST /api/cursos?cursoId=...  --> para matricular múltiples estudiantes
     if (method === "POST" && cursoId && !estudianteId) {
@@ -90,7 +89,7 @@ if (method === "GET" && urlParts.length === 3 && urlParts[1] === "cursos") {
     // ========== RUTAS ORIGINALES REST ==========
 
     // GET /api/cursos
-    if (method === "GET" && urlParts.length === 2) {
+    if (method === "GET" && urlParts.length === 2 && urlParts[0] === "api" && urlParts[1] === "cursos") {
       const [cursos] = await conn.execute(`
         SELECT c.id, c.nombre, c.descripcion, u.nombre AS tutor
         FROM cursos c
@@ -100,7 +99,7 @@ if (method === "GET" && urlParts.length === 3 && urlParts[1] === "cursos") {
     }
 
     // POST /api/cursos
-    if (method === "POST" && urlParts.length === 2) {
+    if (method === "POST" && urlParts.length === 2 && urlParts[0] === "api" && urlParts[1] === "cursos") {
       const { nombre, descripcion, profesorId, estudiantes } = req.body;
 
       if (!nombre || !profesorId || !Array.isArray(estudiantes) || estudiantes.length === 0) {
@@ -136,7 +135,7 @@ if (method === "GET" && urlParts.length === 3 && urlParts[1] === "cursos") {
     }
 
     // PUT /api/cursos/:id
-    if (method === "PUT" && urlParts.length === 3) {
+    if (method === "PUT" && urlParts.length === 3 && urlParts[0] === "api" && urlParts[1] === "cursos") {
       const cursoId = urlParts[2];
       const { nombre, descripcion, profesorId } = req.body;
 
@@ -149,7 +148,7 @@ if (method === "GET" && urlParts.length === 3 && urlParts[1] === "cursos") {
     }
 
     // GET /api/cursos/:id/estudiantes
-    if (method === "GET" && urlParts.length === 4 && urlParts[3] === "estudiantes") {
+    if (method === "GET" && urlParts.length === 4 && urlParts[0] === "api" && urlParts[1] === "cursos" && urlParts[3] === "estudiantes") {
       const cursoId = urlParts[2];
       const [estudiantes] = await conn.execute(`
         SELECT u.id, u.nombre, u.email
@@ -162,7 +161,7 @@ if (method === "GET" && urlParts.length === 3 && urlParts[1] === "cursos") {
     }
 
     // POST /api/cursos/:id/estudiantes
-    if (method === "POST" && urlParts.length === 4 && urlParts[3] === "estudiantes") {
+    if (method === "POST" && urlParts.length === 4 && urlParts[0] === "api" && urlParts[1] === "cursos" && urlParts[3] === "estudiantes") {
       const cursoId = urlParts[2];
       const { nombre, email } = req.body;
 
@@ -185,7 +184,7 @@ if (method === "GET" && urlParts.length === 3 && urlParts[1] === "cursos") {
     }
 
     // DELETE /api/cursos/:id/estudiantes/:estudianteId
-    if (method === "DELETE" && urlParts.length === 5 && urlParts[3] === "estudiantes") {
+    if (method === "DELETE" && urlParts.length === 5 && urlParts[0] === "api" && urlParts[1] === "cursos" && urlParts[3] === "estudiantes") {
       const cursoId = urlParts[2];
       const estudianteId = urlParts[4];
 
