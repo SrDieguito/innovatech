@@ -1,150 +1,133 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración</title>
-    <link rel="stylesheet" href="/css/admin.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administración - Crear Curso</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body style="display: none;">
-    <header>
-        <nav>
-            <ul>
-                <li><a href="#usuarios" class="active" onclick="obtenerUsuarios('pendiente')">Usuarios</a></li>
-                <li><button id="cerrar-sesion">Cerrar Sesión</button></li>
-            </ul>
-        </nav>
-    </header>
-    
-    <main>
-        <section id="usuarios">
-            <div class="filtros">
-                <button onclick="obtenerUsuarios('pendiente')">Pendientes</button>
-                <button onclick="obtenerUsuarios('aprobado')">Aprobados</button>
-                <button onclick="obtenerUsuarios('rechazado')">Rechazados</button>
-            </div>
-            <div id="contenedor-usuarios" class="usuarios-grid"></div>
-        </section>
-    </main>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow-xl">
+    <h1 class="text-2xl font-bold text-green-700 mb-6">Crear Nuevo Curso</h1>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            try {
-                const response = await fetch('/api/verificarSesion', { credentials: "include" });
-                if (!response.ok) throw new Error("Error verificando sesión");
+    <!-- Formulario de Curso -->
+    <form id="form-curso" class="space-y-4">
+      <div>
+        <label class="block text-gray-700 font-semibold">Nombre del curso</label>
+        <input type="text" id="nombre-curso" required class="w-full p-2 border rounded-lg" />
+      </div>
 
-                const data = await response.json();
-                if (!data.autenticado) {
-                    window.location.href = "/auth/login.html";
-                } else {
-                    document.body.style.display = "block";
-                    obtenerUsuarios("pendiente");
-                }
-            } catch (error) {
-                console.error("Error verificando sesión:", error);
-                window.location.href = "/auth/login.html"; 
-            }
+      <div>
+        <label class="block text-gray-700 font-semibold">Descripción</label>
+        <textarea id="descripcion-curso" class="w-full p-2 border rounded-lg" rows="3"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-semibold">Profesor Tutor</label>
+        <select id="profesor-tutor" required class="w-full p-2 border rounded-lg">
+          <option value="">-- Selecciona un profesor --</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-semibold">Lista de Estudiantes (Excel)</label>
+        <input type="file" id="archivo-excel" accept=".xlsx, .xls" class="w-full p-2 border rounded-lg" />
+      </div>
+
+      <div class="text-right">
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+          Crear Curso
+        </button>
+      </div>
+    </form>
+
+    <!-- Vista previa de estudiantes -->
+    <div class="mt-8">
+      <h2 class="text-xl font-semibold mb-2">Estudiantes cargados:</h2>
+      <ul id="lista-estudiantes" class="list-disc list-inside text-gray-800 space-y-1"></ul>
+    </div>
+  </div>
+
+  <script>
+    async function cargarProfesores() {
+      try {
+        const response = await fetch("/api/usuarios?rol=profesor");
+        const data = await response.json();
+
+        const select = document.getElementById("profesor-tutor");
+        data.forEach(prof => {
+          const option = document.createElement("option");
+          option.value = prof.id;
+          option.textContent = prof.nombre;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error("Error cargando profesores:", error);
+      }
+    }
+
+    cargarProfesores();
+
+    document.getElementById("archivo-excel").addEventListener("change", async function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const hoja = workbook.Sheets[workbook.SheetNames[0]];
+      const estudiantes = XLSX.utils.sheet_to_json(hoja);
+
+      const lista = document.getElementById("lista-estudiantes");
+      lista.innerHTML = "";
+
+      estudiantes.forEach(est => {
+        const li = document.createElement("li");
+        li.textContent = `${est["Nombre Completo"]} (${est["Correo"]})`;
+        lista.appendChild(li);
+      });
+
+      window.estudiantesCargados = estudiantes;
+    });
+
+    document.getElementById("form-curso").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const nombre = document.getElementById("nombre-curso").value;
+      const descripcion = document.getElementById("descripcion-curso").value;
+      const profesorId = document.getElementById("profesor-tutor").value;
+      const estudiantes = window.estudiantesCargados || [];
+
+      if (!nombre || !profesorId || estudiantes.length === 0) {
+        alert("Debes completar todos los campos y subir una lista de estudiantes.");
+        return;
+      }
+
+      const curso = {
+        nombre,
+        descripcion,
+        profesorId,
+        estudiantes
+      };
+
+      try {
+        const response = await fetch("/api/cursos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(curso)
         });
 
-        async function obtenerUsuarios(estado) {
-            try {
-                const response = await fetch(`/api/admin?estado=${estado}`, { credentials: "include" });
-                if (!response.ok) throw new Error("Error obteniendo usuarios");
+        const data = await response.json();
 
-                const data = await response.json();
-                const contenedor = document.getElementById("contenedor-usuarios");
-                if (!contenedor) return;
-                contenedor.innerHTML = "";
+        if (!response.ok) throw new Error(data.error || "Error al crear curso");
 
-                if (data.length === 0) {
-                    contenedor.innerHTML = `<p>No hay usuarios en este estado.</p>`;
-                    return;
-                }
-
-                data.forEach(usuario => {
-                    const div = document.createElement("div");
-                    div.classList.add("usuario-card");
-                    div.innerHTML = `
-                        <h3>${usuario.nombre}</h3>
-                        <p><strong>Email:</strong> ${usuario.email}</p>
-                        <button onclick="verDescripcion(this)" data-desc="${encodeURIComponent(usuario.descripcion || 'Sin descripción')}">Ver Descripción</button>
-                        <div class="botones">
-                            <button class="btn-aprobar" onclick="aprobarUsuario(${usuario.id})">Aprobar</button>
-                            <button class="btn-rechazar" onclick="rechazarUsuario(${usuario.id})">Rechazar</button>
-                        </div>
-                    `;
-                    contenedor.appendChild(div);
-                });
-            } catch (error) {
-                console.error("Error obteniendo usuarios:", error);
-            }
-        }
-
-        function verDescripcion(button) {
-            const descripcion = decodeURIComponent(button.getAttribute("data-desc"));
-            alert(descripcion);
-        }
-
-        async function aprobarUsuario(id) {
-            try {
-                const response = await fetch(`/api/aprobar_usuario`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                    body: JSON.stringify({ user_id: id })
-                });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || "Error aprobando usuario");
-
-                alert("Usuario aprobado correctamente y correo enviado.");
-                obtenerUsuarios("pendiente");
-            } catch (error) {
-                console.error("Error al aprobar usuario:", error);
-            }
-        }
-
-        async function rechazarUsuario(id) {
-            const motivo = prompt("Ingrese el motivo del rechazo:");
-            if (!motivo) {
-                alert("Debe ingresar un motivo para rechazar al usuario.");
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/rechazar_usuario`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                    body: JSON.stringify({ user_id: id, rejection_reason: motivo })
-                });
-
-                if (!response.ok) throw new Error("Error al rechazar usuario");
-
-                alert("Usuario rechazado correctamente.");
-                obtenerUsuarios("pendiente");
-            } catch (error) {
-                console.error("Error al rechazar usuario:", error);
-            }
-        }
-
-        document.getElementById("cerrar-sesion").addEventListener("click", async function () {
-            if (!confirm("¿Estás seguro de que quieres cerrar sesión?")) return;
-
-            try {
-                const response = await fetch('/api/logout', {
-                    method: 'POST',
-                    credentials: "include"
-                });
-
-                if (!response.ok) throw new Error("Error cerrando sesión");
-
-                document.cookie = "user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=" + window.location.hostname + "; secure; SameSite=None";
-                window.location.href = "/auth/login.html";
-            } catch (error) {
-                console.error("Error al cerrar sesión:", error);
-            }
-        });
-    </script>
+        alert("Curso creado correctamente.");
+        window.location.reload();
+      } catch (error) {
+        console.error("Error creando curso:", error);
+        alert("Ocurrió un error al crear el curso.");
+      }
+    });
+  </script>
 </body>
 </html>
