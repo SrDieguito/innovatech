@@ -111,7 +111,6 @@ async function cargarCursos() {
           <div>
             <h3 class="text-lg font-bold text-green-800">${curso.nombre}</h3>
             <p class="text-gray-600">${curso.descripcion}</p>
-            <p class="text-sm text-gray-500">Tutor: ${curso.tutor}</p>
           </div>
           <div class="flex space-x-2">
             <button onclick="editarCurso('${curso.id}')" class="text-sm bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500">Editar</button>
@@ -174,7 +173,7 @@ async function cargarCursos() {
         });
 
     function editarCurso(id) {
-    const curso = cursosGlobal.find(c => c.id === id);
+    const curso = cursosGlobal.find(c => String(c.id) === String(id));
     if (!curso) return alert("Curso no encontrado");
 
     document.getElementById("editar-id").value = curso.id;
