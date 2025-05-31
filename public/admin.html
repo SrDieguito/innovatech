@@ -1,187 +1,133 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Panel de Administración</title>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 min-h-screen flex">
-  <!-- Sidebar -->
-  <aside class="w-64 bg-white p-6 border-r shadow-xl">
-    <h2 class="text-xl font-bold text-green-700 mb-6">Panel Admin</h2>
-    <nav class="space-y-4">
-      <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
-        <span class="mr-2">📚</span> Cursos
-      </a>
-      <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
-        <span class="mr-2">👥</span> Usuarios
-      </a>
-      <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
-        <span class="mr-2">📊</span> Reportes
-      </a>
-      <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
-        <span class="mr-2">⚙️</span> Configuración
-      </a>
-    </nav>
-  </aside>
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de Administración</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-100 min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white p-6 border-r shadow-xl">
+        <h2 class="text-xl font-bold text-green-700 mb-6">Panel Admin</h2>
+        <nav class="space-y-4">
+        <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
+            <span class="mr-2">📚</span> Cursos
+        </a>
+        <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
+            <span class="mr-2">👥</span> Usuarios
+        </a>
+        <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
+            <span class="mr-2">📊</span> Reportes
+        </a>
+        <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
+            <span class="mr-2">⚙️</span> Configuración
+        </a>
+        </nav>
+    </aside>
 
-  <!-- Main Content -->
-  <main class="flex-1 p-6 space-y-10">
-    <!-- Sección Crear Curso -->
-    <div class="bg-white p-6 rounded-2xl shadow-xl">
-      <h1 class="text-2xl font-bold text-green-700 mb-6">Crear Nuevo Curso</h1>
-      <form id="form-curso" class="space-y-4">
-        <div>
-          <label class="block text-gray-700 font-semibold">Nombre del curso</label>
-          <input type="text" id="nombre-curso" required class="w-full p-2 border rounded-lg" />
-        </div>
-        <div>
-          <label class="block text-gray-700 font-semibold">Descripción</label>
-          <textarea id="descripcion-curso" class="w-full p-2 border rounded-lg" rows="3"></textarea>
-        </div>
-        <div>
-          <label class="block text-gray-700 font-semibold">Profesor Tutor</label>
-          <select id="profesor-tutor" required class="w-full p-2 border rounded-lg">
-            <option value="">-- Selecciona un profesor --</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-gray-700 font-semibold">Lista de Estudiantes (Excel)</label>
-          <input type="file" id="archivo-excel" accept=".xlsx, .xls" class="w-full p-2 border rounded-lg" />
-        </div>
-        <div class="text-right">
-          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-            Crear Curso
-          </button>
-        </div>
-      </form>
-      <div class="mt-8">
-        <h2 class="text-xl font-semibold mb-2">Estudiantes cargados:</h2>
-        <ul id="lista-estudiantes" class="list-disc list-inside text-gray-800 space-y-1"></ul>
-      </div>
-    </div>
-
-    <!-- Sección Ver Cursos -->
-    <div class="bg-white p-6 rounded-2xl shadow-xl">
-      <h2 class="text-2xl font-bold text-green-700 mb-4">Cursos Existentes</h2>
-      <div id="lista-cursos" class="space-y-4">
-        <p class="text-gray-500">Cargando cursos...</p>
-      </div>
-    </div>
-  </main>
-
-  <script>
-    async function cargarProfesores() {
-      try {
-        const response = await fetch("/api/usuarios?rol=profesor");
-        const data = await response.json();
-        const select = document.getElementById("profesor-tutor");
-        data.forEach(prof => {
-          const option = document.createElement("option");
-          option.value = prof.id;
-          option.textContent = prof.nombre;
-          select.appendChild(option);
-        });
-      } catch (error) {
-        console.error("Error cargando profesores:", error);
-      }
-    }
-
-    async function cargarCursos() {
-      try {
-        const response = await fetch("/api/cursos");
-        const cursos = await response.json();
-
-            cursosGlobal = cursos;
-
-        const contenedor = document.getElementById("lista-cursos");
-        contenedor.innerHTML = "";
-
-        cursos.forEach(curso => {
-          const div = document.createElement("div");
-          div.className = "border p-4 rounded-lg shadow-sm";
-
-          div.innerHTML = `
-            <div class="flex justify-between items-center">
-              <div>
-                <h3 class="text-lg font-bold text-green-800">${curso.nombre}</h3>
-                <p class="text-gray-600">${curso.descripcion}</p>
-                <p class="text-sm text-gray-500">Tutor: ${curso.tutor}</p>
-              </div>
-              <div class="flex space-x-2">
-                <button onclick="editarCurso('${curso.id}')" class="text-sm bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500">Editar</button>
-                <button onclick="verEstudiantes('${curso.id}')" class="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Estudiantes</button>
-              </div>
+    <!-- Main Content -->
+    <main class="flex-1 p-6 space-y-10">
+        <!-- Sección Crear Curso -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl">
+        <h1 class="text-2xl font-bold text-green-700 mb-6">Crear Nuevo Curso</h1>
+        <form id="form-curso" class="space-y-4">
+            <div>
+            <label class="block text-gray-700 font-semibold">Nombre del curso</label>
+            <input type="text" id="nombre-curso" required class="w-full p-2 border rounded-lg" />
             </div>
-          `;
+            <div>
+            <label class="block text-gray-700 font-semibold">Descripción</label>
+            <textarea id="descripcion-curso" class="w-full p-2 border rounded-lg" rows="3"></textarea>
+            </div>
+            <div>
+            <label class="block text-gray-700 font-semibold">Profesor Tutor</label>
+            <select id="profesor-tutor" required class="w-full p-2 border rounded-lg">
+                <option value="">-- Selecciona un profesor --</option>
+            </select>
+            </div>
+            <div>
+            <label class="block text-gray-700 font-semibold">Lista de Estudiantes (Excel)</label>
+            <input type="file" id="archivo-excel" accept=".xlsx, .xls" class="w-full p-2 border rounded-lg" />
+            </div>
+            <div class="text-right">
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                Crear Curso
+            </button>
+            </div>
+        </form>
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold mb-2">Estudiantes cargados:</h2>
+            <ul id="lista-estudiantes" class="list-disc list-inside text-gray-800 space-y-1"></ul>
+        </div>
+        </div>
 
-          contenedor.appendChild(div);
-        });
-      } catch (error) {
-        console.error("Error cargando cursos:", error);
-      }
-    }
+        <!-- Sección Ver Cursos -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl">
+        <h2 class="text-2xl font-bold text-green-700 mb-4">Cursos Existentes</h2>
+        <div id="lista-cursos" class="space-y-4">
+            <p class="text-gray-500">Cargando cursos...</p>
+        </div>
+        </div>
+    </main>
 
-    function editarCurso(id) {
-      alert("Funcionalidad editar curso (pendiente) para ID: " + id);
-    }
+    <script>
 
-    function verEstudiantes(id) {
-      alert("Funcionalidad ver/matricular/desmatricular estudiantes (pendiente) para ID: " + id);
-    }
+      let cursosGlobal = [];
 
-    cargarProfesores();
-    cargarCursos();
+        async function cargarProfesores() {
+        try {
+            const response = await fetch("/api/usuarios?rol=profesor");
+            const data = await response.json();
+            const select = document.getElementById("profesor-tutor");
+            data.forEach(prof => {
+            const option = document.createElement("option");
+            option.value = prof.id;
+            option.textContent = prof.nombre;
+            select.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error cargando profesores:", error);
+        }
+        }
 
-    document.getElementById("archivo-excel").addEventListener("change", async function (e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data);
-      const hoja = workbook.Sheets[workbook.SheetNames[0]];
-      const estudiantes = XLSX.utils.sheet_to_json(hoja);
-      const lista = document.getElementById("lista-estudiantes");
-      lista.innerHTML = "";
-      estudiantes.forEach(est => {
-        const li = document.createElement("li");
-        li.textContent = `${est["nombre"]} (${est["email"]})`;
-        lista.appendChild(li);
-      });
-      window.estudiantesCargados = estudiantes;
+async function cargarCursos() {
+  try {
+    const response = await fetch("/api/cursos");
+    const cursos = await response.json();
+
+    cursosGlobal = cursos;
+
+    const contenedor = document.getElementById("lista-cursos");
+    contenedor.innerHTML = "";
+
+    cursos.forEach(curso => {
+      const div = document.createElement("div");
+      div.className = "border p-4 rounded-lg shadow-sm";
+
+      div.innerHTML = `
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-lg font-bold text-green-800">${curso.nombre}</h3>
+            <p class="text-gray-600">${curso.descripcion}</p>
+            <p class="text-sm text-gray-500">Tutor: ${curso.tutor}</p>
+          </div>
+          <div class="flex space-x-2">
+            <button onclick="editarCurso('${curso.id}')" class="text-sm bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500">Editar</button>
+            <button onclick="verEstudiantes('${curso.id}')" class="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Estudiantes</button>
+          </div>
+        </div>
+      `;
+
+      contenedor.appendChild(div);
     });
+  } catch (error) {
+    console.error("Error cargando cursos:", error);
+  }
+}
 
-    document.getElementById("form-curso").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const nombre = document.getElementById("nombre-curso").value;
-      const descripcion = document.getElementById("descripcion-curso").value;
-      const profesorId = document.getElementById("profesor-tutor").value;
-      const estudiantes = window.estudiantesCargados || [];
-      if (!nombre || !profesorId || estudiantes.length === 0) {
-        alert("Debes completar todos los campos y subir una lista de estudiantes.");
-        return;
-      }
-      const curso = { nombre, descripcion, profesorId, estudiantes };
-      try {
-        const response = await fetch("/api/cursos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(curso)
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Error al crear curso");
-        alert("Curso creado correctamente.");
-        window.location.reload();
-      } catch (error) {
-        console.error("Error creando curso:", error);
-        alert("Ocurrió un error al crear el curso.");
-      }
-    });
-
-    let cursosGlobal = [];
-
-function editarCurso(id) {
+       function editarCurso(id) {
   const curso = cursosGlobal.find(c => c.id === id);
   if (!curso) return alert("Curso no encontrado");
 
@@ -195,60 +141,123 @@ function editarCurso(id) {
   document.getElementById("modal-editar").classList.remove("hidden");
 }
 
-function cerrarModalEditar() {
-  document.getElementById("modal-editar").classList.add("hidden");
-}
+        cargarProfesores();
+        cargarCursos();
 
-document.getElementById("form-editar-curso").addEventListener("submit", async function (e) {
-  e.preventDefault();
-  const id = document.getElementById("editar-id").value;
-  const nombre = document.getElementById("editar-nombre").value;
-  const descripcion = document.getElementById("editar-descripcion").value;
-  const profesorId = document.getElementById("editar-profesor").value;
+        document.getElementById("archivo-excel").addEventListener("change", async function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const hoja = workbook.Sheets[workbook.SheetNames[0]];
+        const estudiantes = XLSX.utils.sheet_to_json(hoja);
+        const lista = document.getElementById("lista-estudiantes");
+        lista.innerHTML = "";
+        estudiantes.forEach(est => {
+            const li = document.createElement("li");
+            li.textContent = `${est["nombre"]} (${est["email"]})`;
+            lista.appendChild(li);
+        });
+        window.estudiantesCargados = estudiantes;
+        });
 
-  try {
-    const res = await fetch(`/api/cursos/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre, descripcion, profesorId })
+        document.getElementById("form-curso").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const nombre = document.getElementById("nombre-curso").value;
+        const descripcion = document.getElementById("descripcion-curso").value;
+        const profesorId = document.getElementById("profesor-tutor").value;
+        const estudiantes = window.estudiantesCargados || [];
+        if (!nombre || !profesorId || estudiantes.length === 0) {
+            alert("Debes completar todos los campos y subir una lista de estudiantes.");
+            return;
+        }
+        const curso = { nombre, descripcion, profesorId, estudiantes };
+        try {
+            const response = await fetch("/api/cursos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(curso)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Error al crear curso");
+            alert("Curso creado correctamente.");
+            window.location.reload();
+        } catch (error) {
+            console.error("Error creando curso:", error);
+            alert("Ocurrió un error al crear el curso.");
+        }
+        });
+
+    function editarCurso(id) {
+    const curso = cursosGlobal.find(c => c.id === id);
+    if (!curso) return alert("Curso no encontrado");
+
+    document.getElementById("editar-id").value = curso.id;
+    document.getElementById("editar-nombre").value = curso.nombre;
+    document.getElementById("editar-descripcion").value = curso.descripcion;
+    const select = document.getElementById("editar-profesor");
+    select.innerHTML = document.getElementById("profesor-tutor").innerHTML;
+    select.value = curso.profesorId || "";
+
+    document.getElementById("modal-editar").classList.remove("hidden");
+    }
+
+    function cerrarModalEditar() {
+    document.getElementById("modal-editar").classList.add("hidden");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("form-editar-curso").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const id = document.getElementById("editar-id").value;
+    const nombre = document.getElementById("editar-nombre").value;
+    const descripcion = document.getElementById("editar-descripcion").value;
+    const profesorId = document.getElementById("editar-profesor").value;
+
+    try {
+        const res = await fetch(`/api/cursos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, descripcion, profesorId })
+        });
+        if (!res.ok) throw new Error("Error actualizando curso");
+        alert("Curso actualizado correctamente");
+        cerrarModalEditar();
+        cargarCursos();
+    } catch (err) {
+        alert("Error al actualizar el curso");
+        console.error(err);
+    }
     });
-    if (!res.ok) throw new Error("Error actualizando curso");
-    alert("Curso actualizado correctamente");
-    cerrarModalEditar();
-    cargarCursos();
-  } catch (err) {
-    alert("Error al actualizar el curso");
-    console.error(err);
-  }
-});
-
-function cerrarModalEstudiantes() {
-  document.getElementById("modal-estudiantes").classList.add("hidden");
-}
-
-async function verEstudiantes(cursoId) {
-  try {
-    const res = await fetch(`/api/cursos/${cursoId}/estudiantes`);
-    const estudiantes = await res.json();
-    const lista = document.getElementById("lista-estudiantes-curso");
-    lista.innerHTML = "";
-
-    estudiantes.forEach(est => {
-      const li = document.createElement("li");
-      li.className = "flex justify-between items-center border-b pb-1";
-      li.innerHTML = `
-        ${est.nombre} (${est.email})
-        <button onclick="desmatricular('${cursoId}', '${est.id}')" class="text-sm text-red-600 hover:underline">Desmatricular</button>
-      `;
-      lista.appendChild(li);
     });
 
-    document.getElementById("modal-estudiantes").classList.remove("hidden");
-    window.cursoActivo = cursoId;
-  } catch (err) {
-    console.error(err);
-    alert("Error al cargar estudiantes");
-  }
+    function cerrarModalEstudiantes() {
+    document.getElementById("modal-estudiantes").classList.add("hidden");
+    }
+
+ async function verEstudiantes(cursoId) {
+    try {
+        const res = await fetch(`/api/cursos?cursoId=${cursoId}&estudiantes=true`);
+        const estudiantes = await res.json();
+        const lista = document.getElementById("lista-estudiantes-curso");
+        lista.innerHTML = "";
+
+        estudiantes.forEach(est => {
+            const li = document.createElement("li");
+            li.className = "flex justify-between items-center border-b pb-1";
+            li.innerHTML = `
+                ${est.nombre} (${est.email})
+                <button onclick="desmatricular('${cursoId}', '${est.id}')" class="text-sm text-red-600 hover:underline">Desmatricular</button>
+            `;
+            lista.appendChild(li);
+        });
+
+        document.getElementById("modal-estudiantes").classList.remove("hidden");
+        window.cursoActivo = cursoId;
+    } catch (err) {
+        console.error(err);
+        alert("Error al cargar estudiantes");
+    }
 }
 
 async function desmatricular(cursoId, estudianteId) {
@@ -263,6 +272,7 @@ async function desmatricular(cursoId, estudianteId) {
     alert("Error al desmatricular estudiante");
   }
 }
+
 
 async function matricularEstudiantes() {
   const nuevos = window.estudiantesCargados || [];
@@ -281,42 +291,44 @@ async function matricularEstudiantes() {
   }
 }
 
-  </script>
-  <div id="modal-editar" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-    <h2 class="text-xl font-bold mb-4 text-green-700">Editar Curso</h2>
-    <form id="form-editar-curso" class="space-y-4">
-      <input type="hidden" id="editar-id">
-      <div>
-        <label class="block font-semibold text-gray-700">Nombre</label>
-        <input type="text" id="editar-nombre" class="w-full p-2 border rounded" required />
-      </div>
-      <div>
-        <label class="block font-semibold text-gray-700">Descripción</label>
-        <textarea id="editar-descripcion" class="w-full p-2 border rounded" rows="3"></textarea>
-      </div>
-      <div>
-        <label class="block font-semibold text-gray-700">Tutor</label>
-        <select id="editar-profesor" class="w-full p-2 border rounded" required></select>
-      </div>
-      <div class="text-right space-x-2">
-        <button type="button" onclick="cerrarModalEditar()" class="bg-gray-300 px-4 py-2 rounded">Cancelar</button>
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Guardar</button>
-      </div>
-    </form>
-  </div>
-</div>
 
-<div id="modal-estudiantes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-    <h2 class="text-xl font-bold text-green-700 mb-4">Estudiantes Matriculados</h2>
-    <ul id="lista-estudiantes-curso" class="space-y-2 text-gray-800 mb-4"></ul>
-    <div class="flex justify-between items-center space-x-2">
-      <button onclick="cerrarModalEstudiantes()" class="bg-gray-300 px-4 py-2 rounded">Cerrar</button>
-      <button onclick="matricularEstudiantes()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Matricular nuevos</button>
+
+    </script>
+    <div id="modal-editar" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4 text-green-700">Editar Curso</h2>
+        <form id="form-editar-curso" class="space-y-4">
+        <input type="hidden" id="editar-id">
+        <div>
+            <label class="block font-semibold text-gray-700">Nombre</label>
+            <input type="text" id="editar-nombre" class="w-full p-2 border rounded" required />
+        </div>
+        <div>
+            <label class="block font-semibold text-gray-700">Descripción</label>
+            <textarea id="editar-descripcion" class="w-full p-2 border rounded" rows="3"></textarea>
+        </div>
+        <div>
+            <label class="block font-semibold text-gray-700">Tutor</label>
+            <select id="editar-profesor" class="w-full p-2 border rounded" required></select>
+        </div>
+        <div class="text-right space-x-2">
+            <button type="button" onclick="cerrarModalEditar()" class="bg-gray-300 px-4 py-2 rounded">Cancelar</button>
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Guardar</button>
+        </div>
+        </form>
     </div>
-  </div>
-</div>
+    </div>
 
-</body>
-</html>
+    <div id="modal-estudiantes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <h2 class="text-xl font-bold text-green-700 mb-4">Estudiantes Matriculados</h2>
+        <ul id="lista-estudiantes-curso" class="space-y-2 text-gray-800 mb-4"></ul>
+        <div class="flex justify-between items-center space-x-2">
+        <button onclick="cerrarModalEstudiantes()" class="bg-gray-300 px-4 py-2 rounded">Cerrar</button>
+        <button onclick="matricularEstudiantes()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Matricular nuevos</button>
+        </div>
+    </div>
+    </div>
+
+    </body>
+    </html>

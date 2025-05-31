@@ -1,4 +1,3 @@
-// Tu importación actual
 import mysql from "mysql2/promise";
 
 export const pool = mysql.createPool({
@@ -14,10 +13,61 @@ export default async function handler(req, res) {
   const conn = await pool.getConnection();
 
   try {
-    const { method, url } = req;
-    const urlParts = url.split("/").filter(Boolean); // divide por '/', remueve vacíos
+    const { method, url, query } = req;
+    const urlParts = url.split("/").filter(Boolean);
+    const { cursoId, estudianteId, estudiantes } = query;
 
-    // Ruta: GET /api/cursos
+    // ========== NUEVAS RUTAS BASADAS EN QUERY STRINGS ==========
+
+    // GET /api/cursos?cursoId=...&estudiantes=true
+    if (method === "GET" && cursoId && estudiantes === "true") {
+      const [estudiantesCurso] = await conn.execute(`
+        SELECT u.id, u.nombre, u.email
+        FROM cursos_estudiantes ce
+        JOIN usuarios u ON ce.estudiante_id = u.id
+        WHERE ce.curso_id = ?
+      `, [cursoId]);
+      return res.status(200).json(estudiantesCurso);
+    }
+
+    // POST /api/cursos?cursoId=...  --> para matricular múltiples estudiantes
+    if (method === "POST" && cursoId && !estudianteId) {
+      const { estudiantes } = req.body;
+      if (!Array.isArray(estudiantes) || estudiantes.length === 0) {
+        return res.status(400).json({ error: "Lista de estudiantes inválida." });
+      }
+
+      for (const est of estudiantes) {
+        const { nombre, email } = est;
+        if (!nombre || !email) continue;
+
+        let [existe] = await conn.execute("SELECT id FROM usuarios WHERE email = ?", [email]);
+        let estudianteId = existe.length ? existe[0].id : (await conn.execute(
+          "INSERT INTO usuarios (nombre, email, rol) VALUES (?, ?, 'usuario')",
+          [nombre, email]
+        ))[0].insertId;
+
+        await conn.execute(
+          "INSERT IGNORE INTO cursos_estudiantes (curso_id, estudiante_id) VALUES (?, ?)",
+          [cursoId, estudianteId]
+        );
+      }
+
+      return res.status(200).json({ message: "Estudiantes matriculados correctamente" });
+    }
+
+    // DELETE /api/cursos?cursoId=...&estudianteId=...
+    if (method === "DELETE" && cursoId && estudianteId) {
+      await conn.execute(
+        "DELETE FROM cursos_estudiantes WHERE curso_id = ? AND estudiante_id = ?",
+        [cursoId, estudianteId]
+      );
+      return res.status(200).json({ message: "Estudiante desmatriculado correctamente" });
+    }
+
+    // ========== RUTAS ORIGINALES REST ==========
+
+    // GET /api/cursos
     if (method === "GET" && urlParts.length === 2) {
       const [cursos] = await conn.execute(`
         SELECT c.id, c.nombre, c.descripcion, u.nombre AS tutor
@@ -27,7 +77,7 @@ export default async function handler(req, res) {
       return res.status(200).json(cursos);
     }
 
-    // Ruta: POST /api/cursos
+    // POST /api/cursos
     if (method === "POST" && urlParts.length === 2) {
       const { nombre, descripcion, profesorId, estudiantes } = req.body;
 
@@ -63,7 +113,7 @@ export default async function handler(req, res) {
       return res.status(201).json({ message: "Curso creado correctamente", cursoId });
     }
 
-    // Ruta: PUT /api/cursos/:id
+    // PUT /api/cursos/:id
     if (method === "PUT" && urlParts.length === 3) {
       const cursoId = urlParts[2];
       const { nombre, descripcion, profesorId } = req.body;
@@ -76,7 +126,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: "Curso actualizado correctamente" });
     }
 
-    // Ruta: GET /api/cursos/:id/estudiantes
+    // GET /api/cursos/:id/estudiantes
     if (method === "GET" && urlParts.length === 4 && urlParts[3] === "estudiantes") {
       const cursoId = urlParts[2];
       const [estudiantes] = await conn.execute(`
@@ -89,7 +139,7 @@ export default async function handler(req, res) {
       return res.status(200).json(estudiantes);
     }
 
-    // Ruta: POST /api/cursos/:id/estudiantes
+    // POST /api/cursos/:id/estudiantes
     if (method === "POST" && urlParts.length === 4 && urlParts[3] === "estudiantes") {
       const cursoId = urlParts[2];
       const { nombre, email } = req.body;
@@ -112,7 +162,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: "Estudiante matriculado" });
     }
 
-    // Ruta: DELETE /api/cursos/:id/estudiantes/:estudianteId
+    // DELETE /api/cursos/:id/estudiantes/:estudianteId
     if (method === "DELETE" && urlParts.length === 5 && urlParts[3] === "estudiantes") {
       const cursoId = urlParts[2];
       const estudianteId = urlParts[4];
