@@ -221,7 +221,8 @@ async function cargarCursos() {
 
  async function verEstudiantes(cursoId) {
     try {
-        const res = await fetch(`/api/cursos/${cursoId}/estudiantes`);
+        const res = await fetch(`/api/cursos?cursoId=${cursoId}&estudiantes=true`)
+;
     
         const estudiantes = await res.json();
         const lista = document.getElementById("lista-estudiantes-curso");
