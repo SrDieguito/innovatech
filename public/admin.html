@@ -126,21 +126,6 @@ async function cargarCursos() {
     console.error("Error cargando cursos:", error);
   }
 }
-
-       function editarCurso(id) {
-  const curso = cursosGlobal.find(c => c.id === id);
-  if (!curso) return alert("Curso no encontrado");
-
-  document.getElementById("editar-id").value = curso.id;
-  document.getElementById("editar-nombre").value = curso.nombre;
-  document.getElementById("editar-descripcion").value = curso.descripcion;
-  const select = document.getElementById("editar-profesor");
-  select.innerHTML = document.getElementById("profesor-tutor").innerHTML;
-  select.value = curso.profesor_id || "";
-
-  document.getElementById("modal-editar").classList.remove("hidden");
-}
-
         cargarProfesores();
         cargarCursos();
 

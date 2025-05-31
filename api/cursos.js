@@ -53,7 +53,7 @@ export default async function handler(req, res) {
       if (!cursoId) return res.status(400).json({ error: "cursoId requerido" });
 
       const [curso] = await conn.execute(`
-        SELECT c.id, c.nombre, c.descripcion, u.id AS profesorId, u.nombre AS profesorNombre
+        SELECT c.id, c.nombre, c.descripcion, u.id AS profesor_id, u.nombre AS profesorNombre
         FROM cursos c
         JOIN usuarios u ON c.profesor_id = u.id
         WHERE c.id = ?
@@ -115,9 +115,9 @@ export default async function handler(req, res) {
 
     // POST /api/cursos
     if (method === "POST" && urlParts.length === 2 && urlParts[0] === "api" && urlParts[1] === "cursos") {
-      const { nombre, descripcion, profesorId, estudiantes } = req.body;
+      const { nombre, descripcion, profesor_id, estudiantes } = req.body;
 
-      if (!nombre || !profesorId || !Array.isArray(estudiantes) || estudiantes.length === 0) {
+      if (!nombre || !profesor_id || !Array.isArray(estudiantes) || estudiantes.length === 0) {
         return res.status(400).json({ error: "Faltan datos requeridos o estudiantes inválidos." });
       }
 
@@ -125,7 +125,7 @@ export default async function handler(req, res) {
 
       const [cursoRes] = await conn.execute(
         "INSERT INTO cursos (nombre, descripcion, profesor_id) VALUES (?, ?, ?)",
-        [nombre, descripcion || "", profesorId]
+        [nombre, descripcion || "", profesor_id]
       );
       const nuevoCursoId = cursoRes.insertId;
 
@@ -153,11 +153,11 @@ export default async function handler(req, res) {
     if (method === "PUT" && urlParts.length === 3 && urlParts[0] === "api" && urlParts[1] === "cursos") {
       if (!cursoId) return res.status(400).json({ error: "cursoId requerido" });
 
-      const { nombre, descripcion, profesorId } = req.body;
+      const { nombre, descripcion, profesor_id } = req.body;
 
       await conn.execute(
         "UPDATE cursos SET nombre = ?, descripcion = ?, profesor_id = ? WHERE id = ?",
-        [nombre, descripcion || "", profesorId, cursoId]
+        [nombre, descripcion || "", profesor_id, cursoId]
       );
 
       return res.status(200).json({ message: "Curso actualizado correctamente" });
