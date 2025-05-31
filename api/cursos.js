@@ -18,12 +18,27 @@ export default async function handler(req, res) {
 
     console.log("urlParts:", urlParts);
 
-    const { cursoId, estudianteId, estudiantes } = query;
+    // Extraer cursoId y estudianteId ya sea de la ruta o query
+    let cursoId = null;
+    let estudianteId = null;
 
-    // ========== NUEVAS RUTAS BASADAS EN QUERY STRINGS ==========
+    // Rutas con /api/cursos/...
+    if (urlParts[0] === "api" && urlParts[1] === "cursos") {
+      if (urlParts.length >= 3) cursoId = urlParts[2];
+      if (urlParts.length >= 5 && urlParts[3] === "estudiantes") estudianteId = urlParts[4];
+    }
+
+    // Si no hay cursoId en ruta, buscar en query
+    if (!cursoId && query.cursoId) cursoId = query.cursoId;
+    if (!estudianteId && query.estudianteId) estudianteId = query.estudianteId;
+
+    // Obtener valor de estudiantes (booleano) desde query para algunos endpoints
+    const estudiantesQuery = query.estudiantes;
+
+    // ======== NUEVAS RUTAS BASADAS EN QUERY STRINGS ========
 
     // GET /api/cursos?cursoId=...&estudiantes=true
-    if (method === "GET" && cursoId && estudiantes === "true") {
+    if (method === "GET" && cursoId && estudiantesQuery === "true") {
       const [estudiantesCurso] = await conn.execute(`
         SELECT u.id, u.nombre, u.email
         FROM cursos_estudiantes ce
@@ -35,7 +50,7 @@ export default async function handler(req, res) {
 
     // GET /api/cursos/:id
     if (method === "GET" && urlParts.length === 3 && urlParts[0] === "api" && urlParts[1] === "cursos") {
-      const cursoId = urlParts[2];
+      if (!cursoId) return res.status(400).json({ error: "cursoId requerido" });
 
       const [curso] = await conn.execute(`
         SELECT c.id, c.nombre, c.descripcion, u.id AS profesorId, u.nombre AS profesorNombre
@@ -51,7 +66,7 @@ export default async function handler(req, res) {
       return res.status(200).json(curso[0]);
     }
 
-    // POST /api/cursos?cursoId=...  --> para matricular múltiples estudiantes
+    // POST /api/cursos?cursoId=...  --> matricular múltiples estudiantes
     if (method === "POST" && cursoId && !estudianteId) {
       const { estudiantes } = req.body;
       if (!Array.isArray(estudiantes) || estudiantes.length === 0) {
@@ -63,14 +78,14 @@ export default async function handler(req, res) {
         if (!nombre || !email) continue;
 
         let [existe] = await conn.execute("SELECT id FROM usuarios WHERE email = ?", [email]);
-        let estudianteId = existe.length ? existe[0].id : (await conn.execute(
+        let estId = existe.length ? existe[0].id : (await conn.execute(
           "INSERT INTO usuarios (nombre, email, rol) VALUES (?, ?, 'usuario')",
           [nombre, email]
         ))[0].insertId;
 
         await conn.execute(
           "INSERT IGNORE INTO cursos_estudiantes (curso_id, estudiante_id) VALUES (?, ?)",
-          [cursoId, estudianteId]
+          [cursoId, estId]
         );
       }
 
@@ -86,7 +101,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: "Estudiante desmatriculado correctamente" });
     }
 
-    // ========== RUTAS ORIGINALES REST ==========
+    // ======== RUTAS REST ORIGINALES ========
 
     // GET /api/cursos
     if (method === "GET" && urlParts.length === 2 && urlParts[0] === "api" && urlParts[1] === "cursos") {
@@ -112,31 +127,32 @@ export default async function handler(req, res) {
         "INSERT INTO cursos (nombre, descripcion, profesor_id) VALUES (?, ?, ?)",
         [nombre, descripcion || "", profesorId]
       );
-      const cursoId = cursoRes.insertId;
+      const nuevoCursoId = cursoRes.insertId;
 
       for (const estudiante of estudiantes) {
         const { nombre, email } = estudiante;
         if (!nombre || !email) continue;
 
         const [existe] = await conn.execute("SELECT id FROM usuarios WHERE email = ?", [email]);
-        let estudianteId = existe.length ? existe[0].id : (await conn.execute(
+        let estId = existe.length ? existe[0].id : (await conn.execute(
           "INSERT INTO usuarios (nombre, email, rol) VALUES (?, ?, 'usuario')",
           [nombre, email]
         ))[0].insertId;
 
         await conn.execute(
           "INSERT IGNORE INTO cursos_estudiantes (curso_id, estudiante_id) VALUES (?, ?)",
-          [cursoId, estudianteId]
+          [nuevoCursoId, estId]
         );
       }
 
       await conn.commit();
-      return res.status(201).json({ message: "Curso creado correctamente", cursoId });
+      return res.status(201).json({ message: "Curso creado correctamente", cursoId: nuevoCursoId });
     }
 
     // PUT /api/cursos/:id
     if (method === "PUT" && urlParts.length === 3 && urlParts[0] === "api" && urlParts[1] === "cursos") {
-      const cursoId = urlParts[2];
+      if (!cursoId) return res.status(400).json({ error: "cursoId requerido" });
+
       const { nombre, descripcion, profesorId } = req.body;
 
       await conn.execute(
@@ -149,7 +165,8 @@ export default async function handler(req, res) {
 
     // GET /api/cursos/:id/estudiantes
     if (method === "GET" && urlParts.length === 4 && urlParts[0] === "api" && urlParts[1] === "cursos" && urlParts[3] === "estudiantes") {
-      const cursoId = urlParts[2];
+      if (!cursoId) return res.status(400).json({ error: "cursoId requerido" });
+
       const [estudiantes] = await conn.execute(`
         SELECT u.id, u.nombre, u.email
         FROM cursos_estudiantes ce
@@ -162,7 +179,8 @@ export default async function handler(req, res) {
 
     // POST /api/cursos/:id/estudiantes
     if (method === "POST" && urlParts.length === 4 && urlParts[0] === "api" && urlParts[1] === "cursos" && urlParts[3] === "estudiantes") {
-      const cursoId = urlParts[2];
+      if (!cursoId) return res.status(400).json({ error: "cursoId requerido" });
+
       const { nombre, email } = req.body;
 
       if (!nombre || !email) {
@@ -170,14 +188,14 @@ export default async function handler(req, res) {
       }
 
       let [existe] = await conn.execute("SELECT id FROM usuarios WHERE email = ?", [email]);
-      let estudianteId = existe.length ? existe[0].id : (await conn.execute(
+      let estId = existe.length ? existe[0].id : (await conn.execute(
         "INSERT INTO usuarios (nombre, email, rol) VALUES (?, ?, 'usuario')",
         [nombre, email]
       ))[0].insertId;
 
       await conn.execute(
         "INSERT IGNORE INTO cursos_estudiantes (curso_id, estudiante_id) VALUES (?, ?)",
-        [cursoId, estudianteId]
+        [cursoId, estId]
       );
 
       return res.status(200).json({ message: "Estudiante matriculado" });
@@ -185,8 +203,7 @@ export default async function handler(req, res) {
 
     // DELETE /api/cursos/:id/estudiantes/:estudianteId
     if (method === "DELETE" && urlParts.length === 5 && urlParts[0] === "api" && urlParts[1] === "cursos" && urlParts[3] === "estudiantes") {
-      const cursoId = urlParts[2];
-      const estudianteId = urlParts[4];
+      if (!cursoId || !estudianteId) return res.status(400).json({ error: "cursoId y estudianteId requeridos" });
 
       await conn.execute(
         "DELETE FROM cursos_estudiantes WHERE curso_id = ? AND estudiante_id = ?",
