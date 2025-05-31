@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     }
 
         // GET /api/cursos/:id
-    if (method === "GET" && urlParts.length === 3) {
+    if (method === "GET" && urlParts.length === 3 && urlParts[1] === "cursos") {
     const cursoId = urlParts[2];
     const [curso] = await conn.execute(`
         SELECT c.id, c.nombre, c.descripcion, u.id AS profesorId, u.nombre AS profesorNombre
