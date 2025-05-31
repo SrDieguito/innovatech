@@ -3,58 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Administración - Crear Curso</title>
+  <title>Panel de Administración</title>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow-xl">
-    <h1 class="text-2xl font-bold text-green-700 mb-6">Crear Nuevo Curso</h1>
+<body class="bg-gray-100 min-h-screen flex">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white p-6 border-r shadow-xl">
+    <h2 class="text-xl font-bold text-green-700 mb-6">Panel Admin</h2>
+    <nav class="space-y-4">
+      <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
+        <span class="mr-2">📚</span> Cursos
+      </a>
+      <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
+        <span class="mr-2">👥</span> Usuarios
+      </a>
+      <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
+        <span class="mr-2">📊</span> Reportes
+      </a>
+      <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
+        <span class="mr-2">⚙️</span> Configuración
+      </a>
+    </nav>
+  </aside>
 
-    <!-- Formulario de Curso -->
-    <form id="form-curso" class="space-y-4">
-      <div>
-        <label class="block text-gray-700 font-semibold">Nombre del curso</label>
-        <input type="text" id="nombre-curso" required class="w-full p-2 border rounded-lg" />
+  <!-- Main Content -->
+  <main class="flex-1 p-6 space-y-10">
+    <!-- Sección Crear Curso -->
+    <div class="bg-white p-6 rounded-2xl shadow-xl">
+      <h1 class="text-2xl font-bold text-green-700 mb-6">Crear Nuevo Curso</h1>
+      <form id="form-curso" class="space-y-4">
+        <div>
+          <label class="block text-gray-700 font-semibold">Nombre del curso</label>
+          <input type="text" id="nombre-curso" required class="w-full p-2 border rounded-lg" />
+        </div>
+        <div>
+          <label class="block text-gray-700 font-semibold">Descripción</label>
+          <textarea id="descripcion-curso" class="w-full p-2 border rounded-lg" rows="3"></textarea>
+        </div>
+        <div>
+          <label class="block text-gray-700 font-semibold">Profesor Tutor</label>
+          <select id="profesor-tutor" required class="w-full p-2 border rounded-lg">
+            <option value="">-- Selecciona un profesor --</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-gray-700 font-semibold">Lista de Estudiantes (Excel)</label>
+          <input type="file" id="archivo-excel" accept=".xlsx, .xls" class="w-full p-2 border rounded-lg" />
+        </div>
+        <div class="text-right">
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+            Crear Curso
+          </button>
+        </div>
+      </form>
+      <div class="mt-8">
+        <h2 class="text-xl font-semibold mb-2">Estudiantes cargados:</h2>
+        <ul id="lista-estudiantes" class="list-disc list-inside text-gray-800 space-y-1"></ul>
       </div>
-
-      <div>
-        <label class="block text-gray-700 font-semibold">Descripción</label>
-        <textarea id="descripcion-curso" class="w-full p-2 border rounded-lg" rows="3"></textarea>
-      </div>
-
-      <div>
-        <label class="block text-gray-700 font-semibold">Profesor Tutor</label>
-        <select id="profesor-tutor" required class="w-full p-2 border rounded-lg">
-          <option value="">-- Selecciona un profesor --</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="block text-gray-700 font-semibold">Lista de Estudiantes (Excel)</label>
-        <input type="file" id="archivo-excel" accept=".xlsx, .xls" class="w-full p-2 border rounded-lg" />
-      </div>
-
-      <div class="text-right">
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-          Crear Curso
-        </button>
-      </div>
-    </form>
-
-    <!-- Vista previa de estudiantes -->
-    <div class="mt-8">
-      <h2 class="text-xl font-semibold mb-2">Estudiantes cargados:</h2>
-      <ul id="lista-estudiantes" class="list-disc list-inside text-gray-800 space-y-1"></ul>
     </div>
-  </div>
+
+    <!-- Sección Ver Cursos -->
+    <div class="bg-white p-6 rounded-2xl shadow-xl">
+      <h2 class="text-2xl font-bold text-green-700 mb-4">Cursos Existentes</h2>
+      <div id="lista-cursos" class="space-y-4">
+        <p class="text-gray-500">Cargando cursos...</p>
+      </div>
+    </div>
+  </main>
 
   <script>
     async function cargarProfesores() {
       try {
         const response = await fetch("/api/usuarios?rol=profesor");
         const data = await response.json();
-
         const select = document.getElementById("profesor-tutor");
         data.forEach(prof => {
           const option = document.createElement("option");
@@ -67,60 +89,85 @@
       }
     }
 
+    async function cargarCursos() {
+      try {
+        const response = await fetch("/api/cursos");
+        const cursos = await response.json();
+        const contenedor = document.getElementById("lista-cursos");
+        contenedor.innerHTML = "";
+
+        cursos.forEach(curso => {
+          const div = document.createElement("div");
+          div.className = "border p-4 rounded-lg shadow-sm";
+
+          div.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-lg font-bold text-green-800">${curso.nombre}</h3>
+                <p class="text-gray-600">${curso.descripcion}</p>
+                <p class="text-sm text-gray-500">Tutor: ${curso.tutor}</p>
+              </div>
+              <div class="flex space-x-2">
+                <button onclick="editarCurso('${curso.id}')" class="text-sm bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500">Editar</button>
+                <button onclick="verEstudiantes('${curso.id}')" class="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Estudiantes</button>
+              </div>
+            </div>
+          `;
+
+          contenedor.appendChild(div);
+        });
+      } catch (error) {
+        console.error("Error cargando cursos:", error);
+      }
+    }
+
+    function editarCurso(id) {
+      alert("Funcionalidad editar curso (pendiente) para ID: " + id);
+    }
+
+    function verEstudiantes(id) {
+      alert("Funcionalidad ver/matricular/desmatricular estudiantes (pendiente) para ID: " + id);
+    }
+
     cargarProfesores();
+    cargarCursos();
 
     document.getElementById("archivo-excel").addEventListener("change", async function (e) {
       const file = e.target.files[0];
       if (!file) return;
-
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const hoja = workbook.Sheets[workbook.SheetNames[0]];
       const estudiantes = XLSX.utils.sheet_to_json(hoja);
-
       const lista = document.getElementById("lista-estudiantes");
       lista.innerHTML = "";
-
       estudiantes.forEach(est => {
         const li = document.createElement("li");
         li.textContent = `${est["Nombre Completo"]} (${est["Correo"]})`;
         lista.appendChild(li);
       });
-
       window.estudiantesCargados = estudiantes;
     });
 
     document.getElementById("form-curso").addEventListener("submit", async function (e) {
       e.preventDefault();
-
       const nombre = document.getElementById("nombre-curso").value;
       const descripcion = document.getElementById("descripcion-curso").value;
       const profesorId = document.getElementById("profesor-tutor").value;
       const estudiantes = window.estudiantesCargados || [];
-
       if (!nombre || !profesorId || estudiantes.length === 0) {
         alert("Debes completar todos los campos y subir una lista de estudiantes.");
         return;
       }
-
-      const curso = {
-        nombre,
-        descripcion,
-        profesorId,
-        estudiantes
-      };
-
+      const curso = { nombre, descripcion, profesorId, estudiantes };
       try {
         const response = await fetch("/api/cursos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(curso)
         });
-
         const data = await response.json();
-
         if (!response.ok) throw new Error(data.error || "Error al crear curso");
-
         alert("Curso creado correctamente.");
         window.location.reload();
       } catch (error) {
