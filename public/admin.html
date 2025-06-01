@@ -317,6 +317,84 @@ function filtrarEstudiantes() {
 }
 
 
+async function abrirModalMatriculaManual() {
+  const modal = document.getElementById("modal-matricular-nuevos");
+  modal.classList.remove("hidden");
+
+  // Obtener estudiantes del backend
+  const cursoId = window.cursoActualId;
+  const res = await fetch(`/api/usuarios`);
+  const todos = await res.json();
+
+  const yaMatriculados = window.estudiantesCursoActual.map(e => e.email);
+  const disponibles = todos.filter(est => !yaMatriculados.includes(est.email));
+
+  // Mostrar lista
+  const contenedor = document.getElementById("lista-estudiantes-disponibles");
+  if (!disponibles.length) {
+    contenedor.innerHTML = "<p>No hay estudiantes disponibles para matricular.</p>";
+    return;
+  }
+
+  contenedor.innerHTML = disponibles.map(e => `
+    <div class="flex items-center justify-between mb-1">
+      <div>
+        <p class="font-semibold">${e.nombre}</p>
+        <p class="text-sm text-gray-600">${e.email}</p>
+      </div>
+      <button onclick='matricularDesdeLista(${JSON.stringify(e)})' class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">
+        Matricular
+      </button>
+    </div>
+  `).join("");
+}
+
+function cerrarModalMatriculaManual() {
+  document.getElementById("modal-matricular-nuevos").classList.add("hidden");
+}
+
+async function matricularDesdeLista(estudiante) {
+  const cursoId = window.cursoActualId;
+  const res = await fetch(`/api/cursos/${cursoId}/matricular`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ estudiantes: [estudiante] })
+  });
+
+  if (res.ok) {
+    alert("Estudiante matriculado correctamente.");
+    cerrarModalMatriculaManual();
+    cargarEstudiantes(cursoId); // actualizar lista principal
+  } else {
+    alert("Error al matricular.");
+  }
+}
+
+async function matricularManual() {
+  const nombre = document.getElementById("nombre-manual").value.trim();
+  const email = document.getElementById("correo-manual").value.trim();
+  const cursoId = window.cursoActualId;
+
+  if (!nombre || !email || !email.endsWith("@gmail.com")) {
+    return alert("Nombre y correo (gmail) válidos son requeridos.");
+  }
+
+  const estudiante = { nombre, email };
+
+  const res = await fetch(`/api/cursos/${cursoId}/matricular`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ estudiantes: [estudiante] })
+  });
+
+  if (res.ok) {
+    alert("Estudiante matriculado correctamente.");
+    cerrarModalMatriculaManual();
+    cargarEstudiantes(cursoId);
+  } else {
+    alert("Error al matricular manualmente.");
+  }
+}
 
     </script>
     <div id="modal-editar" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
@@ -351,10 +429,39 @@ function filtrarEstudiantes() {
         <ul id="lista-estudiantes-curso" class="space-y-2 text-gray-800 mb-4 max-h-64 overflow-y-auto pr-2"></ul>
         <div class="flex justify-between items-center space-x-2">
         <button onclick="cerrarModalEstudiantes()" class="bg-gray-300 px-4 py-2 rounded">Cerrar</button>
-        <button onclick="matricularEstudiantes()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Matricular nuevos</button>
+        <button onclick="abrirModalMatriculaManual()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+  Matricular nuevos
+</button>
+
         </div>
     </div>
     </div>
+
+    <div id="modal-matricular-nuevos" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white p-6 rounded-lg w-full max-w-2xl">
+    <h2 class="text-xl font-bold mb-4">Matricular nuevos estudiantes</h2>
+
+    <!-- Lista de estudiantes de la base de datos -->
+    <div id="lista-estudiantes-disponibles" class="max-h-60 overflow-y-auto border p-2 rounded mb-4">
+      <p>Cargando estudiantes...</p>
+    </div>
+
+    <!-- Matricular manual -->
+    <div class="border-t pt-4 mt-4">
+      <h3 class="font-semibold mb-2">Matricular estudiante manualmente</h3>
+      <input type="text" id="nombre-manual" placeholder="Nombre" class="w-full p-2 mb-2 border rounded" />
+      <input type="email" id="correo-manual" placeholder="Correo (gmail)" class="w-full p-2 mb-2 border rounded" />
+      <button onclick="matricularManual()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        Matricular manualmente
+      </button>
+    </div>
+
+    <!-- Cerrar -->
+    <div class="text-right mt-4">
+      <button onclick="cerrarModalMatriculaManual()" class="text-red-500">Cerrar</button>
+    </div>
+  </div>
+</div>
 
     </body>
     </html>
