@@ -74,6 +74,11 @@
 
     <script>
 
+      // Inicializar variables globales
+window.cursoActualId = null;
+window.estudiantesCursoActual = [];
+window.estudiantesCargados = [];
+
       let cursosGlobal = [];
 
         async function cargarProfesores() {
@@ -411,39 +416,30 @@ async function matricularManual() {
   const nombre = document.getElementById("nombre-manual").value.trim();
   const email = document.getElementById("correo-manual").value.trim();
   
-  if (!nombre || !email) {
-    return alert("Nombre y correo son requeridos");
-  }
-
-  if (!window.cursoActualId) {
-    return alert("No se ha seleccionado un curso válido");
-  }
+  if (!nombre || !email) return alert("Nombre y correo son requeridos");
+  if (!window.cursoActualId) return alert("No hay curso seleccionado");
 
   try {
-    const estudiante = { nombre, email };
     const res = await fetch(`/api/cursos/${window.cursoActualId}/estudiantes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estudiantes: [estudiante] })
+      body: JSON.stringify({ nombre, email })
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.message || "Error al matricular");
-    }
+    if (!res.ok) throw new Error("Error al matricular");
 
-    // Actualizar la lista de estudiantes
     const nuevoEstudiante = await res.json();
     window.estudiantesCursoActual.push(nuevoEstudiante);
     renderEstudiantes(window.estudiantesCursoActual);
     
-    // Limpiar formulario y mostrar feedback
+    // Limpiar formulario
     document.getElementById("nombre-manual").value = "";
     document.getElementById("correo-manual").value = "";
+    
     alert("Estudiante matriculado correctamente");
   } catch (err) {
-    console.error("Error al matricular manualmente:", err);
-    alert(err.message || "Error al matricular estudiante");
+    console.error("Error:", err);
+    alert("Error al matricular estudiante");
   }
 }
 
