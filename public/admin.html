@@ -220,15 +220,36 @@ async function cargarCursos() {
     }
 
 async function desmatricular(cursoId, estudianteId) {
+  if (!confirm('¿Estás seguro de desmatricular a este estudiante?')) {
+    return;
+  }
+
   try {
     const res = await fetch(`/api/cursos/${cursoId}/estudiantes/${estudianteId}`, {
-      method: "DELETE"
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      }
     });
-    if (!res.ok) throw new Error("Error desmatriculando");
-    alert("Estudiante desmatriculado");
-    verEstudiantes(cursoId);
-  } catch (err) {
-    alert("Error al desmatricular estudiante");
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Error al desmatricular");
+    }
+
+    // Actualizar la lista de estudiantes localmente
+    window.estudiantesCursoActual = window.estudiantesCursoActual.filter(
+      est => est.id !== parseInt(estudianteId)
+    );
+    
+    // Volver a renderizar la lista
+    renderEstudiantes(window.estudiantesCursoActual);
+    
+    // Mostrar notificación de éxito
+    alert("Estudiante desmatriculado correctamente");
+  } catch (error) {
+    console.error("Error al desmatricular:", error);
+    alert(`Error al desmatricular: ${error.message}`);
   }
 }
 
@@ -424,6 +445,66 @@ async function matricularManual() {
     console.error("Error al matricular manualmente:", err);
     alert(err.message || "Error al matricular estudiante");
   }
+}
+
+// Función mejorada con loading state y mejor manejo de errores
+async function desmatricular(cursoId, estudianteId) {
+  // Obtener referencia al botón que disparó la acción
+  const button = event.target;
+  const originalText = button.innerHTML;
+  
+  try {
+    // Mostrar loading
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+    button.disabled = true;
+
+    const res = await fetch(`/api/cursos/${cursoId}/estudiantes/${estudianteId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem('token')}` // Si usas autenticación
+      }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Error al desmatricular");
+    }
+
+    // Actualizar la lista localmente sin necesidad de recargar
+    const estudiantesActualizados = window.estudiantesCursoActual.filter(
+      est => est.id !== parseInt(estudianteId)
+    );
+    
+    window.estudiantesCursoActual = estudiantesActualizados;
+    renderEstudiantes(estudiantesActualizados);
+    
+    // Mostrar notificación bonita (puedes usar Toast o similar)
+    showNotification('success', 'Estudiante desmatriculado correctamente');
+    
+  } catch (error) {
+    console.error("Error al desmatricular:", error);
+    showNotification('error', `Error: ${error.message}`);
+  } finally {
+    // Restaurar el botón
+    button.innerHTML = originalText;
+    button.disabled = false;
+  }
+}
+
+// Función auxiliar para mostrar notificaciones
+function showNotification(type, message) {
+  const notification = document.createElement('div');
+  notification.className = `fixed top-4 right-4 p-4 rounded shadow-lg ${
+    type === 'success' ? 'bg-green-500' : 'bg-red-500'
+  } text-white`;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
 }
     </script>
     <div id="modal-editar" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
