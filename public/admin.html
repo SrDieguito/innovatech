@@ -219,33 +219,6 @@ async function cargarCursos() {
     document.getElementById("modal-estudiantes").classList.add("hidden");
     }
 
- async function verEstudiantes(cursoId) {
-    try {
-        const res = await fetch(`/api/cursos?cursoId=${cursoId}&estudiantes=true`)
-;
-    
-        const estudiantes = await res.json();
-        const lista = document.getElementById("lista-estudiantes-curso");
-        lista.innerHTML = "";
-
-        estudiantes.forEach(est => {
-            const li = document.createElement("li");
-            li.className = "flex justify-between items-center border-b pb-1";
-            li.innerHTML = `
-                ${est.nombre} (${est.email})
-                <button onclick="desmatricular('${cursoId}', '${est.id}')" class="text-sm text-red-600 hover:underline">Desmatricular</button>
-            `;
-            lista.appendChild(li);
-        });
-
-        document.getElementById("modal-estudiantes").classList.remove("hidden");
-        window.cursoActivo = cursoId;
-    } catch (err) {
-        console.error(err);
-        alert("Error al cargar estudiantes");
-    }
-}
-
 async function desmatricular(cursoId, estudianteId) {
   try {
     const res = await fetch(`/api/cursos/${cursoId}/estudiantes/${estudianteId}`, {
@@ -295,17 +268,24 @@ async function verEstudiantes(cursoId) {
 
 function renderEstudiantes(estudiantes) {
   const lista = document.getElementById("lista-estudiantes-curso");
-  lista.innerHTML = "";
+  
+  if (estudiantes.length === 0) {
+    lista.innerHTML = "<p class='text-gray-500 py-4'>No hay estudiantes matriculados en este curso.</p>";
+    return;
+  }
 
-  estudiantes.forEach(est => {
-    const li = document.createElement("li");
-    li.className = "flex justify-between items-center border-b pb-1";
-    li.innerHTML = `
-      ${est.nombre} (${est.email})
-      <button onclick="desmatricular('${window.cursoActivo}', '${est.id}')" class="text-sm text-red-600 hover:underline">Desmatricular</button>
-    `;
-    lista.appendChild(li);
-  });
+  lista.innerHTML = estudiantes.map(est => `
+    <li class="flex justify-between items-center py-2 border-b">
+      <div>
+        <span class="font-medium">${est.nombre}</span>
+        <span class="text-gray-600 text-sm ml-2">${est.email}</span>
+      </div>
+      <button onclick="desmatricular('${window.cursoActualId}', '${est.id}')" 
+        class="text-red-500 hover:text-red-700 text-sm font-medium">
+        Desmatricular
+      </button>
+    </li>
+  `).join("");
 }
 
 function filtrarEstudiantes() {
@@ -318,23 +298,44 @@ function filtrarEstudiantes() {
 
 
 async function abrirModalMatriculaManual() {
-  const modal = document.getElementById("modal-matricular-nuevos");
-  modal.classList.remove("hidden");
+  try {
+    const modal = document.getElementById("modal-matricular-nuevos");
+    modal.classList.remove("hidden");
 
-  // Obtener estudiantes del backend
-  const cursoId = window.cursoActualId;
-  const res = await fetch(`/api/usuarios`);
-  const todos = await res.json();
+    // Obtener todos los usuarios estudiantes
+    const res = await fetch("/api/usuarios?rol=usuario");
+    const todos = await res.json();
 
-  const yaMatriculados = window.estudiantesCursoActual.map(e => e.email);
-  const disponibles = todos.filter(est => !yaMatriculados.includes(est.email));
+    // Filtrar los que no están ya matriculados
+    const yaMatriculados = window.estudiantesCursoActual.map(e => e.id);
+    const disponibles = todos.filter(est => 
+      !yaMatriculados.includes(est.id) && est.rol === 'usuario'
+    );
 
-  // Mostrar lista
-  const contenedor = document.getElementById("lista-estudiantes-disponibles");
-  if (!disponibles.length) {
-    contenedor.innerHTML = "<p>No hay estudiantes disponibles para matricular.</p>";
-    return;
+    // Mostrar lista
+    const contenedor = document.getElementById("lista-estudiantes-disponibles");
+    if (disponibles.length === 0) {
+      contenedor.innerHTML = "<p class='text-gray-500'>No hay estudiantes disponibles para matricular.</p>";
+      return;
+    }
+
+    contenedor.innerHTML = disponibles.map(e => `
+      <div class="flex items-center justify-between mb-2 p-2 border-b">
+        <div class="flex-1">
+          <p class="font-semibold">${e.nombre}</p>
+          <p class="text-sm text-gray-600">${e.email}</p>
+        </div>
+        <button onclick='matricularDesdeLista(${JSON.stringify(e)})' 
+          class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">
+          Matricular
+        </button>
+      </div>
+    `).join("");
+  } catch (err) {
+    console.error("Error al cargar estudiantes disponibles:", err);
+    alert("Error al cargar estudiantes disponibles");
   }
+}
 
   contenedor.innerHTML = disponibles.map(e => `
     <div class="flex items-center justify-between mb-1">
@@ -347,55 +348,83 @@ async function abrirModalMatriculaManual() {
       </button>
     </div>
   `).join("");
-}
+
 
 function cerrarModalMatriculaManual() {
   document.getElementById("modal-matricular-nuevos").classList.add("hidden");
 }
 
 async function matricularDesdeLista(estudiante) {
-  const cursoId = window.cursoActualId;
-  const res = await fetch(`/api/cursos/${cursoId}/matricular`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ estudiantes: [estudiante] })
-  });
+  if (!window.cursoActualId) {
+    alert("No se ha seleccionado un curso válido");
+    return;
+  }
 
-  if (res.ok) {
-    alert("Estudiante matriculado correctamente.");
+  try {
+    const res = await fetch(`/api/cursos/${window.cursoActualId}/estudiantes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estudiantes: [estudiante] })
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Error al matricular");
+    }
+
+    // Actualizar la lista de estudiantes
+    const nuevoEstudiante = await res.json();
+    window.estudiantesCursoActual.push(nuevoEstudiante);
+    renderEstudiantes(window.estudiantesCursoActual);
+    
+    // Cerrar modal y mostrar feedback
     cerrarModalMatriculaManual();
-    cargarEstudiantes(cursoId); // actualizar lista principal
-  } else {
-    alert("Error al matricular.");
+    alert("Estudiante matriculado correctamente");
+  } catch (err) {
+    console.error("Error al matricular:", err);
+    alert(err.message || "Error al matricular estudiante");
   }
 }
 
 async function matricularManual() {
   const nombre = document.getElementById("nombre-manual").value.trim();
   const email = document.getElementById("correo-manual").value.trim();
-  const cursoId = window.cursoActualId;
-
-  if (!nombre || !email || !email.endsWith("@gmail.com")) {
-    return alert("Nombre y correo (gmail) válidos son requeridos.");
+  
+  if (!nombre || !email) {
+    return alert("Nombre y correo son requeridos");
   }
 
-  const estudiante = { nombre, email };
+  if (!window.cursoActualId) {
+    return alert("No se ha seleccionado un curso válido");
+  }
 
-  const res = await fetch(`/api/cursos/${cursoId}/matricular`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ estudiantes: [estudiante] })
-  });
+  try {
+    const estudiante = { nombre, email };
+    const res = await fetch(`/api/cursos/${window.cursoActualId}/estudiantes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estudiantes: [estudiante] })
+    });
 
-  if (res.ok) {
-    alert("Estudiante matriculado correctamente.");
-    cerrarModalMatriculaManual();
-    cargarEstudiantes(cursoId);
-  } else {
-    alert("Error al matricular manualmente.");
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Error al matricular");
+    }
+
+    // Actualizar la lista de estudiantes
+    const nuevoEstudiante = await res.json();
+    window.estudiantesCursoActual.push(nuevoEstudiante);
+    renderEstudiantes(window.estudiantesCursoActual);
+    
+    // Limpiar formulario y mostrar feedback
+    document.getElementById("nombre-manual").value = "";
+    document.getElementById("correo-manual").value = "";
+    alert("Estudiante matriculado correctamente");
+  } catch (err) {
+    console.error("Error al matricular manualmente:", err);
+    alert(err.message || "Error al matricular estudiante");
   }
 }
-
     </script>
     <div id="modal-editar" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
@@ -437,28 +466,42 @@ async function matricularManual() {
     </div>
     </div>
 
-    <div id="modal-matricular-nuevos" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-  <div class="bg-white p-6 rounded-lg w-full max-w-2xl">
-    <h2 class="text-xl font-bold mb-4">Matricular nuevos estudiantes</h2>
-
-    <!-- Lista de estudiantes de la base de datos -->
-    <div id="lista-estudiantes-disponibles" class="max-h-60 overflow-y-auto border p-2 rounded mb-4">
-      <p>Cargando estudiantes...</p>
+<div id="modal-matricular-nuevos" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white p-6 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <h2 class="text-xl font-bold mb-4 text-green-700">Matricular nuevos estudiantes</h2>
+    
+    <div class="mb-6">
+      <h3 class="font-semibold mb-2">Seleccionar de la lista</h3>
+      <div id="lista-estudiantes-disponibles" class="max-h-60 overflow-y-auto border p-2 rounded mb-4">
+        <p class="text-gray-500">Cargando estudiantes disponibles...</p>
+      </div>
     </div>
-
-    <!-- Matricular manual -->
-    <div class="border-t pt-4 mt-4">
-      <h3 class="font-semibold mb-2">Matricular estudiante manualmente</h3>
-      <input type="text" id="nombre-manual" placeholder="Nombre" class="w-full p-2 mb-2 border rounded" />
-      <input type="email" id="correo-manual" placeholder="Correo (gmail)" class="w-full p-2 mb-2 border rounded" />
-      <button onclick="matricularManual()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        Matricular manualmente
+    
+    <div class="border-t pt-4">
+      <h3 class="font-semibold mb-2">Matricular manualmente</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+          <input type="text" id="nombre-manual" placeholder="Nombre del estudiante" 
+            class="w-full p-2 border rounded focus:ring-2 focus:ring-green-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
+          <input type="email" id="correo-manual" placeholder="correo@ejemplo.com" 
+            class="w-full p-2 border rounded focus:ring-2 focus:ring-green-500">
+        </div>
+      </div>
+      <button onclick="matricularManual()" 
+        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full">
+        Matricular estudiante
       </button>
     </div>
-
-    <!-- Cerrar -->
+    
     <div class="text-right mt-4">
-      <button onclick="cerrarModalMatriculaManual()" class="text-red-500">Cerrar</button>
+      <button onclick="cerrarModalMatriculaManual()" 
+        class="text-gray-500 hover:text-gray-700 font-medium">
+        Cerrar
+      </button>
     </div>
   </div>
 </div>
