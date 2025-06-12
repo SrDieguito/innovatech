@@ -14,23 +14,31 @@
   <div id="header-container"></div>
 
   <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-   <h1 class="text-2xl font-extrabold mb-2">
+  <h1 class="text-2xl font-extrabold mb-2">
     Mis cursos
-   </h1>
-   <h2 class="font-semibold text-gray-900 mb-4">
+  </h1>
+  <h2 class="font-semibold text-gray-900 mb-4">
     Vista general de curso
-   </h2>
-   <hr class="border-gray-300 mb-8"/>
-   <section class="flex flex-col items-center text-center px-4 sm:px-0">
+  </h2>
+  <hr class="border-gray-300 mb-8"/>
+
+  <!-- Contenedor para cursos -->
+  <section id="cursos-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Aquí se agregarán los cursos dinámicamente -->
+  </section>
+
+  <!-- Mensaje que aparece si no hay cursos -->
+  <section id="no-cursos" class="flex flex-col items-center text-center px-4 sm:px-0">
     <img alt="Icono gris de un documento con cuatro tarjetas, representando cursos vacíos" class="mb-4" height="64" src="https://storage.googleapis.com/a1aa/image/ede5611e-3825-4243-5061-17a8dea70976.jpg" width="64"/>
     <p class="font-semibold text-gray-900 mb-2">
-     Usted no está matriculado en ningún curso
+      Usted no está matriculado en ningún curso
     </p>
     <p class="text-gray-700 max-w-md">
-     Una vez que usted se inscriba en un curso, aparecerá aquí.
+      Una vez que usted se inscriba en un curso, aparecerá aquí.
     </p>
-   </section>
-  </main>
+  </section>
+</main>
+
   <button aria-label="Ayuda" class="fixed bottom-4 right-4 w-8 h-8 rounded-full bg-gray-300 text-gray-700 text-sm font-semibold flex items-center justify-center select-none">
    ?
   </button>
@@ -55,6 +63,65 @@
         oldScript.remove();
       });
     });
+
+      // Función para cargar cursos desde la API
+  async function cargarCursos() {
+    try {
+      const res = await fetch('/api/tu-endpoint-cursos', { // cambia '/api/tu-endpoint-cursos' por tu ruta real
+        method: 'GET',
+        credentials: 'include', // importante para enviar cookies
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (res.status === 401) {
+        alert('No autorizado. Por favor inicia sesión.');
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error('Error al cargar cursos');
+      }
+
+      const cursos = await res.json();
+
+      const container = document.getElementById('cursos-container');
+      const noCursos = document.getElementById('no-cursos');
+
+      if (cursos.length === 0) {
+        // Mostrar mensaje sin cursos
+        noCursos.style.display = 'flex';
+        container.innerHTML = '';
+      } else {
+        // Ocultar mensaje sin cursos
+        noCursos.style.display = 'none';
+
+        // Limpiar contenedor
+        container.innerHTML = '';
+
+        // Agregar cursos al contenedor
+        cursos.forEach(curso => {
+          const card = document.createElement('div');
+          card.className = 'bg-white rounded-lg shadow p-6 text-left';
+
+          card.innerHTML = `
+            <h3 class="text-lg font-semibold mb-2">${curso.nombre}</h3>
+            <p class="text-gray-700">${curso.descripcion || 'Sin descripción'}</p>
+          `;
+
+          container.appendChild(card);
+        });
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert('Hubo un error cargando los cursos');
+    }
+  }
+
+  // Ejecutar cuando cargue la página
+  window.addEventListener('DOMContentLoaded', cargarCursos);
   </script>
 
  </body>
