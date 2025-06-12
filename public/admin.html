@@ -147,22 +147,28 @@
       const noMatriculados = await fetch(`/api/cursos?action=no-matriculados&curso_id=${cursoId}`).then(r => r.json());
 
       div.classList.remove('hidden');
-      div.innerHTML = `
-        <h4 class="font-semibold">Estudiantes Matriculados</h4>
-        ${estudiantes.map(e => `
-          <div class="flex justify-between border-b py-1">
-            <span>${e.nombre} (${e.email})</span>
-            <button onclick="desmatricular(${cursoId}, ${e.id})" class="text-red-600">Desmatricular</button>
-          </div>
-        `).join('')}
-        <h4 class="font-semibold mt-4">No Matriculados</h4>
-        ${noMatriculados.map(e => `
-          <div class="flex justify-between border-b py-1">
-            <span>${e.nombre} (${e.email})</span>
-            <button onclick="matricular(${cursoId}, ${e.id})" class="text-blue-600">Matricular</button>
-          </div>
-        `).join('')}
-      `;
+div.innerHTML = `
+  <h4 class="font-semibold">Estudiantes Matriculados</h4>
+  <input type="text" placeholder="Buscar por nombre o email" oninput="filtrarEstudiantes(${cursoId})" class="border p-1 w-full mb-2 rounded" id="filtro-${cursoId}">
+
+  <div id="lista-estudiantes-${cursoId}">
+    ${estudiantes.map(e => `
+      <div class="flex justify-between border-b py-1 estudiante" data-nombre="${e.nombre.toLowerCase()}" data-email="${e.email.toLowerCase()}">
+        <span>${e.nombre} (${e.email})</span>
+        <button onclick="desmatricular(${cursoId}, ${e.id})" class="text-red-600">Desmatricular</button>
+      </div>
+    `).join('')}
+  </div>
+
+  <h4 class="font-semibold mt-4">No Matriculados</h4>
+  ${noMatriculados.map(e => `
+    <div class="flex justify-between border-b py-1">
+      <span>${e.nombre} (${e.email})</span>
+      <button onclick="matricular(${cursoId}, ${e.id})" class="text-blue-600">Matricular</button>
+    </div>
+  `).join('')}
+`;
+
     }
 
     async function desmatricular(cursoId, estudianteId) {
@@ -240,6 +246,21 @@
       } else {
         alert('Error al eliminar curso');
       }
+      function filtrarEstudiantes(cursoId) {
+  const filtro = document.getElementById(`filtro-${cursoId}`).value.toLowerCase();
+  const estudiantes = document.querySelectorAll(`#lista-estudiantes-${cursoId} .estudiante`);
+
+  estudiantes.forEach(est => {
+    const nombre = est.getAttribute('data-nombre');
+    const email = est.getAttribute('data-email');
+    if (nombre.includes(filtro) || email.includes(filtro)) {
+      est.classList.remove('hidden');
+    } else {
+      est.classList.add('hidden');
+    }
+  });
+}
+
     }
   </script>
 </body>

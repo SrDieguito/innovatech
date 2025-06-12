@@ -47,6 +47,29 @@ export default async function handler(req, res) {
       return res.status(201).json({ id: cursoId });
     }
 
+    // ELIMINAR CURSO
+if (req.method === "DELETE" && action === "eliminar") {
+  const { curso_id } = req.query;
+  if (!curso_id) return res.status(400).json({ error: "Falta curso_id" });
+
+  try {
+    // Elimina estudiantes relacionados al curso primero (si aplica)
+    await pool.query("DELETE FROM cursos_estudiantes WHERE curso_id = ?", [curso_id]);
+
+    // Elimina el curso
+    const [result] = await pool.query("DELETE FROM cursos WHERE id = ?", [curso_id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Curso no encontrado" });
+    }
+
+    return res.status(200).json({ message: "Curso eliminado correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar curso:", error);
+    return res.status(500).json({ error: "Error al eliminar curso" });
+  }
+}
+
     // EDITAR CURSO
     if (req.method === "PUT" && action === "editar") {
       const { curso_id, nombre, descripcion, profesor_id } = req.body;
