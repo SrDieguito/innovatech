@@ -1,6 +1,4 @@
 // /pages/api/cursos.js
-import { pool } from "@/lib/db";
-
 import mysql from "mysql2/promise";
 
 export const pool = mysql.createPool({
