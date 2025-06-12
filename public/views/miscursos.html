@@ -118,7 +118,7 @@
         <img src="${curso.imagen || 'https://via.placeholder.com/100'}" alt="Miniatura del curso" class="w-24 h-24 rounded object-cover mr-4"/>
         <div class="flex-1">
           <h3 class="text-lg font-semibold text-green-700">${curso.nombre}</h3>
-          <p class="text-sm text-gray-600">${curso.tutor || 'Sin tutor asignado'}</p>
+          <p class="text-sm text-gray-600">${curso.profesor || 'Sin tutor asignado'}</p>
           <a href="/curso/${curso.id}" class="inline-block mt-2 bg-green-600 text-white text-sm px-4 py-2 rounded hover:bg-green-700 transition">
             Ir al curso
           </a>
