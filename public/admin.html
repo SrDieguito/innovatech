@@ -7,49 +7,56 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 text-gray-900">
-  <div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">Panel de Administración</h1>
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-[#00983d] text-white p-6">
+      <h2 class="text-2xl font-bold mb-6">Admin Moodle</h2>
+      <nav class="space-y-2">
+        <button onclick="mostrarSeccion('crear')" class="w-full text-left px-4 py-2 bg-white text-[#00983d] rounded hover:bg-gray-100 font-semibold">Crear Curso</button>
+        <button onclick="mostrarSeccion('ver')" class="w-full text-left px-4 py-2 bg-white text-[#00983d] rounded hover:bg-gray-100 font-semibold">Ver Cursos</button>
+      </nav>
+    </aside>
 
-    <!-- Tabs -->
-    <div class="mb-6">
-      <button onclick="mostrarSeccion('crear')" class="px-4 py-2 bg-blue-600 text-white rounded">Crear Curso</button>
-      <button onclick="mostrarSeccion('ver')" class="px-4 py-2 bg-green-600 text-white rounded ml-2">Ver Cursos</button>
-    </div>
+    <!-- Main Content -->
+    <main class="flex-1 p-8">
+      <h1 class="text-3xl font-bold mb-6">Panel de Administración</h1>
 
-    <!-- Crear curso -->
-    <div id="crear" class="hidden">
-      <div class="bg-white p-6 rounded shadow">
-        <h2 class="text-xl font-semibold mb-4">Crear Curso</h2>
-        <form id="form-curso" class="space-y-4">
-          <div>
-            <label class="block">Nombre del curso</label>
-            <input type="text" id="nombre" class="w-full border p-2 rounded">
-          </div>
-          <div>
-            <label class="block">Descripción</label>
-            <textarea id="descripcion" class="w-full border p-2 rounded"></textarea>
-          </div>
-          <div>
-            <label class="block">Profesor Tutor</label>
-            <select id="profesor" class="w-full border p-2 rounded"></select>
-          </div>
-          <div>
-            <label class="block">Lista de Estudiantes (Excel)</label>
-            <input type="file" id="archivo-excel" accept=".xlsx, .xls" class="w-full border p-2 rounded" />
-          </div>
-          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Crear Curso</button>
-        </form>
+      <!-- Crear curso -->
+      <div id="crear" class="hidden">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-2xl font-semibold mb-4">Crear Curso</h2>
+          <form id="form-curso" class="space-y-4">
+            <div>
+              <label class="block font-medium">Nombre del curso</label>
+              <input type="text" id="nombre" class="w-full border border-gray-300 p-2 rounded">
+            </div>
+            <div>
+              <label class="block font-medium">Descripción</label>
+              <textarea id="descripcion" class="w-full border border-gray-300 p-2 rounded"></textarea>
+            </div>
+            <div>
+              <label class="block font-medium">Profesor Tutor</label>
+              <select id="profesor" class="w-full border border-gray-300 p-2 rounded"></select>
+            </div>
+            <div>
+              <label class="block font-medium">Lista de Estudiantes (Excel)</label>
+              <input type="file" id="archivo-excel" accept=".xlsx, .xls" class="w-full border border-gray-300 p-2 rounded" />
+            </div>
+            <button type="submit" class="bg-[#00983d] text-white px-4 py-2 rounded hover:bg-green-700">Crear Curso</button>
+          </form>
+        </div>
       </div>
-    </div>
 
-    <!-- Ver cursos -->
-    <div id="ver" class="hidden">
-      <div class="bg-white p-6 rounded shadow">
-        <h2 class="text-xl font-semibold mb-4">Cursos Creados</h2>
-        <div id="lista-cursos" class="space-y-4"></div>
+      <!-- Ver cursos -->
+      <div id="ver" class="hidden">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-2xl font-semibold mb-4">Cursos Creados</h2>
+          <div id="lista-cursos" class="space-y-4"></div>
+        </div>
       </div>
-    </div>
+    </main>
   </div>
+
 
   <!-- SCRIPT -->
   <script>
