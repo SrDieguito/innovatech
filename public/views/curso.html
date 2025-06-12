@@ -10,6 +10,9 @@
 </head>
 <body class="bg-gradient-to-b from-green-50 to-white text-gray-900 min-h-screen flex items-center justify-center">
 
+     <div id="header-container"></div>
+
+
   <div class="w-full max-w-6xl px-4 py-6" x-data="{ tab: 'curso', subTab: 'presentacion' }">
     <!-- Encabezado del curso -->
     <div class="bg-white rounded-xl shadow-md p-6 mb-6 text-center">
@@ -98,9 +101,10 @@
   fetch(`/api/cursos?action=obtener-detalle&curso_id=${cursoId}`)
     .then(res => res.json())
     .then(curso => {
-      document.getElementById('titulo-curso').textContent = curso.nombre;
-      document.getElementById('tutor-curso').textContent = `Tutor: ${curso.profesor || 'No asignado'}`;
-      document.getElementById('presentacion-texto').textContent = curso.descripcion || 'Sin descripción';
+        document.getElementById('nombre-curso').textContent = curso.nombre;
+        document.getElementById('nombre-tutor').textContent = `Tutor: ${curso.profesor || 'No asignado'}`;
+        document.getElementById('presentacion-texto').textContent = curso.descripcion || 'Sin descripción';
+
     })
     .catch(err => {
       console.error(err);
