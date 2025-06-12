@@ -9,9 +9,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
 </head>
 
-<body class="bg-gradient-to-b from-green-50 to-white text-gray-900 min-h-screen justify-center">
-<div id="header-container"></div>
-  <div class="w-full max-w-6xl px-4 py-6" x-data="{ tab: 'curso', subTab: 'presentacion' }">
+<body class="bg-gradient-to-b from-green-50 to-white text-gray-900 min-h-screen flex flex-col">
+  <!-- Header ocupa ancho completo -->
+  <div id="header-container" class="w-full"></div>
+
+  <main class="flex-grow flex items-center justify-center px-4 py-6">
+    <div class="w-full max-w-6xl" x-data="{ tab: 'curso', subTab: 'presentacion' }">
     <!-- Encabezado del curso -->
     <div class="bg-white rounded-xl shadow-md p-6 mb-6 text-center">
       <h1 id="nombre-curso" class="text-4xl font-extrabold text-green-700 mb-2">Nombre del Curso</h1>
