@@ -14,43 +14,52 @@
   <div id="header-container"></div>
 
   <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-  <h1 class="text-2xl font-extrabold mb-2">
-    Mis cursos
-  </h1>
-  <h2 class="font-semibold text-gray-900 mb-4">
-    Vista general de curso
-  </h2>
-  <hr class="border-gray-300 mb-8"/>
+  <h1 class="text-2xl font-extrabold mb-2">Mis cursos</h1>
+  <h2 class="font-semibold text-gray-900 mb-4">Vista general de curso</h2>
+  <hr class="border-gray-300 mb-6"/>
 
-  <!-- Contenedor para cursos -->
+  <!-- Filtros -->
+  <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+    <select id="filtro" class="border border-gray-300 rounded px-3 py-2 w-full sm:w-40">
+      <option value="todos">Todos</option>
+      <option value="activos">Activos</option>
+      <option value="finalizados">Finalizados</option>
+    </select>
+
+    <input type="text" id="busqueda" placeholder="Buscar curso" class="border border-gray-300 rounded px-3 py-2 flex-1"/>
+
+    <select id="orden" class="border border-gray-300 rounded px-3 py-2 w-full sm:w-60">
+      <option value="nombre">Ordenar por nombre del curso</option>
+      <option value="ultimoAcceso">Ordenar por último acceso</option>
+    </select>
+  </div>
+
+  <!-- Contenedor de cursos -->
   <section id="cursos-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-    <!-- Aquí se agregarán los cursos dinámicamente -->
+    <!-- Aquí se agregan los cursos dinámicamente -->
   </section>
 
-  <!-- Mensaje que aparece si no hay cursos -->
-  <section id="no-cursos" class="flex flex-col items-center text-center px-4 sm:px-0">
-    <img alt="Icono gris de un documento con cuatro tarjetas, representando cursos vacíos" class="mb-4" height="64" src="https://storage.googleapis.com/a1aa/image/ede5611e-3825-4243-5061-17a8dea70976.jpg" width="64"/>
-    <p class="font-semibold text-gray-900 mb-2">
-      Usted no está matriculado en ningún curso
-    </p>
-    <p class="text-gray-700 max-w-md">
-      Una vez que usted se inscriba en un curso, aparecerá aquí.
-    </p>
+  <!-- Mensaje si no hay cursos -->
+  <section id="no-cursos" class="hidden flex-col items-center text-center px-4 sm:px-0">
+    <img class="mb-4" src="https://storage.googleapis.com/a1aa/image/ede5611e-3825-4243-5061-17a8dea70976.jpg" width="64" height="64" alt="Sin cursos"/>
+    <p class="font-semibold text-gray-900 mb-2">Usted no está matriculado en ningún curso</p>
+    <p class="text-gray-700 max-w-md">Una vez que usted se inscriba en un curso, aparecerá aquí.</p>
   </section>
 </main>
+
 
   <button aria-label="Ayuda" class="fixed bottom-4 right-4 w-8 h-8 rounded-full bg-gray-300 text-gray-700 text-sm font-semibold flex items-center justify-center select-none">
    ?
   </button>
 
 <script>
+  // Esto sí lo mantienes
   fetch('/views/header.html')
     .then(res => res.text())
     .then(html => {
       const container = document.getElementById('header-container');
       container.innerHTML = html;
 
-      // Ejecutar cualquier <script> incluido dentro de header.html
       const scripts = container.querySelectorAll('script');
       scripts.forEach(oldScript => {
         const newScript = document.createElement('script');
@@ -64,15 +73,16 @@
       });
     });
 
-      // Función para cargar cursos desde la API
+  // 🔁 NUEVA LÓGICA PARA CURSOS
+
+  let todosLosCursos = [];
+
   async function cargarCursos() {
     try {
-      const res = await fetch('/api/estudiantes', { // cambia '/api/tu-endpoint-cursos' por tu ruta real
+      const res = await fetch('/api/estudiantes', {
         method: 'GET',
-        credentials: 'include', // importante para enviar cookies
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
       });
 
       if (res.status === 401) {
@@ -80,49 +90,78 @@
         return;
       }
 
-      if (!res.ok) {
-        throw new Error('Error al cargar cursos');
-      }
-
       const cursos = await res.json();
-
-      const container = document.getElementById('cursos-container');
-      const noCursos = document.getElementById('no-cursos');
-
-      if (cursos.length === 0) {
-        // Mostrar mensaje sin cursos
-        noCursos.style.display = 'flex';
-        container.innerHTML = '';
-      } else {
-        // Ocultar mensaje sin cursos
-        noCursos.style.display = 'none';
-
-        // Limpiar contenedor
-        container.innerHTML = '';
-
-        // Agregar cursos al contenedor
-        cursos.forEach(curso => {
-          const card = document.createElement('div');
-          card.className = 'bg-white rounded-lg shadow p-6 text-left';
-
-          card.innerHTML = `
-            <h3 class="text-lg font-semibold mb-2">${curso.nombre}</h3>
-            <p class="text-gray-700">${curso.descripcion || 'Sin descripción'}</p>
-          `;
-
-          container.appendChild(card);
-        });
-      }
-
+      todosLosCursos = cursos;
+      renderizarCursos(cursos);
     } catch (error) {
       console.error(error);
       alert('Hubo un error cargando los cursos');
     }
   }
 
-  // Ejecutar cuando cargue la página
-  window.addEventListener('DOMContentLoaded', cargarCursos);
-  </script>
+  function renderizarCursos(lista) {
+    const container = document.getElementById('cursos-container');
+    const noCursos = document.getElementById('no-cursos');
+
+    if (lista.length === 0) {
+      noCursos.classList.remove('hidden');
+      container.innerHTML = '';
+      return;
+    }
+
+    noCursos.classList.add('hidden');
+    container.innerHTML = '';
+
+    lista.forEach(curso => {
+      const card = document.createElement('div');
+      card.className = 'flex items-center bg-white rounded-lg shadow p-4';
+
+      card.innerHTML = `
+        <img src="${curso.imagen || 'https://via.placeholder.com/100'}" alt="Miniatura del curso" class="w-24 h-24 rounded object-cover mr-4"/>
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-green-700">${curso.nombre}</h3>
+          <p class="text-sm text-gray-600">${curso.tutor || 'Sin tutor asignado'}</p>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  function aplicarFiltros() {
+    const texto = document.getElementById('busqueda').value.toLowerCase();
+    const filtro = document.getElementById('filtro').value;
+    const orden = document.getElementById('orden').value;
+
+    let cursosFiltrados = todosLosCursos.filter(curso =>
+      curso.nombre.toLowerCase().includes(texto)
+    );
+
+    if (filtro === 'activos') {
+      cursosFiltrados = cursosFiltrados.filter(c => c.activo === true);
+    } else if (filtro === 'finalizados') {
+      cursosFiltrados = cursosFiltrados.filter(c => c.activo === false);
+    }
+
+    if (orden === 'nombre') {
+      cursosFiltrados.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    } else if (orden === 'ultimoAcceso') {
+      cursosFiltrados.sort((a, b) => new Date(b.ultimoAcceso) - new Date(a.ultimoAcceso));
+    }
+
+    renderizarCursos(cursosFiltrados);
+  }
+
+  // Eventos de filtros
+  document.addEventListener('DOMContentLoaded', () => {
+    cargarCursos();
+
+    document.getElementById('busqueda').addEventListener('input', aplicarFiltros);
+    document.getElementById('filtro').addEventListener('change', aplicarFiltros);
+    document.getElementById('orden').addEventListener('change', aplicarFiltros);
+  });
+</script>
+
 
  </body>
  
