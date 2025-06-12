@@ -34,6 +34,21 @@
     </select>
   </div>
 
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+  <div class="flex gap-2">
+    <select id="filtro" class="border border-gray-300 rounded px-3 py-2">
+      <option value="todos">Todos</option>
+      <option value="activos">Activos</option>
+      <option value="finalizados">Finalizados</option>
+    </select>
+    <input id="busqueda" type="text" placeholder="Buscar por nombre" class="border border-gray-300 rounded px-3 py-2 w-full md:w-64" />
+  </div>
+  <select id="orden" class="border border-gray-300 rounded px-3 py-2">
+    <option value="nombre">Ordenar por nombre</option>
+    <option value="ultimoAcceso">Ordenar por último acceso</option>
+  </select>
+</div>
+
   <!-- Contenedor de cursos -->
   <section id="cursos-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
     <!-- Aquí se agregan los cursos dinámicamente -->
@@ -53,7 +68,7 @@
   </button>
 
 <script>
-  // Esto sí lo mantienes
+  // Cargar el header (esto se mantiene igual)
   fetch('/views/header.html')
     .then(res => res.text())
     .then(html => {
@@ -72,8 +87,6 @@
         oldScript.remove();
       });
     });
-
-  // 🔁 NUEVA LÓGICA PARA CURSOS
 
   let todosLosCursos = [];
 
@@ -121,6 +134,9 @@
         <div class="flex-1">
           <h3 class="text-lg font-semibold text-green-700">${curso.nombre}</h3>
           <p class="text-sm text-gray-600">${curso.tutor || 'Sin tutor asignado'}</p>
+          <a href="/curso/${curso.id}" class="inline-block mt-2 bg-green-600 text-white text-sm px-4 py-2 rounded hover:bg-green-700 transition">
+            Ir al curso
+          </a>
         </div>
       `;
 
@@ -152,7 +168,6 @@
     renderizarCursos(cursosFiltrados);
   }
 
-  // Eventos de filtros
   document.addEventListener('DOMContentLoaded', () => {
     cargarCursos();
 
