@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Panel de Administración Moodle</title>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-  <script defer src="/script.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 text-gray-900">
@@ -52,123 +51,196 @@
     </div>
   </div>
 
+  <!-- SCRIPT -->
   <script>
+    let windowEstudiantes = [];
+    let windowCursoActivo = null;
+
     function mostrarSeccion(id) {
       document.getElementById('crear').classList.add('hidden');
       document.getElementById('ver').classList.add('hidden');
       document.getElementById(id).classList.remove('hidden');
+
+      if (id === 'ver') cargarCursos();
+      if (id === 'crear') cargarProfesores();
     }
 
-    // /public/script.js
+    async function cargarProfesores() {
+      const res = await fetch('/api/cursos?action=profesores');
+      const data = await res.json();
+      const select = document.getElementById('profesor');
+      select.innerHTML = data.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
+    }
 
-let windowEstudiantes = [];
-let windowCursoActivo = null;
+    // Leer Excel
+    document.getElementById('archivo-excel').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet);
+        windowEstudiantes = json.map(e => ({ nombre: e.nombre || e.Nombre, email: e.email || e.Email }));
+      };
+      reader.readAsArrayBuffer(file);
+    });
 
-function mostrarSeccion(id) {
-  document.getElementById('crear').classList.add('hidden');
-  document.getElementById('ver').classList.add('hidden');
-  document.getElementById(id).classList.remove('hidden');
+    // Crear curso
+    document.getElementById('form-curso').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById('nombre').value;
+      const descripcion = document.getElementById('descripcion').value;
+      const profesor_id = document.getElementById('profesor').value;
 
-  if (id === 'ver') cargarCursos();
-  if (id === 'crear') cargarProfesores();
-}
+      const res = await fetch('/api/cursos?action=crear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, descripcion, profesor_id, estudiantes: windowEstudiantes })
+      });
 
-async function cargarProfesores() {
-  const res = await fetch('/api/cursos?action=profesores');
-  const data = await res.json();
-  const select = document.getElementById('profesor');
-  select.innerHTML = data.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
-}
+      if (res.ok) {
+        alert('Curso creado exitosamente');
+        e.target.reset();
+        windowEstudiantes = [];
+      } else {
+        alert('Error al crear curso');
+      }
+    });
 
-// Leer Excel
-const inputExcel = document.getElementById('archivo-excel');
-inputExcel.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const data = new Uint8Array(event.target.result);
-    const workbook = XLSX.read(data, { type: 'array' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(sheet);
-    windowEstudiantes = json.map(e => ({ nombre: e.nombre || e.Nombre, email: e.email || e.Email }));
-  };
-  reader.readAsArrayBuffer(file);
-});
+    async function cargarCursos() {
+      const res = await fetch('/api/cursos?action=obtener');
+      const cursos = await res.json();
+      const contenedor = document.getElementById('lista-cursos');
+      contenedor.innerHTML = '';
 
-// Crear curso
-const formCurso = document.getElementById('form-curso');
-formCurso.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const nombre = document.getElementById('nombre').value;
-  const descripcion = document.getElementById('descripcion').value;
-  const profesor_id = document.getElementById('profesor').value;
+      for (const curso of cursos) {
+        const div = document.createElement('div');
+        div.className = 'border p-4 rounded';
+        div.innerHTML = `
+          <h3 class="font-bold">${curso.nombre}</h3>
+          <p>${curso.descripcion}</p>
+          <p class="text-sm">Profesor: ${curso.profesor}</p>
+          <div class="mt-2 space-x-2">
+            <button class="bg-indigo-600 text-white px-2 py-1 rounded" onclick="verEstudiantes(${curso.id})">Ver Estudiantes</button>
+            <button class="bg-yellow-500 text-white px-2 py-1 rounded" onclick="mostrarFormularioEdicion(${curso.id})">Editar</button>
+            <button class="bg-red-600 text-white px-2 py-1 rounded" onclick="eliminarCurso(${curso.id})">Eliminar</button>
+          </div>
+          <div id="estudiantes-${curso.id}" class="mt-4 hidden"></div>
+          <div id="editar-${curso.id}" class="mt-4 hidden"></div>
+        `;
+        contenedor.appendChild(div);
+      }
+    }
 
-  const res = await fetch('/api/cursos?action=crear', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nombre, descripcion, profesor_id, estudiantes: windowEstudiantes })
-  });
-  const data = await res.json();
-  if (res.ok) {
-    alert('Curso creado exitosamente');
-    formCurso.reset();
-    windowEstudiantes = [];
-  } else {
-    alert('Error al crear curso');
-  }
-});
+    async function verEstudiantes(cursoId) {
+      const div = document.getElementById(`estudiantes-${cursoId}`);
+      if (!div.classList.contains('hidden')) {
+        div.classList.add('hidden');
+        return;
+      }
 
-async function cargarCursos() {
-  const res = await fetch('/api/cursos?action=obtener');
-  const cursos = await res.json();
-  const contenedor = document.getElementById('lista-cursos');
-  contenedor.innerHTML = '';
+      windowCursoActivo = cursoId;
+      const res = await fetch(`/api/cursos?action=estudiantes&curso_id=${cursoId}`);
+      const estudiantes = await res.json();
 
-  for (const curso of cursos) {
-    const div = document.createElement('div');
-    div.className = 'border p-4 rounded';
-    div.innerHTML = `
-      <h3 class="font-bold">${curso.nombre}</h3>
-      <p>${curso.descripcion}</p>
-      <p class="text-sm">Profesor: ${curso.profesor}</p>
-      <button class="mt-2 bg-indigo-600 text-white px-2 py-1 rounded" onclick="verEstudiantes(${curso.id})">Ver Estudiantes</button>
-      <div id="estudiantes-${curso.id}" class="mt-2 hidden"></div>
-    `;
-    contenedor.appendChild(div);
-  }
-}
+      const noMatriculados = await fetch(`/api/cursos?action=no-matriculados&curso_id=${cursoId}`).then(r => r.json());
 
-async function verEstudiantes(cursoId) {
-  const div = document.getElementById(`estudiantes-${cursoId}`);
-  if (!div.classList.contains('hidden')) {
-    div.classList.add('hidden');
-    return;
-  }
+      div.classList.remove('hidden');
+      div.innerHTML = `
+        <h4 class="font-semibold">Estudiantes Matriculados</h4>
+        ${estudiantes.map(e => `
+          <div class="flex justify-between border-b py-1">
+            <span>${e.nombre} (${e.email})</span>
+            <button onclick="desmatricular(${cursoId}, ${e.id})" class="text-red-600">Desmatricular</button>
+          </div>
+        `).join('')}
+        <h4 class="font-semibold mt-4">No Matriculados</h4>
+        ${noMatriculados.map(e => `
+          <div class="flex justify-between border-b py-1">
+            <span>${e.nombre} (${e.email})</span>
+            <button onclick="matricular(${cursoId}, ${e.id})" class="text-blue-600">Matricular</button>
+          </div>
+        `).join('')}
+      `;
+    }
 
-  windowCursoActivo = cursoId;
-  const res = await fetch(`/api/cursos?action=estudiantes&curso_id=${cursoId}`);
-  const estudiantes = await res.json();
-  div.classList.remove('hidden');
-  div.innerHTML = estudiantes.map(e => `
-    <div class="flex justify-between border-b py-1">
-      <span>${e.nombre} (${e.email})</span>
-      <button onclick="desmatricular(${cursoId}, ${e.id})" class="text-red-600">Desmatricular</button>
-    </div>
-  `).join('');
-}
+    async function desmatricular(cursoId, estudianteId) {
+      const res = await fetch(`/api/cursos?action=desmatricular&curso_id=${cursoId}&estudiante_id=${estudianteId}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        alert('Estudiante desmatriculado');
+        verEstudiantes(cursoId);
+      } else {
+        alert('Error al desmatricular');
+      }
+    }
 
-async function desmatricular(cursoId, estudianteId) {
-  const res = await fetch(`/api/cursos?action=desmatricular&curso_id=${cursoId}&estudiante_id=${estudianteId}`, {
-    method: 'DELETE'
-  });
-  if (res.ok) {
-    alert('Estudiante desmatriculado');
-    verEstudiantes(cursoId);
-  } else {
-    alert('Error al desmatricular');
-  }
-}
+    async function matricular(cursoId, estudianteId) {
+      const res = await fetch('/api/cursos?action=matricular-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ curso_id: cursoId, estudiante_id: estudianteId })
+      });
+      if (res.ok) {
+        alert('Estudiante matriculado');
+        verEstudiantes(cursoId);
+      } else {
+        alert('Error al matricular');
+      }
+    }
 
+    async function mostrarFormularioEdicion(cursoId) {
+      const div = document.getElementById(`editar-${cursoId}`);
+      const curso = await obtenerCursoPorId(cursoId);
+      const profesores = await fetch('/api/cursos?action=profesores').then(r => r.json());
+
+      div.classList.toggle('hidden');
+      div.innerHTML = `
+        <input type="text" id="edit-nombre-${cursoId}" class="border p-1 rounded w-full mb-2" value="${curso.nombre}">
+        <textarea id="edit-desc-${cursoId}" class="border p-1 rounded w-full mb-2">${curso.descripcion}</textarea>
+        <select id="edit-profesor-${cursoId}" class="border p-1 rounded w-full mb-2">
+          ${profesores.map(p => `<option value="${p.id}" ${p.nombre === curso.profesor ? 'selected' : ''}>${p.nombre}</option>`).join('')}
+        </select>
+        <button class="bg-green-600 text-white px-3 py-1 rounded" onclick="guardarEdicion(${cursoId})">Guardar</button>
+      `;
+    }
+
+    async function obtenerCursoPorId(id) {
+      const cursos = await fetch('/api/cursos?action=obtener').then(r => r.json());
+      return cursos.find(c => c.id === id);
+    }
+
+    async function guardarEdicion(id) {
+      const nombre = document.getElementById(`edit-nombre-${id}`).value;
+      const descripcion = document.getElementById(`edit-desc-${id}`).value;
+      const profesor_id = document.getElementById(`edit-profesor-${id}`).value;
+
+      const res = await fetch('/api/cursos?action=editar', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ curso_id: id, nombre, descripcion, profesor_id })
+      });
+
+      if (res.ok) {
+        alert('Curso actualizado');
+        cargarCursos();
+      } else {
+        alert('Error al actualizar curso');
+      }
+    }
+
+    async function eliminarCurso(id) {
+      if (!confirm("¿Estás seguro de que deseas eliminar este curso?")) return;
+      const res = await fetch(`/api/cursos?action=eliminar&curso_id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert('Curso eliminado');
+        cargarCursos();
+      } else {
+        alert('Error al eliminar curso');
+      }
+    }
   </script>
 </body>
 </html>
