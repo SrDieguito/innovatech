@@ -148,6 +148,22 @@ if (req.method === "DELETE" && action === "eliminar") {
       return res.status(200).json({ message: "Estudiante matriculado" });
     }
 
+    // Obtener detalle del curso
+if (req.method === "GET" && action === "obtener-detalle") {
+  const { curso_id } = req.query;
+  if (!curso_id) return res.status(400).json({ error: "Falta curso_id" });
+
+  const [rows] = await pool.query(`
+    SELECT c.id, c.nombre, c.descripcion, u.nombre AS profesor
+    FROM cursos c
+    LEFT JOIN usuarios u ON c.profesor_id = u.id
+    WHERE c.id = ?
+  `, [curso_id]);
+
+  if (rows.length === 0) return res.status(404).json({ error: "Curso no encontrado" });
+  return res.status(200).json(rows[0]);
+}
+
     // DESMATRICULAR ESTUDIANTE
     if (req.method === "DELETE" && action === "desmatricular") {
       const { curso_id, estudiante_id } = req.query;
