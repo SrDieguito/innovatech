@@ -1,587 +1,499 @@
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Panel de Administración</title>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    </head>
-    <body class="bg-gray-100 min-h-screen flex">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-white p-6 border-r shadow-xl">
-        <h2 class="text-xl font-bold text-green-700 mb-6">Panel Admin</h2>
-        <nav class="space-y-4">
-        <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
-            <span class="mr-2">📚</span> Cursos
-        </a>
-        <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
-            <span class="mr-2">👥</span> Usuarios
-        </a>
-        <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
-            <span class="mr-2">📊</span> Reportes
-        </a>
-        <a href="#" class="flex items-center text-gray-700 hover:text-green-600">
-            <span class="mr-2">⚙️</span> Configuración
-        </a>
-        </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 p-6 space-y-10">
-        <!-- Sección Crear Curso -->
-        <div class="bg-white p-6 rounded-2xl shadow-xl">
-        <h1 class="text-2xl font-bold text-green-700 mb-6">Crear Nuevo Curso</h1>
-        <form id="form-curso" class="space-y-4">
-            <div>
-            <label class="block text-gray-700 font-semibold">Nombre del curso</label>
-            <input type="text" id="nombre-curso" required class="w-full p-2 border rounded-lg" />
-            </div>
-            <div>
-            <label class="block text-gray-700 font-semibold">Descripción</label>
-            <textarea id="descripcion-curso" class="w-full p-2 border rounded-lg" rows="3"></textarea>
-            </div>
-            <div>
-            <label class="block text-gray-700 font-semibold">Profesor Tutor</label>
-            <select id="profesor-tutor" required class="w-full p-2 border rounded-lg">
-                <option value="">-- Selecciona un profesor --</option>
-            </select>
-            </div>
-            <div>
-            <label class="block text-gray-700 font-semibold">Lista de Estudiantes (Excel)</label>
-            <input type="file" id="archivo-excel" accept=".xlsx, .xls" class="w-full p-2 border rounded-lg" />
-            </div>
-            <div class="text-right">
-            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                Crear Curso
-            </button>
-            </div>
-        </form>
-        <div class="mt-8">
-            <h2 class="text-xl font-semibold mb-2">Estudiantes cargados:</h2>
-            <ul id="lista-estudiantes" class="list-disc list-inside text-gray-800 space-y-1"></ul>
-        </div>
-        </div>
-
-        <!-- Sección Ver Cursos -->
-        <div class="bg-white p-6 rounded-2xl shadow-xl">
-        <h2 class="text-2xl font-bold text-green-700 mb-4">Cursos Existentes</h2>
-        <div id="lista-cursos" class="space-y-4">
-            <p class="text-gray-500">Cargando cursos...</p>
-        </div>
-        </div>
-    </main>
-
-    <script>
-
-      // Inicializar variables globales
-window.cursoActualId = null;
-window.estudiantesCursoActual = [];
-window.estudiantesCargados = [];
-
-      let cursosGlobal = [];
-
-        async function cargarProfesores() {
-        try {
-            const response = await fetch("/api/usuarios?rol=profesor");
-            const data = await response.json();
-            const select = document.getElementById("profesor-tutor");
-            data.forEach(prof => {
-            const option = document.createElement("option");
-            option.value = prof.id;
-            option.textContent = prof.nombre;
-            select.appendChild(option);
-            });
-        } catch (error) {
-            console.error("Error cargando profesores:", error);
-        }
-        }
-
-async function cargarCursos() {
-  try {
-    const response = await fetch("/api/cursos");
-    const cursos = await response.json();
-
-    cursosGlobal = cursos;
-
-    const contenedor = document.getElementById("lista-cursos");
-    contenedor.innerHTML = "";
-
-    cursos.forEach(curso => {
-      const div = document.createElement("div");
-      div.className = "border p-4 rounded-lg shadow-sm";
-
-      div.innerHTML = `
-        <div class="flex justify-between items-center">
-          <div>
-            <h3 class="text-lg font-bold text-green-800">${curso.nombre}</h3>
-            <p class="text-gray-600">${curso.descripcion}</p>
-          </div>
-          <div class="flex space-x-2">
-            <button onclick="editarCurso('${curso.id}')" class="text-sm bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500">Editar</button>
-            <button onclick="verEstudiantes('${curso.id}')" class="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Estudiantes</button>
-          </div>
-        </div>
-      `;
-
-      contenedor.appendChild(div);
-    });
-  } catch (error) {
-    console.error("Error cargando cursos:", error);
-  }
-}
-        cargarProfesores();
-        cargarCursos();
-
-        document.getElementById("archivo-excel").addEventListener("change", async function (e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data);
-        const hoja = workbook.Sheets[workbook.SheetNames[0]];
-        const estudiantes = XLSX.utils.sheet_to_json(hoja);
-        const lista = document.getElementById("lista-estudiantes");
-        lista.innerHTML = "";
-        estudiantes.forEach(est => {
-            const li = document.createElement("li");
-            li.textContent = `${est["nombre"]} (${est["email"]})`;
-            lista.appendChild(li);
-        });
-        window.estudiantesCargados = estudiantes;
-        });
-
-        document.getElementById("form-curso").addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const nombre = document.getElementById("nombre-curso").value;
-        const descripcion = document.getElementById("descripcion-curso").value;
-        const profesor_id = document.getElementById("profesor-tutor").value;
-        const estudiantes = window.estudiantesCargados || [];
-        if (!nombre || !profesor_id || estudiantes.length === 0) {
-            alert("Debes completar todos los campos y subir una lista de estudiantes.");
-            return;
-        }
-        const curso = { nombre, descripcion, profesor_id, estudiantes };
-        try {
-            const response = await fetch("/api/cursos", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(curso)
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || "Error al crear curso");
-            alert("Curso creado correctamente.");
-            window.location.reload();
-        } catch (error) {
-            console.error("Error creando curso:", error);
-            alert("Ocurrió un error al crear el curso.");
-        }
-        });
-
-    function editarCurso(id) {
-    const curso = cursosGlobal.find(c => String(c.id) === String(id));
-    if (!curso) return alert("Curso no encontrado");
-
-    document.getElementById("editar-id").value = curso.id;
-    document.getElementById("editar-nombre").value = curso.nombre;
-    document.getElementById("editar-descripcion").value = curso.descripcion;
-    const select = document.getElementById("editar-profesor");
-    select.innerHTML = document.getElementById("profesor-tutor").innerHTML;
-    select.value = curso.profesor_id || "";
-
-    document.getElementById("modal-editar").classList.remove("hidden");
-    }
-
-    function cerrarModalEditar() {
-    document.getElementById("modal-editar").classList.add("hidden");
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("form-editar-curso").addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const id = document.getElementById("editar-id").value;
-    const nombre = document.getElementById("editar-nombre").value;
-    const descripcion = document.getElementById("editar-descripcion").value;
-    const profesor_id = document.getElementById("editar-profesor").value;
-
-    try {
-        const res = await fetch(`/api/cursos/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, descripcion, profesor_id })
-        });
-        if (!res.ok) throw new Error("Error actualizando curso");
-        alert("Curso actualizado correctamente");
-        cerrarModalEditar();
-        cargarCursos();
-    } catch (err) {
-        alert("Error al actualizar el curso");
-        console.error(err);
-    }
-    });
-    });
-
-    function cerrarModalEstudiantes() {
-    document.getElementById("modal-estudiantes").classList.add("hidden");
-    }
-
-async function desmatricular(cursoId, estudianteId) {
-  if (!confirm('¿Estás seguro de desmatricular a este estudiante?')) {
-    return;
-  }
-
-  try {
-    const res = await fetch(`/api/cursos/${cursoId}/estudiantes/${estudianteId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || "Error al desmatricular");
-    }
-
-    // Actualizar la lista de estudiantes localmente
-    window.estudiantesCursoActual = window.estudiantesCursoActual.filter(
-      est => est.id !== parseInt(estudianteId)
-    );
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración de Cursos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-6">Panel de Administración de Cursos</h1>
     
-    // Volver a renderizar la lista
-    renderEstudiantes(window.estudiantesCursoActual);
-    
-    // Mostrar notificación de éxito
-    alert("Estudiante desmatriculado correctamente");
-  } catch (error) {
-    console.error("Error al desmatricular:", error);
-    alert(`Error al desmatricular: ${error.message}`);
-  }
-}
+    <!-- Pestañas -->
+    <div class="flex border-b mb-6">
+      <button class="tab-button px-4 py-2 font-semibold border-b-2 border-blue-500 text-blue-600" data-tab="crear-curso">Crear Curso</button>
+      <button class="tab-button px-4 py-2 font-semibold text-gray-600" data-tab="gestion-cursos">Gestión de Cursos</button>
+    </div>
 
-
-async function matricularEstudiantes() {
-  const nuevos = window.estudiantesCargados || [];
-  if (!nuevos.length) return alert("No se han cargado estudiantes desde Excel.");
-  try {
-    const res = await fetch(`/api/cursos/${window.cursoActivo}/estudiantes`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estudiantes: nuevos })
-    });
-    if (!res.ok) throw new Error("Error al matricular");
-    alert("Estudiantes matriculados correctamente");
-    verEstudiantes(window.cursoActivo);
-  } catch (err) {
-    alert("Error al matricular estudiantes");
-  }
-}
-
-let estudiantesCursoActual = [];
-
-async function verEstudiantes(cursoId) {
-  try {
-    const res = await fetch(`/api/cursos?cursoId=${cursoId}&estudiantes=true`);
-    const estudiantes = await res.json();
-    window.cursoActivo = cursoId;
-    estudiantesCursoActual = estudiantes;
-    renderEstudiantes(estudiantes);
-    document.getElementById("modal-estudiantes").classList.remove("hidden");
-  } catch (err) {
-    console.error(err);
-    alert("Error al cargar estudiantes");
-  }
-}
-
-function renderEstudiantes(estudiantes) {
-  const lista = document.getElementById("lista-estudiantes-curso");
-  
-  if (estudiantes.length === 0) {
-    lista.innerHTML = "<p class='text-gray-500 py-4'>No hay estudiantes matriculados en este curso.</p>";
-    return;
-  }
-
-  lista.innerHTML = estudiantes.map(est => `
-    <li class="flex justify-between items-center py-2 border-b">
-      <div>
-        <span class="font-medium">${est.nombre}</span>
-        <span class="text-gray-600 text-sm ml-2">${est.email}</span>
+    <!-- Pestaña Crear Curso -->
+    <div id="crear-curso" class="tab-content bg-white p-6 rounded-lg shadow">
+      <div class="mb-4">
+        <label class="block text-gray-700 font-semibold mb-2">Nombre del Curso</label>
+        <input type="text" id="nombre-curso" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
-      <button onclick="desmatricular('${window.cursoActualId}', '${est.id}')" 
-        class="text-red-500 hover:text-red-700 text-sm font-medium">
-        Desmatricular
-      </button>
-    </li>
-  `).join("");
-}
+      
+      <div class="mb-4">
+        <label class="block text-gray-700 font-semibold mb-2">Descripción</label>
+        <textarea id="descripcion-curso" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-gray-700 font-semibold mb-2">Profesor Tutor</label>
+        <select id="profesor-curso" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Seleccione un profesor</option>
+        </select>
+      </div>
+      
+      <div class="mb-6">
+        <label class="block text-gray-700 font-semibold mb-2">Lista de Estudiantes (Excel)</label>
+        <input type="file" id="archivo-excel" accept=".xlsx, .xls" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <p class="text-sm text-gray-500 mt-1">El archivo Excel debe contener una columna con el email de los estudiantes</p>
+      </div>
+      
+      <div class="flex justify-end">
+        <button id="crear-curso-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+          Crear Curso
+        </button>
+      </div>
+    </div>
 
-function filtrarEstudiantes() {
-  const filtro = document.getElementById("filtro-estudiantes").value.toLowerCase();
-  const filtrados = estudiantesCursoActual.filter(est => 
-    est.nombre.toLowerCase().includes(filtro) || est.email.toLowerCase().includes(filtro)
-  );
-  renderEstudiantes(filtrados);
-}
-
-
-async function abrirModalMatriculaManual() {
-  try {
-    const modal = document.getElementById("modal-matricular-nuevos");
-    modal.classList.remove("hidden");
-
-    // Obtener todos los usuarios estudiantes
-    const res = await fetch("/api/usuarios?rol=usuario");
-    const todos = await res.json();
-
-    // Filtrar los que no están ya matriculados
-    const yaMatriculados = window.estudiantesCursoActual.map(e => e.id);
-    const disponibles = todos.filter(est => 
-      !yaMatriculados.includes(est.id) && est.rol === 'usuario'
-    );
-
-    // Mostrar lista
-    const contenedor = document.getElementById("lista-estudiantes-disponibles");
-    if (disponibles.length === 0) {
-      contenedor.innerHTML = "<p class='text-gray-500'>No hay estudiantes disponibles para matricular.</p>";
-      return;
-    }
-
-    contenedor.innerHTML = disponibles.map(e => `
-      <div class="flex items-center justify-between mb-2 p-2 border-b">
-        <div class="flex-1">
-          <p class="font-semibold">${e.nombre}</p>
-          <p class="text-sm text-gray-600">${e.email}</p>
+    <!-- Pestaña Gestión de Cursos -->
+    <div id="gestion-cursos" class="tab-content bg-white p-6 rounded-lg shadow hidden">
+      <div class="mb-6 flex justify-between items-center">
+        <div class="w-1/2">
+          <input type="text" id="buscar-curso" placeholder="Buscar curso por nombre..." class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
-        <button onclick='matricularDesdeLista(${JSON.stringify(e)})' 
-          class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">
+        <button id="recargar-cursos" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-200">
+          Recargar
+        </button>
+      </div>
+      
+      <div id="lista-cursos" class="space-y-4">
+        <!-- Los cursos se cargarán aquí dinámicamente -->
+        <div class="text-center py-4 text-gray-500">Cargando cursos...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para gestión de estudiantes -->
+  <div id="estudiantes-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <div class="p-6 border-b">
+        <h3 class="text-xl font-semibold text-gray-800">Estudiantes Matriculados</h3>
+      </div>
+      
+      <div class="p-6 border-b">
+        <div class="mb-4">
+          <input type="text" id="buscar-estudiante" placeholder="Buscar estudiante por nombre o email..." class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <div class="flex justify-between items-center mb-2">
+          <span id="contador-estudiantes" class="text-sm text-gray-600">0 estudiantes</span>
+          <button id="matricular-manual" class="text-sm text-blue-600 hover:text-blue-800">Matricular manualmente</button>
+        </div>
+        
+        <div id="lista-estudiantes" class="border rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+          <div class="text-center py-4 text-gray-500">Cargando estudiantes...</div>
+        </div>
+      </div>
+      
+      <div class="p-4 bg-gray-50 flex justify-between">
+        <button id="cerrar-modal" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-200">
+          Cerrar
+        </button>
+        <button id="desmatricular-btn" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 hidden">
+          Desmatricular Seleccionados
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para matricular manualmente -->
+  <div id="matricular-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
+      <div class="p-6 border-b">
+        <h3 class="text-xl font-semibold text-gray-800">Matricular Estudiante</h3>
+      </div>
+      
+      <div class="p-6 border-b">
+        <div class="mb-4">
+          <label class="block text-gray-700 font-semibold mb-2">Email del Estudiante</label>
+          <input type="email" id="email-estudiante" placeholder="ejemplo@email.com" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+      
+      <div class="p-4 bg-gray-50 flex justify-end space-x-2">
+        <button id="cancelar-matricular" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-200">
+          Cancelar
+        </button>
+        <button id="confirmar-matricular" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
           Matricular
         </button>
       </div>
-    `).join("");
-  } catch (err) {
-    console.error("Error al cargar estudiantes disponibles:", err);
-    alert("Error al cargar estudiantes disponibles");
-  }
-}
-
-  contenedor.innerHTML = disponibles.map(e => `
-    <div class="flex items-center justify-between mb-1">
-      <div>
-        <p class="font-semibold">${e.nombre}</p>
-        <p class="text-sm text-gray-600">${e.email}</p>
-      </div>
-      <button onclick='matricularDesdeLista(${JSON.stringify(e)})' class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">
-        Matricular
-      </button>
     </div>
-  `).join("");
+  </div>
 
+  <script>
+    // Variables globales
+    let cursoActivo = null;
+    let estudiantesCargados = [];
+    let todosEstudiantes = [];
+    let todosCursos = [];
 
-function cerrarModalMatriculaManual() {
-  document.getElementById("modal-matricular-nuevos").classList.add("hidden");
-}
-
-async function matricularDesdeLista(estudiante) {
-  if (!window.cursoActualId) {
-    alert("No se ha seleccionado un curso válido");
-    return;
-  }
-
-  try {
-    const res = await fetch(`/api/cursos/${window.cursoActualId}/estudiantes`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estudiantes: [estudiante] })
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.message || "Error al matricular");
+    // Funciones auxiliares
+    function mostrarError(mensaje) {
+      alert(`Error: ${mensaje}`);
     }
 
-    // Actualizar la lista de estudiantes
-    const nuevoEstudiante = await res.json();
-    window.estudiantesCursoActual.push(nuevoEstudiante);
-    renderEstudiantes(window.estudiantesCursoActual);
-    
-    // Cerrar modal y mostrar feedback
-    cerrarModalMatriculaManual();
-    alert("Estudiante matriculado correctamente");
-  } catch (err) {
-    console.error("Error al matricular:", err);
-    alert(err.message || "Error al matricular estudiante");
-  }
-}
+    function mostrarExito(mensaje) {
+      alert(`Éxito: ${mensaje}`);
+    }
 
-async function matricularManual() {
-  const nombre = document.getElementById("nombre-manual").value.trim();
-  const email = document.getElementById("correo-manual").value.trim();
-  
-  if (!nombre || !email) return alert("Nombre y correo son requeridos");
-  if (!window.cursoActualId) return alert("No hay curso seleccionado");
-
-  try {
-    const res = await fetch(`/api/cursos/${window.cursoActualId}/estudiantes`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre, email })
+    // Funciones para manejar pestañas
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        // Actualizar apariencia de los botones de pestaña
+        document.querySelectorAll('.tab-button').forEach(btn => {
+          btn.classList.remove('border-b-2', 'border-blue-500', 'text-blue-600');
+          btn.classList.add('text-gray-600');
+        });
+        button.classList.add('border-b-2', 'border-blue-500', 'text-blue-600');
+        button.classList.remove('text-gray-600');
+        
+        // Mostrar el contenido de la pestaña seleccionada
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.add('hidden');
+        });
+        document.getElementById(button.dataset.tab).classList.remove('hidden');
+      });
     });
 
-    if (!res.ok) throw new Error("Error al matricular");
+    // Cargar profesores al iniciar
+    async function cargarProfesores() {
+      try {
+        const response = await fetch('/api/cursos/profesores');
+        if (!response.ok) throw new Error('Error al cargar profesores');
+        
+        const profesores = await response.json();
+        const select = document.getElementById('profesor-curso');
+        
+        // Limpiar opciones excepto la primera
+        while (select.options.length > 1) {
+          select.remove(1);
+        }
+        
+        // Agregar profesores
+        profesores.forEach(profesor => {
+          const option = document.createElement('option');
+          option.value = profesor.id;
+          option.textContent = profesor.nombre;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error(error);
+        mostrarError('No se pudieron cargar los profesores');
+      }
+    }
 
-    const nuevoEstudiante = await res.json();
-    window.estudiantesCursoActual.push(nuevoEstudiante);
-    renderEstudiantes(window.estudiantesCursoActual);
-    
-    // Limpiar formulario
-    document.getElementById("nombre-manual").value = "";
-    document.getElementById("correo-manual").value = "";
-    
-    alert("Estudiante matriculado correctamente");
-  } catch (err) {
-    console.error("Error:", err);
-    alert("Error al matricular estudiante");
-  }
-}
+    // Cargar cursos
+    async function cargarCursos(busqueda = '') {
+      try {
+        const listaCursos = document.getElementById('lista-cursos');
+        listaCursos.innerHTML = '<div class="text-center py-4 text-gray-500">Cargando cursos...</div>';
+        
+        const response = await fetch('/api/cursos');
+        if (!response.ok) throw new Error('Error al cargar cursos');
+        
+        todosCursos = await response.json();
+        
+        // Filtrar si hay búsqueda
+        const cursosFiltrados = busqueda 
+          ? todosCursos.filter(curso => 
+              curso.nombre.toLowerCase().includes(busqueda.toLowerCase()))
+          : todosCursos;
+        
+        // Mostrar cursos
+        if (cursosFiltrados.length === 0) {
+          listaCursos.innerHTML = '<div class="text-center py-4 text-gray-500">No se encontraron cursos</div>';
+          return;
+        }
+        
+        listaCursos.innerHTML = '';
+        cursosFiltrados.forEach(curso => {
+          const cursoElement = document.createElement('div');
+          cursoElement.className = 'border border-gray-200 p-4 rounded-lg hover:bg-gray-50 transition duration-200';
+          cursoElement.innerHTML = `
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-semibold text-lg text-gray-800">${curso.nombre}</h3>
+                <p class="text-gray-600 mt-1">${curso.descripcion || 'Sin descripción'}</p>
+                <div class="flex items-center mt-2 text-sm text-gray-500">
+                  <span class="mr-3">Profesor: ${curso.profesor_nombre}</span>
+                  <span>Estudiantes: ${curso.num_estudiantes || 0}</span>
+                </div>
+              </div>
+              <div class="flex space-x-2">
+                <button class="ver-estudiantes bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium py-1 px-3 rounded text-sm" data-curso="${curso.id}">
+                  Estudiantes
+                </button>
+                <button class="editar-curso bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-medium py-1 px-3 rounded text-sm" data-curso="${curso.id}">
+                  Editar
+                </button>
+              </div>
+            </div>
+          `;
+          listaCursos.appendChild(cursoElement);
+        });
+        
+        // Agregar eventos a los botones
+        document.querySelectorAll('.ver-estudiantes').forEach(btn => {
+          btn.addEventListener('click', () => verEstudiantes(btn.dataset.curso));
+        });
+        
+        document.querySelectorAll('.editar-curso').forEach(btn => {
+          btn.addEventListener('click', () => editarCurso(btn.dataset.curso));
+        });
+      } catch (error) {
+        console.error(error);
+        mostrarError('No se pudieron cargar los cursos');
+      }
+    }
 
-// Función mejorada con loading state y mejor manejo de errores
-async function desmatricular(cursoId, estudianteId) {
-  // Obtener referencia al botón que disparó la acción
-  const button = event.target;
-  const originalText = button.innerHTML;
-  
-  try {
-    // Mostrar loading
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-    button.disabled = true;
+    // Ver estudiantes de un curso
+    async function verEstudiantes(cursoId) {
+      cursoActivo = cursoId;
+      
+      try {
+        const modal = document.getElementById('estudiantes-modal');
+        const lista = document.getElementById('lista-estudiantes');
+        const desmatricularBtn = document.getElementById('desmatricular-btn');
+        
+        lista.innerHTML = '<div class="text-center py-4 text-gray-500">Cargando estudiantes...</div>';
+        desmatricularBtn.classList.add('hidden');
+        
+        const response = await fetch(`/api/cursos/${cursoId}/estudiantes`);
+        if (!response.ok) throw new Error('Error al cargar estudiantes');
+        
+        todosEstudiantes = await response.json();
+        actualizarListaEstudiantes(todosEstudiantes);
+        
+        modal.classList.remove('hidden');
+      } catch (error) {
+        console.error(error);
+        mostrarError('No se pudieron cargar los estudiantes');
+      }
+    }
 
-    const res = await fetch(`/api/cursos/${cursoId}/estudiantes/${estudianteId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${localStorage.getItem('token')}` // Si usas autenticación
+    // Actualizar lista de estudiantes en el modal
+    function actualizarListaEstudiantes(estudiantes) {
+      const lista = document.getElementById('lista-estudiantes');
+      const contador = document.getElementById('contador-estudiantes');
+      const desmatricularBtn = document.getElementById('desmatricular-btn');
+      
+      if (estudiantes.length === 0) {
+        lista.innerHTML = '<div class="text-center py-4 text-gray-500">No hay estudiantes matriculados</div>';
+        contador.textContent = '0 estudiantes';
+        desmatricularBtn.classList.add('hidden');
+        return;
+      }
+      
+      lista.innerHTML = '';
+      estudiantes.forEach(estudiante => {
+        const estudianteElement = document.createElement('div');
+        estudianteElement.className = 'flex items-center p-3 border-b hover:bg-gray-50';
+        estudianteElement.innerHTML = `
+          <input type="checkbox" class="mr-3 estudiante-checkbox" value="${estudiante.id}">
+          <div class="flex-1">
+            <div class="font-medium text-gray-800">${estudiante.nombre}</div>
+            <div class="text-sm text-gray-500">${estudiante.email}</div>
+          </div>
+        `;
+        lista.appendChild(estudianteElement);
+      });
+      
+      contador.textContent = `${estudiantes.length} estudiante${estudiantes.length !== 1 ? 's' : ''}`;
+      
+      // Mostrar botón de desmatricular
+      desmatricularBtn.classList.remove('hidden');
+    }
+
+    // Filtrar estudiantes
+    document.getElementById('buscar-estudiante').addEventListener('input', (e) => {
+      const busqueda = e.target.value.toLowerCase();
+      const estudiantesFiltrados = busqueda 
+        ? todosEstudiantes.filter(est => 
+            est.nombre.toLowerCase().includes(busqueda) || 
+            est.email.toLowerCase().includes(busqueda))
+        : todosEstudiantes;
+      
+      actualizarListaEstudiantes(estudiantesFiltrados);
+    });
+
+    // Desmatricular estudiantes
+    document.getElementById('desmatricular-btn').addEventListener('click', async () => {
+      const seleccionados = Array.from(document.querySelectorAll('.estudiante-checkbox:checked'))
+        .map(cb => cb.value);
+      
+      if (seleccionados.length === 0) {
+        mostrarError('Seleccione al menos un estudiante');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/cursos/${cursoActivo}/estudiantes`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estudiantes: seleccionados })
+        });
+        
+        if (!response.ok) throw new Error('Error al desmatricular');
+        
+        mostrarExito('Estudiantes desmatriculados correctamente');
+        await verEstudiantes(cursoActivo);
+      } catch (error) {
+        console.error(error);
+        mostrarError('Error al desmatricular estudiantes');
       }
     });
 
-    const data = await res.json();
+    // Cerrar modal
+    document.getElementById('cerrar-modal').addEventListener('click', () => {
+      document.getElementById('estudiantes-modal').classList.add('hidden');
+    });
 
-    if (!res.ok) {
-      throw new Error(data.message || "Error al desmatricular");
-    }
+    // Matricular manualmente
+    document.getElementById('matricular-manual').addEventListener('click', () => {
+      document.getElementById('matricular-modal').classList.remove('hidden');
+      document.getElementById('email-estudiante').focus();
+    });
 
-    // Actualizar la lista localmente sin necesidad de recargar
-    const estudiantesActualizados = window.estudiantesCursoActual.filter(
-      est => est.id !== parseInt(estudianteId)
-    );
-    
-    window.estudiantesCursoActual = estudiantesActualizados;
-    renderEstudiantes(estudiantesActualizados);
-    
-    // Mostrar notificación bonita (puedes usar Toast o similar)
-    showNotification('success', 'Estudiante desmatriculado correctamente');
-    
-  } catch (error) {
-    console.error("Error al desmatricular:", error);
-    showNotification('error', `Error: ${error.message}`);
-  } finally {
-    // Restaurar el botón
-    button.innerHTML = originalText;
-    button.disabled = false;
-  }
-}
+    document.getElementById('cancelar-matricular').addEventListener('click', () => {
+      document.getElementById('matricular-modal').classList.add('hidden');
+      document.getElementById('email-estudiante').value = '';
+    });
 
-// Función auxiliar para mostrar notificaciones
-function showNotification(type, message) {
-  const notification = document.createElement('div');
-  notification.className = `fixed top-4 right-4 p-4 rounded shadow-lg ${
-    type === 'success' ? 'bg-green-500' : 'bg-red-500'
-  } text-white`;
-  notification.textContent = message;
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    notification.remove();
-  }, 3000);
-}
-    </script>
-    <div id="modal-editar" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 class="text-xl font-bold mb-4 text-green-700">Editar Curso</h2>
-        <form id="form-editar-curso" class="space-y-4">
-        <input type="hidden" id="editar-id">
-        <div>
-            <label class="block font-semibold text-gray-700">Nombre</label>
-            <input type="text" id="editar-nombre" class="w-full p-2 border rounded" required />
-        </div>
-        <div>
-            <label class="block font-semibold text-gray-700">Descripción</label>
-            <textarea id="editar-descripcion" class="w-full p-2 border rounded" rows="3"></textarea>
-        </div>
-        <div>
-            <label class="block font-semibold text-gray-700">Tutor</label>
-            <select id="editar-profesor" class="w-full p-2 border rounded" required></select>
-        </div>
-        <div class="text-right space-x-2">
-            <button type="button" onclick="cerrarModalEditar()" class="bg-gray-300 px-4 py-2 rounded">Cancelar</button>
-            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Guardar</button>
-        </div>
-        </form>
-    </div>
-    </div>
+    document.getElementById('confirmar-matricular').addEventListener('click', async () => {
+      const email = document.getElementById('email-estudiante').value.trim();
+      
+      if (!email) {
+        mostrarError('Ingrese un email válido');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/cursos/${cursoActivo}/estudiantes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estudiantes: [email] })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al matricular');
+        }
+        
+        mostrarExito('Estudiante matriculado correctamente');
+        document.getElementById('matricular-modal').classList.add('hidden');
+        document.getElementById('email-estudiante').value = '';
+        await verEstudiantes(cursoActivo);
+      } catch (error) {
+        console.error(error);
+        mostrarError(error.message || 'Error al matricular estudiante');
+      }
+    });
 
-    <div id="modal-estudiantes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <h2 class="text-xl font-bold text-green-700 mb-4">Estudiantes Matriculados</h2>
-        <input type="text" id="filtro-estudiantes" placeholder="Buscar por nombre o email..." class="w-full p-2 border rounded mb-4" oninput="filtrarEstudiantes()">
-        <ul id="lista-estudiantes-curso" class="space-y-2 text-gray-800 mb-4 max-h-64 overflow-y-auto pr-2"></ul>
-        <div class="flex justify-between items-center space-x-2">
-        <button onclick="cerrarModalEstudiantes()" class="bg-gray-300 px-4 py-2 rounded">Cerrar</button>
-        <button onclick="abrirModalMatriculaManual()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-  Matricular nuevos
-</button>
+    // Procesar archivo Excel
+    document.getElementById('archivo-excel').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      try {
+        const formData = new FormData();
+        formData.append('archivo', file);
+        
+        const response = await fetch('/api/cursos/procesar-excel', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) throw new Error('Error al procesar el archivo');
+        
+        const data = await response.json();
+        estudiantesCargados = data.estudiantes;
+        mostrarExito(`Se cargaron ${estudiantesCargados.length} estudiantes desde el archivo`);
+      } catch (error) {
+        console.error(error);
+        mostrarError('Error al procesar el archivo Excel');
+      }
+    });
 
-        </div>
-    </div>
-    </div>
+    // Crear nuevo curso
+    document.getElementById('crear-curso-btn').addEventListener('click', async () => {
+      const nombre = document.getElementById('nombre-curso').value.trim();
+      const descripcion = document.getElementById('descripcion-curso').value.trim();
+      const profesorId = document.getElementById('profesor-curso').value;
+      
+      if (!nombre) {
+        mostrarError('El nombre del curso es requerido');
+        return;
+      }
+      
+      if (!profesorId) {
+        mostrarError('Debe seleccionar un profesor');
+        return;
+      }
+      
+      try {
+        // Crear el curso
+        const response = await fetch('/api/cursos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, descripcion, profesor_id: profesorId })
+        });
+        
+        if (!response.ok) throw new Error('Error al crear curso');
+        
+        const curso = await response.json();
+        
+        // Matricular estudiantes si hay archivo cargado
+        if (estudiantesCargados.length > 0) {
+          const matricularResponse = await fetch(`/api/cursos/${curso.id}/estudiantes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estudiantes: estudiantesCargados })
+          });
+          
+          if (!matricularResponse.ok) throw new Error('Curso creado pero error al matricular estudiantes');
+        }
+        
+        mostrarExito('Curso creado exitosamente');
+        
+        // Limpiar formulario
+        document.getElementById('nombre-curso').value = '';
+        document.getElementById('descripcion-curso').value = '';
+        document.getElementById('profesor-curso').value = '';
+        document.getElementById('archivo-excel').value = '';
+        estudiantesCargados = [];
+        
+        // Recargar lista de cursos
+        await cargarCursos();
+        
+        // Cambiar a pestaña de gestión
+        document.querySelector('[data-tab="gestion-cursos"]').click();
+      } catch (error) {
+        console.error(error);
+        mostrarError(error.message || 'Error al crear el curso');
+      }
+    });
 
-<div id="modal-matricular-nuevos" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-  <div class="bg-white p-6 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-    <h2 class="text-xl font-bold mb-4 text-green-700">Matricular nuevos estudiantes</h2>
-    
-    <div class="mb-6">
-      <h3 class="font-semibold mb-2">Seleccionar de la lista</h3>
-      <div id="lista-estudiantes-disponibles" class="max-h-60 overflow-y-auto border p-2 rounded mb-4">
-        <p class="text-gray-500">Cargando estudiantes disponibles...</p>
-      </div>
-    </div>
-    
-    <div class="border-t pt-4">
-      <h3 class="font-semibold mb-2">Matricular manualmente</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
-          <input type="text" id="nombre-manual" placeholder="Nombre del estudiante" 
-            class="w-full p-2 border rounded focus:ring-2 focus:ring-green-500">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
-          <input type="email" id="correo-manual" placeholder="correo@ejemplo.com" 
-            class="w-full p-2 border rounded focus:ring-2 focus:ring-green-500">
-        </div>
-      </div>
-      <button onclick="matricularManual()" 
-        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full">
-        Matricular estudiante
-      </button>
-    </div>
-    
-    <div class="text-right mt-4">
-      <button onclick="cerrarModalMatriculaManual()" 
-        class="text-gray-500 hover:text-gray-700 font-medium">
-        Cerrar
-      </button>
-    </div>
-  </div>
-</div>
+    // Buscar cursos
+    document.getElementById('buscar-curso').addEventListener('input', (e) => {
+      cargarCursos(e.target.value);
+    });
 
-    </body>
-    </html>
+    // Recargar cursos
+    document.getElementById('recargar-cursos').addEventListener('click', () => {
+      document.getElementById('buscar-curso').value = '';
+      cargarCursos();
+    });
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', async () => {
+      await cargarProfesores();
+      await cargarCursos();
+    });
+  </script>
+</body>
+</html>
