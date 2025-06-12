@@ -1,4 +1,3 @@
-// /pages/api/cursos.js
 import mysql from "mysql2/promise";
 
 export const pool = mysql.createPool({
@@ -48,6 +47,21 @@ export default async function handler(req, res) {
       return res.status(201).json({ id: cursoId });
     }
 
+    // EDITAR CURSO
+    if (req.method === "PUT" && action === "editar") {
+      const { curso_id, nombre, descripcion, profesor_id } = req.body;
+      if (!curso_id || !nombre || !profesor_id) {
+        return res.status(400).json({ error: "Faltan datos para editar el curso" });
+      }
+
+      await pool.query(
+        "UPDATE cursos SET nombre = ?, descripcion = ?, profesor_id = ? WHERE id = ?",
+        [nombre, descripcion, profesor_id, curso_id]
+      );
+
+      return res.status(200).json({ message: "Curso actualizado correctamente" });
+    }
+
     // OBTENER CURSOS
     if (req.method === "GET" && action === "obtener") {
       const [cursos] = await pool.query(`
@@ -78,6 +92,37 @@ export default async function handler(req, res) {
         WHERE ce.curso_id = ?
       `, [curso_id]);
       return res.status(200).json(estudiantes);
+    }
+
+    // OBTENER USUARIOS NO MATRICULADOS
+    if (req.method === "GET" && action === "no-matriculados") {
+      const { curso_id } = req.query;
+      if (!curso_id) return res.status(400).json({ error: "Falta curso_id" });
+
+      const [usuarios] = await pool.query(`
+        SELECT u.id, u.nombre, u.email
+        FROM usuarios u
+        WHERE u.rol = 'usuario'
+          AND u.id NOT IN (
+            SELECT estudiante_id
+            FROM cursos_estudiantes
+            WHERE curso_id = ?
+          )
+      `, [curso_id]);
+
+      return res.status(200).json(usuarios);
+    }
+
+    // MATRICULAR ESTUDIANTE MANUALMENTE
+    if (req.method === "POST" && action === "matricular-manual") {
+      const { curso_id, estudiante_id } = req.body;
+      if (!curso_id || !estudiante_id) return res.status(400).json({ error: "Faltan parámetros" });
+
+      await pool.query(
+        "INSERT IGNORE INTO cursos_estudiantes (curso_id, estudiante_id) VALUES (?, ?)",
+        [curso_id, estudiante_id]
+      );
+      return res.status(200).json({ message: "Estudiante matriculado" });
     }
 
     // DESMATRICULAR ESTUDIANTE
