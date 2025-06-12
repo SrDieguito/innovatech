@@ -246,7 +246,10 @@ div.innerHTML = `
       } else {
         alert('Error al eliminar curso');
       }
-      function filtrarEstudiantes(cursoId) {
+      
+    }
+
+    function filtrarEstudiantes(cursoId) {
   const filtro = document.getElementById(`filtro-${cursoId}`).value.toLowerCase();
   const estudiantes = document.querySelectorAll(`#lista-estudiantes-${cursoId} .estudiante`);
 
@@ -261,7 +264,6 @@ div.innerHTML = `
   });
 }
 
-    }
   </script>
 </body>
 </html>
