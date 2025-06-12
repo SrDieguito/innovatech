@@ -67,7 +67,7 @@
       // Función para cargar cursos desde la API
   async function cargarCursos() {
     try {
-      const res = await fetch('/api/cursos', { // cambia '/api/tu-endpoint-cursos' por tu ruta real
+      const res = await fetch('/api/estudiantes', { // cambia '/api/tu-endpoint-cursos' por tu ruta real
         method: 'GET',
         credentials: 'include', // importante para enviar cookies
         headers: {
