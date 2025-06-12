@@ -5,16 +5,41 @@
   <title>Panel de Administración Moodle</title>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .btn-green {
+      background-color: #00983d;
+      color: white;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .btn-green:hover {
+      background-color: #e0b800;
+      transform: scale(1.03);
+    }
+    .btn-red {
+      background-color: #dc2626;
+      color: white;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .btn-red:hover {
+      background-color: #e0b800;
+      transform: scale(1.03);
+    }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-900">
+<body class="bg-gray-200 text-black">
   <div class="flex min-h-screen">
     <!-- Sidebar -->
-    <aside class="w-64 bg-[#00983d] text-white p-6">
-      <h2 class="text-2xl font-bold mb-6">Admin Moodle</h2>
-      <nav class="space-y-2">
-        <button onclick="mostrarSeccion('crear')" class="w-full text-left px-4 py-2 bg-white text-[#00983d] rounded hover:bg-gray-100 font-semibold">Crear Curso</button>
-        <button onclick="mostrarSeccion('ver')" class="w-full text-left px-4 py-2 bg-white text-[#00983d] rounded hover:bg-gray-100 font-semibold">Ver Cursos</button>
-      </nav>
+    <aside class="w-64 bg-gray-300 text-black p-6 flex flex-col justify-between">
+      <div>
+        <h2 class="text-2xl font-bold mb-6">Admin Moodle</h2>
+        <nav class="space-y-2">
+          <button onclick="mostrarSeccion('crear')" class="btn-green w-full text-left px-4 py-2 rounded font-semibold">Crear Curso</button>
+          <button onclick="mostrarSeccion('ver')" class="btn-green w-full text-left px-4 py-2 rounded font-semibold">Ver Cursos</button>
+        </nav>
+      </div>
+      <div class="mt-6">
+        <button onclick="cerrarSesion()" class="btn-red w-full text-left px-4 py-2 rounded font-semibold">Cerrar Sesión</button>
+      </div>
     </aside>
 
     <!-- Main Content -->
@@ -24,7 +49,7 @@
       <!-- Crear curso -->
       <div id="crear" class="hidden">
         <div class="bg-white p-6 rounded-lg shadow-md">
-          <h2 class="text-2xl font-semibold mb-4">Crear Curso</h2>
+          <h2 class="text-2xl font-semibold mb-4 text-white bg-[#00983d] px-4 py-2 rounded">Crear Curso</h2>
           <form id="form-curso" class="space-y-4">
             <div>
               <label class="block font-medium">Nombre del curso</label>
@@ -42,7 +67,7 @@
               <label class="block font-medium">Lista de Estudiantes (Excel)</label>
               <input type="file" id="archivo-excel" accept=".xlsx, .xls" class="w-full border border-gray-300 p-2 rounded" />
             </div>
-            <button type="submit" class="bg-[#00983d] text-white px-4 py-2 rounded hover:bg-green-700">Crear Curso</button>
+            <button type="submit" class="btn-green px-4 py-2 rounded">Crear Curso</button>
           </form>
         </div>
       </div>
@@ -50,13 +75,12 @@
       <!-- Ver cursos -->
       <div id="ver" class="hidden">
         <div class="bg-white p-6 rounded-lg shadow-md">
-          <h2 class="text-2xl font-semibold mb-4">Cursos Creados</h2>
+          <h2 class="text-2xl font-semibold mb-4 text-white bg-[#00983d] px-4 py-2 rounded">Cursos Creados</h2>
           <div id="lista-cursos" class="space-y-4"></div>
         </div>
       </div>
     </main>
   </div>
-
 
   <!-- SCRIPT -->
   <script>
