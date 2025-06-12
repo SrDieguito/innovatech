@@ -2,7 +2,18 @@ import mysql from "mysql2/promise";
 import { Router } from "express";
 import multer from "multer";
 import xlsx from "xlsx";
-import { pool } from "./db.js";
+
+import mysql from "mysql2/promise";
+
+export const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+  connectionLimit: 10,
+});
+
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
