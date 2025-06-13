@@ -153,8 +153,11 @@ if (req.method === "GET" && action === "obtener-detalle") {
   const { curso_id } = req.query;
   if (!curso_id) return res.status(400).json({ error: "Falta curso_id" });
 
-  const userId = await authMiddleware(req, res);
-  if (!userId) return; // Ya se envió un 401
+const userId = await getUserIdFromCookies(req, res);
+if (!userId) {
+  return res.status(401).json({ error: "No autorizado" });
+}
+
 
   // Verificamos si el usuario es el profesor del curso o está matriculado
   const [autorizado] = await pool.query(`
