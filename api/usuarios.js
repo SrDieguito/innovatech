@@ -1,6 +1,6 @@
 // File: /api/usuarios.js
 import mysql from "mysql2/promise";
-import { authMiddleware } from "api/middleware.js"; // Asegúrate de que la ruta esté bien
+import { authMiddleware } from "middleware.js"; // Asegúrate de que la ruta esté bien
 
 export const pool = mysql.createPool({
   host: process.env.DB_HOST,
