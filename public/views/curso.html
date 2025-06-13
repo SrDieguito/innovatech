@@ -107,10 +107,7 @@
         document.getElementById('presentacion-texto').textContent = curso.descripcion || 'Sin descripción';
 
     })
-    .catch(err => {
-      console.error(err);
-      alert("Error cargando datos del curso");
-    });
+
 
   // Navegación entre pestañas
   document.querySelectorAll('.tab').forEach(tab => {
