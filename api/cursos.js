@@ -148,31 +148,11 @@ if (req.method === "DELETE" && action === "eliminar") {
       return res.status(200).json({ message: "Estudiante matriculado" });
     }
 
-// Obtener detalle del curso (solo si eres el profesor o estás matriculado)
+    // Obtener detalle del curso
 if (req.method === "GET" && action === "obtener-detalle") {
   const { curso_id } = req.query;
   if (!curso_id) return res.status(400).json({ error: "Falta curso_id" });
 
-const userId = await getUserIdFromCookies(req, res);
-if (!userId) {
-  return res.status(401).json({ error: "No autorizado" });
-}
-
-
-  // Verificamos si el usuario es el profesor del curso o está matriculado
-  const [autorizado] = await pool.query(`
-    SELECT 1
-    FROM cursos c
-    LEFT JOIN cursos_estudiantes ce ON ce.curso_id = c.id AND ce.estudiante_id = ?
-    WHERE c.id = ? AND (c.profesor_id = ? OR ce.id IS NOT NULL)
-    LIMIT 1
-  `, [userId, curso_id, userId]);
-
-  if (autorizado.length === 0) {
-    return res.status(403).json({ error: "No tienes acceso a este curso" });
-  }
-
-  // Ahora sí traemos el curso
   const [rows] = await pool.query(`
     SELECT c.id, c.nombre, c.descripcion, u.nombre AS profesor
     FROM cursos c
@@ -183,7 +163,6 @@ if (!userId) {
   if (rows.length === 0) return res.status(404).json({ error: "Curso no encontrado" });
   return res.status(200).json(rows[0]);
 }
-
 
     // DESMATRICULAR ESTUDIANTE
     if (req.method === "DELETE" && action === "desmatricular") {
