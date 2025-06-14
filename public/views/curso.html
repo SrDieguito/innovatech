@@ -10,8 +10,9 @@
 </head>
 
 <body class="bg-gradient-to-b from-green-50 to-white text-gray-900 min-h-screen flex flex-col">
-  <!-- Header ocupa ancho completo -->
-  <div id="header-container" class="w-full"></div>
+  
+  <div id="header-container"></div>
+
 
   <main class="flex-grow flex items-center justify-center px-4 py-6">
     <div class="w-full max-w-6xl" x-data="{ tab: 'curso', subTab: 'presentacion' }">
@@ -83,12 +84,25 @@
 
 <script>
   // Cargar header
+  // Cargar el header (esto se mantiene igual)
   fetch('/views/header.html')
     .then(res => res.text())
     .then(html => {
-      document.getElementById('header-container').innerHTML = html;
-    });
+      const container = document.getElementById('header-container');
+      container.innerHTML = html;
 
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(newScript);
+        oldScript.remove();
+      });
+    });
   // Obtener ID de curso de la URL
   const params = new URLSearchParams(window.location.search);
   const cursoId = params.get("id");
