@@ -119,6 +119,8 @@
         <div class="flex-1">
           <h3 class="text-lg font-semibold text-green-700">${curso.nombre}</h3>
           <p class="text-sm text-gray-600">${curso.profesor || 'Sin tutor asignado'}</p>
+          <p class="text-xs text-gray-500 italic">${curso.rol === 'profesor' ? 'Usted es el profesor' : 'Usted está matriculado'}</p>
+
          <a href="/views/curso.html?id=${curso.id}" class="inline-block mt-2 bg-green-600 text-white text-sm px-4 py-2 rounded hover:bg-green-700 transition">
             Ir al curso
           </a>
