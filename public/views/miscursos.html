@@ -75,28 +75,27 @@
 
   let todosLosCursos = [];
 
- async function cargarCursos() {
-  try {
-    const res = await fetch('/api/usuarios?action=mis-cursos', {
-      method: 'GET',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' }
-    });
+  async function cargarCursos() {
+    try {
+      const res = await fetch('/api/estudiantes', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-    if (res.status === 401) {
-      alert('No autorizado. Por favor inicia sesión.');
-      return;
+      if (res.status === 401) {
+        alert('No autorizado. Por favor inicia sesión.');
+        return;
+      }
+
+      const cursos = await res.json();
+      todosLosCursos = cursos;
+      renderizarCursos(cursos);
+    } catch (error) {
+      console.error(error);
+      alert('Hubo un error cargando los cursos');
     }
-
-    const cursos = await res.json();
-    todosLosCursos = cursos;
-    renderizarCursos(cursos);
-  } catch (error) {
-    console.error(error);
-    alert('Hubo un error cargando los cursos');
   }
-}
-
 
   function renderizarCursos(lista) {
     const container = document.getElementById('cursos-container');
@@ -115,24 +114,16 @@
       const card = document.createElement('div');
       card.className = 'flex items-center bg-white rounded-lg shadow p-4';
 
-    card.innerHTML = `
-      <img src="${curso.imagen || 'https://unsplash.com/es/fotos/un-grupo-de-gorras-de-graduacion-sentadas-una-encima-de-la-otra-pLRAaxH0vHA'}" alt="Miniatura del curso" class="w-24 h-24 rounded object-cover mr-4"/>
-      <div class="flex-1">
-        <h3 class="text-lg font-semibold text-green-700">${curso.nombre}</h3>
-        <p class="text-sm text-gray-600">Profesor: ${curso.profesor || 'Sin tutor asignado'}</p>
-        <span class="inline-block mt-1 text-xs px-2 py-1 rounded-full ${
-          curso.rol_usuario === 'profesor'
-            ? 'bg-green-100 text-green-800'
-            : 'bg-blue-100 text-blue-800'
-        }">
-          ${curso.rol_usuario === 'profesor' ? 'Profesor del curso' : 'Estudiante matriculado'}
-        </span>
-        <a href="/views/curso.html?id=${curso.id}" class="inline-block mt-3 bg-green-600 text-white text-sm px-4 py-2 rounded hover:bg-green-700 transition">
-          Ir al curso
-        </a>
-      </div>
-    `;
-
+      card.innerHTML = `
+        <img src="${curso.imagen || 'https://unsplash.com/es/fotos/un-grupo-de-gorras-de-graduacion-sentadas-una-encima-de-la-otra-pLRAaxH0vHA'}" alt="Miniatura del curso" class="w-24 h-24 rounded object-cover mr-4"/>
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-green-700">${curso.nombre}</h3>
+          <p class="text-sm text-gray-600">${curso.profesor || 'Sin tutor asignado'}</p>
+         <a href="/views/curso.html?id=${curso.id}" class="inline-block mt-2 bg-green-600 text-white text-sm px-4 py-2 rounded hover:bg-green-700 transition">
+            Ir al curso
+          </a>
+        </div>
+      `;
 
       container.appendChild(card);
     });
