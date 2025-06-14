@@ -45,7 +45,16 @@
       <!-- Contenido de subpestañas -->
       <div x-show="subTab === 'presentacion'" x-transition class="bg-white rounded-xl shadow-md p-6 text-center">
         <h2 class="text-2xl font-semibold mb-3">Presentación</h2>
-        <p class="text-gray-700">Como tener masa muscular como Diego eso sí</p>
+        <div id="presentacion-contenedor" class="text-gray-700">
+  <p id="presentacion-texto" class="mb-4">Cargando descripción...</p>
+
+  <!-- Este div solo se mostrará si el usuario es el profesor -->
+  <div id="presentacion-editor" class="hidden flex flex-col items-center gap-3">
+    <textarea id="descripcion-input" class="w-full border border-gray-300 rounded p-2 resize-none" rows="4"></textarea>
+    <button id="guardar-descripcion" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow">Guardar descripción</button>
+  </div>
+</div>
+
       </div>
       <div x-show="subTab === 'cronograma'" x-transition class="bg-white rounded-xl shadow-md p-6 text-center">
         <h2 class="text-2xl font-semibold mb-3">Cronograma</h2>
@@ -113,14 +122,25 @@
   }
 
   // Cargar datos del curso
-  fetch(`/api/cursos?action=obtener-detalle&curso_id=${cursoId}`)
-    .then(res => res.json())
-    .then(curso => {
-        document.getElementById('nombre-curso').textContent = curso.nombre;
-        document.getElementById('nombre-tutor').textContent = `Tutor: ${curso.profesor || 'No asignado'}`;
-        document.getElementById('presentacion-texto').textContent = curso.descripcion || 'Sin descripción';
+fetch(`/api/cursos?action=obtener-detalle&curso_id=${cursoId}`)
+  .then(res => res.json())
+  .then(curso => {
+    document.getElementById('nombre-curso').textContent = curso.nombre;
+    document.getElementById('nombre-tutor').textContent = `Tutor: ${curso.profesor || 'No asignado'}`;
+    document.getElementById('presentacion-texto').textContent = curso.descripcion || 'Sin descripción';
 
-    })
+    // Obtener usuario actual
+    fetch('/api/usuarios?action=yo')
+      .then(res => res.json())
+      .then(usuario => {
+        if (usuario.id === curso.profesor_id) {
+          // Mostrar editor
+          document.getElementById('presentacion-editor').classList.remove('hidden');
+          document.getElementById('descripcion-input').value = curso.descripcion || '';
+        }
+      });
+  });
+
 
 
   // Navegación entre pestañas
@@ -139,6 +159,30 @@
       document.getElementById(selected).classList.remove('hidden');
     });
   });
+
+  document.getElementById('guardar-descripcion').addEventListener('click', () => {
+  const nuevaDescripcion = document.getElementById('descripcion-input').value;
+
+  fetch(`/api/cursos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'actualizar-descripcion',
+      curso_id: cursoId,
+      descripcion: nuevaDescripcion
+    })
+  })
+    .then(res => res.json())
+    .then(res => {
+      if (res.success) {
+        document.getElementById('presentacion-texto').textContent = nuevaDescripcion;
+        alert('Descripción actualizada');
+      } else {
+        alert('Error al actualizar');
+      }
+    });
+});
+
 </script>
 </body>
 </html>

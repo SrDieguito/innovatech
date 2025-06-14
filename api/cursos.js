@@ -70,6 +70,22 @@ if (req.method === "DELETE" && action === "eliminar") {
   }
 }
 
+if (action === 'actualizar-descripcion') {
+  const { curso_id, descripcion } = req.body;
+  const usuarioId = req.session.usuario?.id;
+
+  if (!usuarioId) return res.status(401).json({ error: 'No autenticado' });
+
+  // Verificar que sea el profesor
+  const curso = await db.get("SELECT * FROM cursos WHERE id = ?", [curso_id]);
+  if (!curso || curso.profesor_id !== usuarioId) {
+    return res.status(403).json({ error: 'No autorizado' });
+  }
+
+  await db.run("UPDATE cursos SET descripcion = ? WHERE id = ?", [descripcion, curso_id]);
+  return res.json({ success: true });
+}
+
     // EDITAR CURSO
     if (req.method === "PUT" && action === "editar") {
       const { curso_id, nombre, descripcion, profesor_id } = req.body;
