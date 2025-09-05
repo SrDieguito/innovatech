@@ -5,8 +5,14 @@ export const pool = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
+  port: process.env.DB_PORT || 42185,
   connectionLimit: 10,
+  waitForConnections: true,
+  queueLimit: 0,
+  ssl: {
+    // Required for Railway
+    rejectUnauthorized: false
+  },
 });
 
 export default async function handler(req, res) {
