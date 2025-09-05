@@ -49,8 +49,6 @@ export default async function handler(req, res) {
         c.descripcion, 
         u.nombre AS profesor, 
         'estudiante' AS rol,
-        c.fecha_inicio,
-        c.fecha_fin
       FROM cursos c
       INNER JOIN cursos_estudiantes ce ON ce.curso_id = c.id
       LEFT JOIN usuarios u ON c.profesor_id = u.id
@@ -64,8 +62,6 @@ export default async function handler(req, res) {
         c.descripcion, 
         u.nombre AS profesor, 
         'profesor' AS rol,
-        c.fecha_inicio,
-        c.fecha_fin
       FROM cursos c
       INNER JOIN usuarios u ON c.profesor_id = u.id
       WHERE c.profesor_id = ?
@@ -99,9 +95,7 @@ export default async function handler(req, res) {
     return res.status(500).json({
       success: false,
       error: 'Error interno del servidor',
-      message: 'Ocurrió un error al procesar su solicitud',
-      // Only include detailed error in development
-      ...(process.env.NODE_ENV !== 'production' && { details: errorInfo })
+      message: 'Ocurrió un error al procesar su solicitud'
     });
   }
 }
