@@ -85,10 +85,23 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Error al obtener cursos:', error);
+    // Get more detailed error information
+    const errorInfo = {
+      message: error.message,
+      code: error.code,
+      sqlMessage: error.sqlMessage,
+      sqlState: error.sqlState,
+      sql: error.sql
+    };
+    
+    console.error('Error details:', errorInfo);
+    
     return res.status(500).json({
       success: false,
       error: 'Error interno del servidor',
-      message: 'Ocurrió un error al procesar su solicitud'
+      message: 'Ocurrió un error al procesar su solicitud',
+      // Only include detailed error in development
+      ...(process.env.NODE_ENV !== 'production' && { details: errorInfo })
     });
   }
 }

@@ -87,6 +87,7 @@
           <p class="text-gray-600">Cargando sus cursos...</p>
         </div>`;
       
+      const startTime = Date.now();
       const res = await fetch('/api/miscursos', {
         method: 'GET',
         credentials: 'include',
@@ -98,6 +99,9 @@
         }
       });
 
+      const responseTime = Date.now() - startTime;
+      console.log(`API response time: ${responseTime}ms`);
+
       // Check if response is JSON
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
@@ -107,18 +111,27 @@
       }
 
       const data = await res.json();
+      console.log('API Response:', data);
       
       if (!res.ok) {
         if (res.status === 401) {
           window.location.href = '/auth/login.html';
           return;
         }
-        throw new Error(data.message || 'Error al cargar los cursos');
+        // Show server error details if available
+        const errorMsg = data.details ? 
+          `${data.message || 'Error al cargar los cursos'}<br/><small class="text-gray-500">${JSON.stringify(data.details)}</small>` : 
+          (data.message || 'Error al cargar los cursos');
+        throw new Error(errorMsg);
       }
 
       // Extract courses from the response data
-      const cursos = data.data || [];
-      todosLosCursos = Array.isArray(cursos) ? cursos : [];
+      if (!data || typeof data !== 'object') {
+        throw new Error('Formato de respuesta inesperado del servidor');
+      }
+
+      const cursos = Array.isArray(data.data) ? data.data : [];
+      todosLosCursos = cursos;
       
       if (todosLosCursos.length === 0) {
         renderizarSinCursos();
@@ -127,12 +140,17 @@
       }
       
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error al cargar cursos:', error);
       container.innerHTML = `
         <div class="col-span-full text-center py-8">
-          <p class="text-red-600 mb-4">Error al cargar los cursos. Por favor, intente nuevamente.</p>
-          <button onclick="cargarCursos()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            Reintentar
+          <div class="text-red-500 mb-4">
+            <i class="fas fa-exclamation-triangle text-4xl mb-2"></i>
+            <p class="font-semibold">Error al cargar los cursos</p>
+            <p class="text-sm mt-2 text-gray-600">${error.message || 'Por favor, intente nuevamente más tarde.'}</p>
+          </div>
+          <button onclick="cargarCursos()" 
+                  class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-md transition-colors">
+            <i class="fas fa-sync-alt mr-2"></i> Reintentar
           </button>
         </div>`;
     }
