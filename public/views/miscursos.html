@@ -76,24 +76,65 @@
   let todosLosCursos = [];
 
   async function cargarCursos() {
+    const container = document.getElementById('cursos-container');
+    const noCursos = document.getElementById('no-cursos');
+    
     try {
+      // Show loading state
+      container.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p class="text-gray-600">Cargando sus cursos...</p>
+        </div>`;
+      
       const res = await fetch('/api/miscursos', {
         method: 'GET',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       });
 
-      if (res.status === 401) {
-        alert('No autorizado. Por favor inicia sesión.');
-        return;
+      // Check if response is JSON
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await res.text();
+        console.error('Expected JSON, got:', text);
+        throw new Error('La respuesta del servidor no es válida');
       }
 
-      const cursos = await res.json();
-      todosLosCursos = cursos;
-      renderizarCursos(cursos);
+      const data = await res.json();
+      
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = '/auth/login.html';
+          return;
+        }
+        throw new Error(data.message || 'Error al cargar los cursos');
+      }
+
+      // Extract courses from the response data
+      const cursos = data.data || [];
+      todosLosCursos = Array.isArray(cursos) ? cursos : [];
+      
+      if (todosLosCursos.length === 0) {
+        renderizarSinCursos();
+      } else {
+        renderizarCursos(todosLosCursos);
+      }
+      
     } catch (error) {
-      console.error(error);
-      alert('Hubo un error cargando los cursos');
+      console.error('Error:', error);
+      container.innerHTML = `
+        <div class="col-span-full text-center py-8">
+          <p class="text-red-600 mb-4">Error al cargar los cursos. Por favor, intente nuevamente.</p>
+          <button onclick="cargarCursos()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Reintentar
+          </button>
+        </div>`;
     }
   }
 
