@@ -48,7 +48,7 @@ export default async function handler(req, res) {
         c.nombre, 
         c.descripcion, 
         u.nombre AS profesor, 
-        'estudiante' AS rol,
+        'estudiante' AS rol
       FROM cursos c
       INNER JOIN cursos_estudiantes ce ON ce.curso_id = c.id
       LEFT JOIN usuarios u ON c.profesor_id = u.id
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
         c.nombre, 
         c.descripcion, 
         u.nombre AS profesor, 
-        'profesor' AS rol,
+        'profesor' AS rol
       FROM cursos c
       INNER JOIN usuarios u ON c.profesor_id = u.id
       WHERE c.profesor_id = ?
