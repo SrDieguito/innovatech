@@ -10,25 +10,47 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
+async function authMiddleware(req) {
+  if (!req.cookies || !req.cookies.user_id) {
+    return { error: 'No autorizado', status: 401 };
+  }
+  return { userId: req.cookies.user_id };
+}
+
 export default async function handler(req, res) {
+  // Set content type to JSON
+  res.setHeader('Content-Type', 'application/json');
+
+  // Handle non-GET requests
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Método no permitido' });
+    return res.status(405).json({ 
+      success: false,
+      error: 'Método no permitido',
+      message: 'Solo se permiten solicitudes GET en este endpoint'
+    });
   }
-
-  async function authMiddleware(req, res) {
-    if (!req.cookies || !req.cookies.user_id) {
-      res.status(401).json({ error: "No autorizado" });
-      return null;
-    }
-    return req.cookies.user_id;
-  }
-
-  const userId = await authMiddleware(req, res);
-  if (!userId) return;
 
   try {
+    // Authenticate user
+    const auth = await authMiddleware(req);
+    if (auth.error) {
+      return res.status(auth.status || 401).json({
+        success: false,
+        error: auth.error,
+        message: 'Por favor inicie sesión para continuar'
+      });
+    }
+
+    // Query the database
     const [rows] = await pool.query(`
-      SELECT DISTINCT c.id, c.nombre, c.descripcion, u.nombre AS profesor, 'estudiante' AS rol
+      SELECT DISTINCT 
+        c.id, 
+        c.nombre, 
+        c.descripcion, 
+        u.nombre AS profesor, 
+        'estudiante' AS rol,
+        c.fecha_inicio,
+        c.fecha_fin
       FROM cursos c
       INNER JOIN cursos_estudiantes ce ON ce.curso_id = c.id
       LEFT JOIN usuarios u ON c.profesor_id = u.id
@@ -36,15 +58,37 @@ export default async function handler(req, res) {
 
       UNION
 
-      SELECT DISTINCT c.id, c.nombre, c.descripcion, u.nombre AS profesor, 'profesor' AS rol
+      SELECT DISTINCT 
+        c.id, 
+        c.nombre, 
+        c.descripcion, 
+        u.nombre AS profesor, 
+        'profesor' AS rol,
+        c.fecha_inicio,
+        c.fecha_fin
       FROM cursos c
       INNER JOIN usuarios u ON c.profesor_id = u.id
       WHERE c.profesor_id = ?
-    `, [userId, userId]);
+      ORDER BY nombre ASC
+    `, [auth.userId, auth.userId]);
 
-    res.status(200).json(rows);
+    // Add active status based on dates
+    const cursosConEstado = rows.map(curso => ({
+      ...curso,
+      activo: new Date(curso.fecha_fin) >= new Date()
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: cursosConEstado
+    });
+
   } catch (error) {
     console.error('Error al obtener cursos:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    return res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor',
+      message: 'Ocurrió un error al procesar su solicitud'
+    });
   }
 }
