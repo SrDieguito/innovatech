@@ -42,6 +42,17 @@
               class="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50">Completar</button>
             <button data-action="eliminar"
               class="px-3 py-1.5 rounded-lg border border-red-200 text-red-700 hover:bg-red-50">Eliminar</button>
+            <!-- botón de profesor -->
+            <button class="px-3 py-1 border rounded bg-gray-100 hidden" data-action="ver-entregas">Ver entregas</button>
+
+            <!-- bloque alumno -->
+            <div class="mt-2 hidden" data-field="actions-student">
+              <button class="px-3 py-1 border rounded bg-green-50 hover:bg-green-100" data-action="entregar">Entregar</button>
+            </div>
+
+            <!-- badge “Entregado” solo para el alumno actual -->
+            <span class="ml-auto text-green-700 hidden" data-field="my-delivery"></span>
+
           </div>
         </div>
       </article>
@@ -49,6 +60,7 @@
   
     <dialog id="modalTarea" class="rounded-2xl p-0 w-full max-w-xl backdrop:bg-black/30">
       <form id="formTarea" class="p-6 space-y-4">
+
         <h4 id="modalTitulo" class="text-lg font-semibold">Nueva tarea</h4>
         <input type="hidden" name="id">
   
@@ -83,7 +95,32 @@
           <button type="submit"
             class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">Guardar</button>
         </div>
+
+        
       </form>
     </dialog>
+    <!-- Modal: subir entrega -->
+    <dialog id="modalEntrega" class="rounded-xl p-0 w-full max-w-md">
+      <div class="p-4 border-b font-semibold">Entregar: <span id="entregaTitulo"></span></div>
+      <div class="p-4 space-y-3">
+        <input id="inputArchivo" type="file" class="block w-full" />
+        <p class="text-xs text-gray-500">Máx. 2 MB. PDF, JPG/PNG, DOC/DOCX, TXT.</p>
+        <div id="msgEntrega" class="text-sm"></div>
+      </div>
+      <div class="p-3 border-t flex justify-end gap-2">
+        <button id="btnCancelarEntrega" class="px-3 py-1 border rounded">Cancelar</button>
+        <button id="btnSubirArchivo" class="px-3 py-1 border rounded bg-green-600 text-white">Subir</button>
+      </div>
+    </dialog>
+
+    <!-- Modal: lista de entregas (profesor) -->
+    <dialog id="modalProfesor" class="rounded-xl p-0 w-full max-w-2xl">
+      <div class="p-4 border-b font-semibold" id="profTitulo">Entregas</div>
+      <div id="profLista" class="p-4 space-y-2 max-h-[60vh] overflow-auto"></div>
+      <div class="p-3 border-t flex justify-end">
+        <button id="btnCerrarProfesor" class="px-3 py-1 border rounded">Cerrar</button>
+      </div>
+    </dialog>
+
   </section>
   
