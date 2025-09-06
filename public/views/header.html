@@ -80,55 +80,53 @@
    </div>
   </header>
 
-<script>
-  // Usuario: nombre e iniciales
-  fetch('/api/perfil')
-    .then(res => res.json())
-    .then(data => {
-      const nameParts = data.nombre.trim().split(/\s+/);
-      const firstName = nameParts[0] || '';
-      const firstLastName = nameParts[1] || '';
-      const initials = (firstName[0] || '') + (firstLastName[0] || '');
 
-      document.getElementById('user-name').textContent = data.nombre.toUpperCase();
-      document.getElementById('user-initials').textContent = initials.toUpperCase();
-    })
-    .catch(() => {
-      document.getElementById('user-name').textContent = "USUARIO";
-      document.getElementById('user-initials').textContent = "US";
-    });
 
-  // Menú desplegable del usuario
-  const userMenuButton = document.getElementById('user-menu-button');
-  const userDropdown = document.getElementById('user-dropdown');
-
-  userMenuButton.addEventListener('click', (e) => {
-    e.stopPropagation();
-    userDropdown.classList.toggle('hidden');
-  });
-
-  window.addEventListener('click', (event) => {
-    if (!userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
-      userDropdown.classList.add('hidden');
-    }
-  });
-
-  userDropdown.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
-
-  // Logout
-  const logoutLink = document.getElementById('logout-link');
-  if (logoutLink) {
-    logoutLink.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const response = await fetch('/api/logout', { method: 'POST', credentials: 'include' });
-      if (response.ok) {
-        window.location.href = '/auth/login.html';
-      } else {
-        alert('Error al cerrar sesión');
+  <script>
+    (function () {
+      const initEl = document.getElementById('user-initials');
+      const nameEl = document.getElementById('user-name');
+    
+      function getInitials(fullName) {
+        if (!fullName) return '';
+        const stop = new Set(['de','del','la','las','los','y','da','do','dos','das']);
+        // quita acentos y espacios raros
+        const clean = fullName.normalize('NFD').replace(/\p{Diacritic}/gu,'')
+                      .replace(/\s+/g,' ').trim();
+        const words = clean.split(' ').filter(Boolean).filter(w => !stop.has(w.toLowerCase()));
+        if (words.length === 0) return '';
+        const first = words[0].split('-')[0];
+        const last  = (words.length > 1 ? words[words.length - 1] : words[0]).split('-')[0];
+        return (first[0] + last[0]).toUpperCase();
       }
-    });
-  }
-</script>
-
+    
+      fetch('/api/perfil', { credentials: 'include' })
+        .then(res => { if (!res.ok) throw new Error('No autenticado'); return res.json(); })
+        .then(p => {
+          const nombre = (p?.nombre || '').trim();
+          const ini = getInitials(nombre) || 'US';
+          if (initEl) initEl.textContent = ini;
+          if (nameEl) nameEl.textContent = nombre || 'USUARIO';
+        })
+        .catch(() => {
+          if (initEl) initEl.textContent = 'US';
+          if (nameEl) nameEl.textContent = 'USUARIO';
+        });
+    
+      // dropdown (igual que lo tienes)
+      const userMenuButton = document.getElementById('user-menu-button');
+      const userDropdown = document.getElementById('user-dropdown');
+      userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('hidden'); });
+      window.addEventListener('click', (e) => { if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.add('hidden'); });
+      userDropdown.addEventListener('click', (e) => e.stopPropagation());
+    
+      // logout
+      const logoutLink = document.getElementById('logout-link');
+      if (logoutLink) logoutLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const r = await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+        if (r.ok) location.href = '/auth/login.html'; else alert('Error al cerrar sesión');
+      });
+    })();
+    </script>
+    
