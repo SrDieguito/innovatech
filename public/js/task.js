@@ -1,7 +1,7 @@
 // assets/js/tasks.js
 (() => {
   // ====== CONFIG ======
-  const USE_API = true;                          // usando backend real
+  const USE_API = true;
   const API_BASE = "/api/tareas";
 
   // ====== ESTADO ======
@@ -22,10 +22,8 @@
     return isNaN(d) ? null : d.toISOString();
   };
 
-  // Acepta "YYYY-MM-DD HH:mm:ss" o ISO
   const parseTS = (v) => {
     if (!v) return 0;
-    // Si viene "2025-09-06 12:30:00"
     const fixed = typeof v === "string" && v.includes(" ") && !v.includes("T")
       ? v.replace(" ", "T")
       : v;
@@ -42,7 +40,6 @@
     return `${two(d.getDate())}/${two(d.getMonth() + 1)}/${d.getFullYear()} ${two(d.getHours())}:${two(d.getMinutes())}`;
   };
 
-  // Normaliza objetos de la API a la forma del front
   const normalize = (r) => ({
     id: String(r?.id ?? r?.tarea_id ?? r?.uuid ?? ""),
     course_id: r?.curso_id ?? r?.course_id ?? state.courseId,
@@ -57,42 +54,8 @@
 
   const withCreds = (opt = {}) => ({ credentials: "include", ...opt });
 
-  // ====== API LOCAL (localStorage) ======
-  const fake = {
-    list() {
-      const db = JSON.parse(localStorage.getItem("tasks.db") || "[]");
-      return db.filter((x) => x.course_id === state.courseId);
-    },
-    create(p) {
-      const db = JSON.parse(localStorage.getItem("tasks.db") || "[]");
-      const row = {
-        id: crypto.randomUUID(),
-        ...p,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      db.push(row);
-      localStorage.setItem("tasks.db", JSON.stringify(db));
-      return row;
-    },
-    update(id, patch) {
-      const db = JSON.parse(localStorage.getItem("tasks.db") || "[]");
-      const i = db.findIndex((x) => x.id === id);
-      if (i < 0) throw new Error("not-found");
-      db[i] = { ...db[i], ...patch, updated_at: new Date().toISOString() };
-      localStorage.setItem("tasks.db", JSON.stringify(db));
-      return db[i];
-    },
-    del(id) {
-      const db = JSON.parse(localStorage.getItem("tasks.db") || "[]");
-      localStorage.setItem("tasks.db", JSON.stringify(db.filter((x) => x.id !== id)));
-      return true;
-    },
-  };
-
-  // ====== API REAL ======
+  // ====== API ======
   async function apiList() {
-    if (state.usandoFakeDB) return fake.list();
     const url = new URL(API_BASE, window.location.origin);
     url.searchParams.append("action", "listar");
     url.searchParams.append("curso_id", state.courseId);
@@ -104,7 +67,6 @@
   }
 
   async function apiCreate(payload) {
-    if (state.usandoFakeDB) return fake.create(payload);
     const url = new URL(API_BASE, window.location.origin);
     url.searchParams.append("action", "crear");
 
@@ -116,16 +78,13 @@
       puntos: payload.points ?? 0,
     };
 
-    const r = await fetch(
-      url,
-      withCreds({
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-    );
+    const r = await fetch(url, withCreds({
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }));
     if (!r.ok) throw new Error("HTTP " + r.status);
-    const result = await r.json(); // { id: ... }
+    const result = await r.json();
     return normalize({
       id: result?.id,
       curso_id: body.curso_id,
@@ -138,44 +97,30 @@
   }
 
   async function apiUpdate(id, patch) {
-    if (state.usandoFakeDB) return fake.update(id, patch);
-
-    // Intento de UPDATE en backend (si todavía no está, cae al fallback)
-    try {
-      const url = new URL(API_BASE, window.location.origin);
-      url.searchParams.append("action", "editar");
-      const body = {
-        id,
-        curso_id: patch.course_id ?? state.courseId,
-        titulo: patch.title,
-        descripcion: patch.description,
-        fecha_limite: patch.due_at,
-        puntos: patch.points,
-        estado: patch.status,
-      };
-      const r = await fetch(
-        url,
-        withCreds({
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        })
-      );
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      // Muchos backends devuelven {ok:true}; devolvemos lo que mandamos
-      return { id, ...patch };
-    } catch (e) {
-      console.warn("API editar no disponible, usando fallback local:", e?.message);
-      return fake.update(id, patch);
-    }
+    const url = new URL(API_BASE, window.location.origin);
+    url.searchParams.append("action", "editar");
+    const body = {
+      id,
+      curso_id: patch.course_id ?? state.courseId,
+      titulo: patch.title,
+      descripcion: patch.description,
+      fecha_limite: patch.due_at,
+      puntos: patch.points,
+      estado: patch.status,
+    };
+    const r = await fetch(url, withCreds({
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }));
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return { id, ...patch };
   }
 
   async function apiDel(id) {
-    if (state.usandoFakeDB) return fake.del(id);
     const url = new URL(API_BASE, window.location.origin);
     url.searchParams.append("action", "eliminar");
     url.searchParams.append("tarea_id", id);
-
     const r = await fetch(url, withCreds({ method: "DELETE" }));
     if (!r.ok) throw new Error("HTTP " + r.status);
     return true;
@@ -188,8 +133,8 @@
 
     const lista = $("#listaTareas", root);
     lista.innerHTML = "";
-    const q = state.filtro.q.toLowerCase(),
-      st = state.filtro.status;
+    const q = state.filtro.q.toLowerCase();
+    const st = state.filtro.status;
 
     const filtradas = state.tareas
       .filter((t) => {
@@ -199,14 +144,20 @@
       })
       .sort((a, b) => parseTS(a.due_at) - parseTS(b.due_at));
 
+    if (!filtradas.length) {
+      lista.innerHTML = `<div class="p-6 text-gray-500">No hay tareas para este curso.</div>`;
+      const btn = $("#btnNuevaTarea", root);
+      if (btn) btn.classList.toggle("hidden", state.role !== "profesor");
+      return;
+    }
+
     const tpl = $("#tpl-tarea");
     filtradas.forEach((t) => {
       const node = tpl.content.cloneNode(true);
       node.querySelector('[data-field="title"]').textContent = t.title || "(Sin título)";
       node.querySelector('[data-field="description"]').textContent = t.description || "";
       node.querySelector('[data-field="due_at"]').textContent = fmt(t.due_at);
-      node.querySelector('[data-field="points"]').textContent =
-        Number.isFinite(t.points) ? t.points : 0;
+      node.querySelector('[data-field="points"]').textContent = Number.isFinite(t.points) ? t.points : 0;
       node.querySelector('[data-field="status"]').textContent = t.status || "pendiente";
 
       const actions = node.querySelector('[data-field="actions"]');
@@ -234,9 +185,7 @@
     f.id.value = data?.id || "";
     f.title.value = data?.title || "";
     f.description.value = data?.description || "";
-    f.due_at.value = data?.due_at
-      ? new Date(parseTS(data.due_at)).toISOString().slice(0, 16)
-      : "";
+    f.due_at.value = data?.due_at ? new Date(parseTS(data.due_at)).toISOString().slice(0, 16) : "";
     f.points.value = Number.isFinite(data?.points) ? data.points : 100;
     dlg.showModal();
   }
@@ -248,13 +197,9 @@
     if (!root) return;
 
     const qs = new URLSearchParams(location.search);
-    state.courseId =
-      root.dataset.courseId ||
-      qs.get("id") ||
-      qs.get("courseId") ||
-      "demo-course";
+    state.courseId = root.dataset.courseId || qs.get("id") || qs.get("courseId") || qs.get("curso_id") || null;
 
-    // Rol: perfil (si existe), o data-*, o localStorage
+    // Rol: intenta /api/perfil; si falla usa data-attr o localStorage
     try {
       const rp = await fetch("/api/perfil", withCreds());
       if (rp.ok) {
@@ -269,14 +214,8 @@
 
     $("#btnNuevaTarea")?.addEventListener("click", () => openModal());
     $("#btnCancelarModal")?.addEventListener("click", closeModal);
-    $("#buscarTarea")?.addEventListener("input", (e) => {
-      state.filtro.q = e.target.value;
-      render();
-    });
-    $("#filtroEstado")?.addEventListener("change", (e) => {
-      state.filtro.status = e.target.value;
-      render();
-    });
+    $("#buscarTarea")?.addEventListener("input", (e) => { state.filtro.q = e.target.value; render(); });
+    $("#filtroEstado")?.addEventListener("change", (e) => { state.filtro.status = e.target.value; render(); });
 
     $("#formTarea")?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -319,8 +258,8 @@
           openModal(t);
         } else if (btn.dataset.action === "toggle") {
           const next = t.status === "completada" ? "pendiente" : "completada";
-          const up = await apiUpdate(id, { status: next, course_id: t.course_id });
-          Object.assign(t, up, { status: next });
+          await apiUpdate(id, { status: next, course_id: t.course_id });
+          t.status = next;
           render();
         } else if (btn.dataset.action === "eliminar") {
           if (confirm("¿Eliminar esta tarea?")) {
@@ -335,12 +274,23 @@
       }
     });
 
-    // Cargar
+    // Cargar lista con manejo de errores visible
     try {
       state.tareas = await apiList();
-    } catch {
-      state.tareas = [];
+      if (!Array.isArray(state.tareas)) state.tareas = [];
+    } catch (e) {
+      console.error("Fallo al listar tareas:", e);
+      const box = document.getElementById("listaTareas");
+      if (box) {
+        box.innerHTML = `
+          <div class="p-4 rounded bg-red-50 border border-red-200 text-red-700">
+            No se pudieron cargar las tareas. Revisa el backend o recarga.<br>
+            <code class="text-xs">/api/tareas?action=listar&curso_id=${state.courseId ?? "?"}</code>
+          </div>`;
+      }
+      return;
     }
+
     render();
   }
 
