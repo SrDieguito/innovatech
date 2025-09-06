@@ -3,15 +3,12 @@
   const API_TAREAS = "/api/tareas";
   const API_CURSOS = "/api/cursos";
   const API_PERFIL = "/api/perfil";
-  const API_ENTREGAS = "/api/entregas";
 
   const state = {
     courseId: null,
     role: "estudiante", // 'profesor' si es dueño/profesor/admin
     tareas: [],
     filtro: { q: "", status: "" },
-    entregasMap: {},      // { [tarea_id]: {entrega_id, entregado, fecha, calificacion, estado} }
-    currentTareaId: null, // para saber a qué tarea se le entrega o se consultan entregas
   };
 
   const $ = (s, r = document) => r.querySelector(s);
@@ -146,48 +143,7 @@
     if (!r.ok) throw new Error("HTTP " + r.status);
     return true;
   }
-  async function apiMisEntregas(){
-    const url = new URL(API_ENTREGAS, location.origin);
-    url.searchParams.append('action','mis');
-    url.searchParams.append('curso_id', state.courseId);
-    const r = await fetch(url, withCreds());
-    if (!r.ok) return {};
-    return await r.json(); // { [tarea_id]: {...} }
-  }
-  
-  async function apiEntregasPorTarea(tareaId){
-    const url = new URL(API_ENTREGAS, location.origin);
-    url.searchParams.append('action','por_tarea');
-    url.searchParams.append('tarea_id', tareaId);
-    const r = await fetch(url, withCreds());
-    if (!r.ok) throw new Error('HTTP '+r.status);
-    return await r.json(); // array de entregas
-  }
-  
-  async function apiSubirEntrega(tareaId, file){
-    const fd = new FormData();
-    fd.append('tarea_id', tareaId);
-    fd.append('archivo', file); // máx. 2MB validado en backend
-    const url = new URL(API_ENTREGAS, location.origin);
-    url.searchParams.append('action','subir');
-    const r = await fetch(url, withCreds({ method:'POST', body: fd }));
-    if (r.status === 413) throw new Error('Archivo supera 2MB');
-    if (!r.ok) throw new Error('HTTP '+r.status);
-    return await r.json();
-  }
-  
-  async function apiCalificarEntrega(id, calificacion, observacion){
-    const url = new URL(API_ENTREGAS, location.origin);
-    url.searchParams.append('action','calificar');
-    const r = await fetch(url, withCreds({
-      method:'PUT',
-      headers:{ 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, calificacion, observacion })
-    }));
-    if (!r.ok) throw new Error('HTTP '+r.status);
-    return await r.json();
-  }
-  
+
   function render() {
     const root = $("#tasks-root");
     if (!root) return;
@@ -205,9 +161,7 @@
       lista.innerHTML = `<div class="p-6 text-gray-500">No hay tareas para este curso.</div>`;
     } else {
       const tpl = $("#tpl-tarea");
-
       filtradas.forEach((t) => {
-
         const node = tpl.content.cloneNode(true);
         node.querySelector('[data-field="title"]').textContent = t.title || "(Sin título)";
         node.querySelector('[data-field="description"]').textContent = t.description || "";
@@ -216,49 +170,12 @@
         node.querySelector('[data-field="status"]').textContent = t.status || "pendiente";
 
         const actions = node.querySelector('[data-field="actions"]');
-
         if (actions) {
-
-          // ➕ NUEVO: Acciones para estudiante (botón Entregar + badge “Entregado”)
-          const actionsStudent = node.querySelector('[data-field="actions-student"]');
-          if (actionsStudent) {
-            const isStudent = state.role !== "profesor";
-            actionsStudent.classList.toggle('hidden', !isStudent);
-            actionsStudent.dataset.id = t.id;
-
-            const my = state.entregasMap[t.id];
-            const badge = node.querySelector('[data-field="my-delivery"]');
-            if (isStudent && my?.entregado) {
-              badge?.classList.remove('hidden');
-              if (badge) badge.textContent = `Entregado (${fmt(my.fecha)})`;
-            } else {
-              badge?.classList.add('hidden');
-            }
-
-            // evento botón Entregar
-            const btnEnt = node.querySelector('[data-action="entregar"]');
-            if (btnEnt) {
-              btnEnt.addEventListener('click', ()=>{
-                state.currentTareaId = t.id;
-                openEntregaModal(t.title);
-              });
-            }
-          }
-
-          // ➕ NUEVO: botón “Ver entregas” para profesor
-          const btnVer = node.querySelector('[data-action="ver-entregas"]');
-          if (btnVer) {
-            const isProf = state.role === 'profesor';
-            btnVer.classList.toggle('hidden', !isProf);
-            btnVer.addEventListener('click', async ()=>{
-              state.currentTareaId = t.id;
-              await openProfesorModal(t.id, t.title);
-            });
-          }
-          
-
+          const isProf = state.role === "profesor";
+          actions.classList.toggle("hidden", !isProf);
+          actions.classList.toggle("flex", isProf);
+          actions.dataset.id = t.id;
         }
-
         lista.appendChild(node);
       });
     }
@@ -280,64 +197,6 @@
   }
   const closeModal = () => $("#modalTarea")?.close();
 
-
-  // === Modal de entrega (estudiante)
-function openEntregaModal(title){
-  document.getElementById('entregaTitulo').textContent = title || 'Entregar tarea';
-  document.getElementById('inputArchivo').value = '';
-  document.getElementById('msgEntrega').textContent = '';
-  document.getElementById('modalEntrega').showModal();
-}
-function closeEntregaModal(){ document.getElementById('modalEntrega')?.close(); }
-
-// === Modal de lista de entregas (profesor)
-async function openProfesorModal(tareaId, title){
-  document.getElementById('profTitulo').textContent = `Entregas: ${title||''}`;
-  const list = document.getElementById('profLista');
-  list.innerHTML = '<div class="p-3 text-gray-500">Cargando...</div>';
-  try{
-    const data = await apiEntregasPorTarea(tareaId);
-    if (!data.length) {
-      list.innerHTML = '<div class="p-3 text-gray-500">Sin entregas aún.</div>';
-    } else {
-      list.innerHTML = '';
-      data.forEach(e=>{
-        const row = document.createElement('div');
-        row.className = 'flex items-center justify-between border-b py-2 gap-3';
-        row.innerHTML = `
-          <div class="min-w-0">
-            <div class="font-medium truncate">${e.estudiante}</div>
-            <div class="text-xs text-gray-500 truncate">${e.archivo_nombre} • ${Math.round(e.tamano_bytes/1024)} KB • ${fmt(e.fecha_entrega)}</div>
-            <div class="text-xs">${e.estado}${e.calificacion!=null?` • Nota: ${e.calificacion}`:''}</div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <a class="px-2 py-1 border rounded text-sm" href="/api/entregas?action=descargar&id=${e.id}">Descargar</a>
-            <input type="number" min="0" max="100" step="1" placeholder="Nota" class="w-20 px-2 py-1 border rounded text-sm" value="${e.calificacion??''}" data-calificar-id="${e.id}">
-            <button class="px-2 py-1 border rounded text-sm bg-green-600 text-white" data-guardar-id="${e.id}">Guardar</button>
-          </div>`;
-        list.appendChild(row);
-      });
-      list.querySelectorAll('[data-guardar-id]').forEach(btn=>{
-        btn.addEventListener('click', async ()=>{
-          const id = btn.getAttribute('data-guardar-id');
-          const inp = list.querySelector(`[data-calificar-id="${id}"]`);
-          try{
-            await apiCalificarEntrega(Number(id), inp.value? Number(inp.value): null, null);
-            btn.textContent = 'Guardado';
-            setTimeout(()=> btn.textContent='Guardar', 1200);
-          }catch(e){ alert('No se pudo guardar'); console.error(e); }
-        });
-      });
-    }
-  }catch(e){
-    list.innerHTML = '<div class="p-3 text-red-600 bg-red-50 border border-red-200 rounded">Error al cargar entregas.</div>';
-  }
-  document.getElementById('modalProfesor').showModal();
-}
-function closeProfesorModal(){ document.getElementById('modalProfesor')?.close(); }
-
-
-
   async function init() {
     const root = $("#tasks-root");
     if (!root) return;
@@ -347,29 +206,7 @@ function closeProfesorModal(){ document.getElementById('modalProfesor')?.close()
 
     // 1) Resolver rol (perfil.rol || dueño || admin)
     state.role = await resolveRoleForCourse(state.courseId);
-    // Eventos de modales de entrega
-    document.getElementById('btnSubirArchivo')?.addEventListener('click', async ()=>{
-      const file = document.getElementById('inputArchivo').files[0];
-      const msg = document.getElementById('msgEntrega');
-      if (!file) { msg.textContent = 'Selecciona un archivo.'; return; }
-      if (file.size > 2*1024*1024) { msg.textContent = 'Archivo supera 2 MB.'; return; }
-      try{
-        await apiSubirEntrega(state.currentTareaId, file);
-        msg.textContent = 'Entregado ✔';
-        state.entregasMap = await apiMisEntregas(); // refresca mi estado
-        setTimeout(()=> { closeEntregaModal(); render(); }, 700);
-      }catch(e){ msg.textContent = 'Error al entregar.'; console.error(e); }
-    });
-    document.getElementById('btnCancelarEntrega')?.addEventListener('click', closeEntregaModal);
-    document.getElementById('btnCerrarProfesor')?.addEventListener('click', closeProfesorModal);
 
-    // … ya cargas las tareas:
-    state.tareas = await apiList();
-
-    // ➕ si NO eres profesor, carga mi mapa de entregas (para mostrar “Entregado”)
-    if (state.role !== 'profesor') {
-      state.entregasMap = await apiMisEntregas();
-    }
     // 2) Eventos UI
     $("#btnNuevaTarea")?.addEventListener("click", () => openModal());
     $("#btnCancelarModal")?.addEventListener("click", closeModal);
