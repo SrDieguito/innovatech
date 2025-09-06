@@ -1,25 +1,15 @@
 // api/entregas.js
 import { pool } from './db.js';
 import fs from 'node:fs/promises';
-import path from 'node:path';
-import formidable from 'formidable';
 
 function getUserId(req){ return req.cookies?.user_id || null; }
-async function getColumns(table){
-  const [rows] = await pool.query(
-    `SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
-    [table]
-  );
-  const set = new Set(rows.map(r => r.COLUMN_NAME));
-  return { has:(c)=>set.has(c), set };
-}
+
 async function isAdminOrProfesor(userId){
   const [[u]] = await pool.query('SELECT rol FROM usuarios WHERE id=?',[userId]);
   if(!u) return false;
-  return ['admin','profesor'].includes(String(u.rol).toLowerCase());
+  return ['admin','profesor'].includes(String(u.rol||'').toLowerCase());
 }
 async function isProfesorDelCurso(userId, tareaId){
-  // valida que el usuario sea el profesor dueño del curso de esa tarea
   const [[row]] = await pool.query(`
     SELECT c.profesor_id
     FROM tareas t JOIN cursos c ON t.curso_id=c.id
@@ -28,6 +18,7 @@ async function isProfesorDelCurso(userId, tareaId){
   return Number(row.profesor_id) === Number(userId);
 }
 async function estudianteInscritoEnTarea(estudianteId, tareaId){
+  // Cambia el nombre de la tabla si tu esquema difiere
   const [[row]] = await pool.query(`
     SELECT 1
     FROM tareas t 
@@ -36,16 +27,22 @@ async function estudianteInscritoEnTarea(estudianteId, tareaId){
   return !!row;
 }
 
-export const config = { api: { bodyParser: false } }; // si usas Next.js, respeta esto; si no, no afecta.
-
 export default async function handler(req,res){
   const { action } = req.query || {};
 
   try{
-    // ------------- SUBIR (estudiante) -------------
+    // ---------- PING ----------
+    if (req.method === 'GET' && action === 'ping') {
+      return res.status(200).json({ ok:true });
+    }
+
+    // ---------- SUBIR (estudiante) ----------
     if(req.method==='POST' && action==='subir'){
       const userId = getUserId(req);
       if(!userId) return res.status(401).json({ error:'No autenticado' });
+
+      // Import dinámico: evita 500 en GET si formidable no está instalado
+      const { default: formidable } = await import('formidable');
 
       const form = formidable({
         multiples:false,
@@ -60,13 +57,11 @@ export default async function handler(req,res){
       const tarea_id = Number(fields.tarea_id?.toString() || 0);
       if(!tarea_id) return res.status(400).json({ error:'tarea_id requerido' });
 
-      // Debe estar inscrito en el curso de esa tarea
       if(!(await estudianteInscritoEnTarea(userId, tarea_id))){
         return res.status(403).json({ error:'No puedes entregar esta tarea' });
       }
 
       const file = files?.archivo;
-      // formidable puede entregar como array o como objeto
       const f = Array.isArray(file) ? file[0] : file;
       if(!f) return res.status(400).json({ error:'archivo requerido' });
 
@@ -86,7 +81,6 @@ export default async function handler(req,res){
       const buf = await fs.readFile(f.filepath);
       const nombre = f.originalFilename || 'archivo';
 
-      // UPSERT por (tarea_id, estudiante_id)
       await pool.query(`
         INSERT INTO tareas_entregas
           (tarea_id, estudiante_id, archivo_nombre, archivo_mime, archivo_blob, tamano_bytes, estado, fecha_entrega)
@@ -105,50 +99,69 @@ export default async function handler(req,res){
       return res.status(201).json({ ok:true, message:'Entregado' });
     }
 
-    // ------------- MIS ENTREGAS (estudiante) -------------
-    // GET /api/entregas?action=mis&curso_id=15
+    // ---------- MIS ENTREGAS (estudiante) ----------
     if(req.method==='GET' && action==='mis'){
       const userId = getUserId(req);
       if(!userId) return res.status(401).json({ error:'No autenticado' });
+
       const curso_id = Number(req.query.curso_id||0);
       if(!curso_id) return res.status(400).json({ error:'curso_id requerido' });
 
-      const [rows] = await pool.query(`
-        SELECT e.id, e.tarea_id, e.fecha_entrega, e.estado, e.calificacion
-        FROM tareas_entregas e
-        JOIN tareas t ON t.id=e.tarea_id
-        WHERE t.curso_id=? AND e.estudiante_id=?`, [curso_id, userId]);
+      try{
+        const [rows] = await pool.query(`
+          SELECT e.id, e.tarea_id, e.fecha_entrega, e.estado, e.calificacion
+          FROM tareas_entregas e
+          JOIN tareas t ON t.id=e.tarea_id
+          WHERE t.curso_id=CAST(? AS UNSIGNED) AND e.estudiante_id=CAST(? AS UNSIGNED)
+        `, [curso_id, userId]);
 
-      // devolvemos un map por rapidez en el front
-      const map = {};
-      for(const r of rows) map[r.tarea_id] = { entrega_id:r.id, entregado:true, fecha:r.fecha_entrega, estado:r.estado, calificacion:r.calificacion };
-      return res.status(200).json(map);
+        const map = {};
+        for(const r of rows){
+          map[r.tarea_id] = {
+            entrega_id: r.id,
+            entregado: true,
+            fecha: r.fecha_entrega,
+            estado: r.estado,
+            calificacion: r.calificacion
+          };
+        }
+        return res.status(200).json(map);
+      }catch(dbErr){
+        console.error('entregas:mis sql error', dbErr);
+        // No rompas la UI si hay un fallo SQL puntual
+        return res.status(200).json({});
+      }
     }
 
-    // ------------- ENTREGAS POR TAREA (profesor) -------------
-    // GET /api/entregas?action=por_tarea&tarea_id=123
+    // ---------- ENTREGAS POR TAREA (profesor) ----------
     if(req.method==='GET' && action==='por_tarea'){
       const userId = getUserId(req);
       if(!userId) return res.status(401).json({ error:'No autenticado' });
+
       const tarea_id = Number(req.query.tarea_id||0);
       if(!tarea_id) return res.status(400).json({ error:'tarea_id requerido' });
 
       const isProf = (await isAdminOrProfesor(userId)) || (await isProfesorDelCurso(userId, tarea_id));
       if(!isProf) return res.status(403).json({ error:'No autorizado' });
 
-      const [rows] = await pool.query(`
-        SELECT e.id, e.tarea_id, e.estudiante_id, u.nombre AS estudiante,
-               e.archivo_nombre, e.tamano_bytes, e.fecha_entrega, e.estado, e.calificacion, e.observacion
-        FROM tareas_entregas e
-        JOIN usuarios u ON u.id=e.estudiante_id
-        WHERE e.tarea_id=?
-        ORDER BY e.fecha_entrega DESC`, [tarea_id]);
+      try{
+        const [rows] = await pool.query(`
+          SELECT e.id, e.tarea_id, e.estudiante_id, u.nombre AS estudiante,
+                 e.archivo_nombre, e.tamano_bytes, e.fecha_entrega, e.estado, e.calificacion, e.observacion
+          FROM tareas_entregas e
+          JOIN usuarios u ON u.id=e.estudiante_id
+          WHERE e.tarea_id=CAST(? AS UNSIGNED)
+          ORDER BY e.fecha_entrega DESC
+        `, [tarea_id]);
 
-      return res.status(200).json(rows);
+        return res.status(200).json(rows);
+      }catch(dbErr){
+        console.error('entregas:por_tarea sql error', dbErr);
+        return res.status(200).json([]);
+      }
     }
 
-    // ------------- DESCARGAR (profesor o dueño de la entrega) -------------
-    // GET /api/entregas?action=descargar&id=55
+    // ---------- DESCARGAR (profesor o dueño) ----------
     if(req.method==='GET' && action==='descargar'){
       const userId = getUserId(req);
       if(!userId) return res.status(401).json({ error:'No autenticado' });
@@ -160,7 +173,7 @@ export default async function handler(req,res){
         FROM tareas_entregas e
         JOIN tareas t ON t.id=e.tarea_id
         JOIN cursos c ON c.id = t.curso_id
-        WHERE e.id=?`, [id]);
+        WHERE e.id=CAST(? AS UNSIGNED)`, [id]);
       if(!row) return res.status(404).json({ error:'No encontrada' });
 
       const isOwner = Number(row.estudiante_id)===Number(userId);
@@ -169,23 +182,21 @@ export default async function handler(req,res){
 
       res.setHeader('Content-Type', row.archivo_mime);
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(row.archivo_nombre)}"`);
-      return res.status(200).send(row.archivo_blob); // Buffer desde MySQL
+      return res.status(200).send(row.archivo_blob);
     }
 
-    // ------------- CALIFICAR (profesor) -------------
-    // PUT /api/entregas?action=calificar
-    // body: { id, calificacion, observacion }
+    // ---------- CALIFICAR (profesor) ----------
     if(req.method==='PUT' && action==='calificar'){
       const userId = getUserId(req);
       if(!userId) return res.status(401).json({ error:'No autenticado' });
+
       const { id, calificacion=null, observacion=null } = req.body || {};
       if(!id) return res.status(400).json({ error:'id requerido' });
 
-      // valida profesor del curso
       const [[row]] = await pool.query(`
         SELECT t.id AS tarea_id FROM tareas_entregas e 
         JOIN tareas t ON t.id=e.tarea_id
-        WHERE e.id=?`, [id]);
+        WHERE e.id=CAST(? AS UNSIGNED)`, [id]);
       if(!row) return res.status(404).json({ error:'Entrega no encontrada' });
 
       if(!(await isProfesorDelCurso(userId, row.tarea_id)) && !(await isAdminOrProfesor(userId))){
@@ -195,7 +206,7 @@ export default async function handler(req,res){
       await pool.query(`
         UPDATE tareas_entregas
         SET calificacion=?, observacion=?, estado='revisado'
-        WHERE id=?`, [calificacion, observacion, id]);
+        WHERE id=CAST(? AS UNSIGNED)`, [calificacion, observacion, id]);
 
       return res.status(200).json({ ok:true });
     }
