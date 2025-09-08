@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@popperjs/core@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+
 </head>
 
 <body class="bg-gradient-to-b from-green-50 to-white text-gray-900 min-h-screen flex flex-col">
@@ -94,25 +96,27 @@
 <script src="/js/task.js"></script>
 <script>
   // Cargar header
-  // Cargar el header (esto se mantiene igual)
-  fetch('/views/header.html')
-    .then(res => res.text())
-    .then(html => {
-      const container = document.getElementById('header-container');
-      container.innerHTML = html;
+fetch('/views/header.html')
+  .then(res => res.text())
+  .then(html => {
+    const container = document.getElementById('header-container');
+    container.innerHTML = html;
 
-      const scripts = container.querySelectorAll('script');
-      scripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        if (oldScript.src) {
-          newScript.src = oldScript.src;
-        } else {
-          newScript.textContent = oldScript.textContent;
-        }
-        document.body.appendChild(newScript);
-        oldScript.remove();
-      });
+    // Ejecutar scripts del header
+    const scripts = container.querySelectorAll('script');
+    scripts.forEach(oldScript => {
+      const newScript = document.createElement('script');
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
+      document.body.appendChild(newScript);
+      oldScript.remove();
     });
+  });
+
+
   // Obtener ID de curso de la URL
   const params = new URLSearchParams(window.location.search);
   const cursoId = params.get("id") || params.get("curso_id") || params.get("courseId");
