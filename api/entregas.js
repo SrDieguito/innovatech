@@ -1,34 +1,6 @@
 // api/entregas.js
 import multer from 'multer';
 import { pool } from './db.js';
-import { notifyEntrega } from '../wsServer.js'; // ¡ahora sí!
-
-// Dentro del bloque POST subir:
-if (ex?.id) {
-  await pool.query(
-    `UPDATE tareas_entregas
-       SET archivo_nombre=?, archivo_mime=?, archivo_blob=?, tamano_bytes=?, fecha_entrega=NOW(), estado='entregado'
-     WHERE id=?`,
-    [nombre, mime, buffer, bytes, ex.id]
-  );
-
-  // ⚡ Emitir evento WS
-  notifyEntrega(tarea_id, { action: 'actualizacion_tarea', estado: 'entregado', entrega_id: ex.id });
-
-  return res.status(200).json({ ok: true, id: ex.id, message: 'Entrega actualizada' });
-} else {
-  const [ins] = await pool.query(
-    `INSERT INTO tareas_entregas
-       (tarea_id, estudiante_id, archivo_nombre, archivo_mime, archivo_blob, tamano_bytes, estado)
-     VALUES (?,?,?,?,?,?, 'entregado')`,
-    [tarea_id, userId, nombre, mime, buffer, bytes]
-  );
-
-  // ⚡ Emitir evento WS
-  notifyEntrega(tarea_id, { action: 'actualizacion_tarea', estado: 'entregado', entrega_id: ins.insertId });
-
-  return res.status(201).json({ ok: true, id: ins.insertId, message: 'Entrega registrada' });
-}
 
 /* ===== Helpers ===== */
 function getUserId(req) {
