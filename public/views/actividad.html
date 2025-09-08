@@ -246,6 +246,48 @@ async function initActividad(){
       holder.botones.appendChild(ver);
     }
 
+    // Conexión WS para actualizaciones en tiempo real
+const ws = new WebSocket(`wss://${window.location.host}/ws/tareas?tarea_id=${tareaId}`);
+
+ws.onmessage = event => {
+  const msg = JSON.parse(event.data);
+
+  if (msg.action === "actualizacion_tarea" && msg.tarea_id == tareaId) {
+    // Actualiza estado automáticamente
+    holder.status.textContent = msg.estado || holder.status.textContent;
+
+    // Actualiza enlace de última entrega si hay archivo
+    if (msg.archivo) {
+      const ver = holder.botones.querySelector('a');
+      if (ver) {
+        ver.href = `/api/entregas?action=descargar&tarea_id=${tareaId}&archivo=${msg.archivo}`;
+        ver.textContent = `Ver última entrega (${msg.archivo})`;
+      }
+    }
+  }
+};
+
+document.getElementById('formEntrega').addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const formData = new FormData(e.target);
+
+  const res = await fetch(e.target.action, {
+    method: 'POST',
+    body: formData,
+    credentials: 'include'
+  });
+
+  if (res.ok) {
+    alert('Archivo subido correctamente. Espera que se actualice el estado.');
+    e.target.reset();
+  } else {
+    const data = await res.json().catch(()=>({error:'Error desconocido'}));
+    alert('Error al subir el archivo: ' + (data.error || 'Desconocido'));
+  }
+});
+
+
     await renderComentarios();
 
     // Formulario de comentario
