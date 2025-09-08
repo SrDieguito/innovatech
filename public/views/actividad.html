@@ -30,96 +30,97 @@
   <!-- Cargar el JS principal -->
   <script src="/assets/js/tasks.js"></script>
 
-  <script>
-    // Cargar header
-    fetch('/views/header.html')
-      .then(res => res.text())
-      .then(html => { document.getElementById('header-container').innerHTML = html });
+<script>
+  // Cargar header
+  fetch('/views/header.html')
+    .then(res => res.text())
+    .then(html => { document.getElementById('header-container').innerHTML = html });
 
-    const holder = document.getElementById('actividad-root');
-    const btnsHolder = document.getElementById('actividad-buttons');
+  const holder = document.getElementById('actividad-root');
+  const btnsHolder = document.getElementById('actividad-buttons');
 
-    const params = new URLSearchParams(window.location.search);
-    const cursoId = params.get("curso") || params.get("courseId") || params.get("curso_id");
-    const tareaId = params.get("id") || params.get("tarea_id");
+  const params = new URLSearchParams(window.location.search);
+  const cursoId = params.get("curso") || params.get("courseId") || params.get("curso_id");
+  const tareaId = params.get("id") || params.get("tarea_id");
 
-    function fmt(v) {
-      if (!v) return "—";
-      const t = new Date(v);
-      return t.toLocaleString();
+  function fmt(v) {
+    if (!v) return "—";
+    const t = new Date(v);
+    return t.toLocaleString();
+  }
+
+  async function getPerfil() {
+    const res = await fetch('/api/perfil', { credentials: 'include' });
+    if (!res.ok) return null;
+    return res.json();
+  }
+
+  async function getTarea() {
+    const res = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`, { credentials: 'include' });
+    if (!res.ok) return null;
+    const tareas = await res.json();
+    return tareas.find(t => t.id == tareaId);
+  }
+
+  async function initActividad() {
+    if (!cursoId || !tareaId) {
+      alert('Falta cursoId o tareaId');
+      return;
     }
 
-    async function getPerfil() {
-      const res = await fetch('/api/perfil', { credentials: 'include' });
-      if (!res.ok) return null;
-      return res.json();
-    }
+    try {
+      const [perfil, tarea] = await Promise.all([getPerfil(), getTarea()]);
+      if (!tarea) throw new Error("Tarea no encontrada");
 
-    async function getTarea() {
-      const res = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`, { credentials: 'include' });
-      if (!res.ok) return null;
-      const tareas = await res.json();
-      return tareas.find(t => t.id == tareaId);
-    }
+      const esProfesor = perfil?.rol === 'profesor' || perfil?.rol === 'admin' || Number(perfil?.id) === Number(tarea.profesor_id);
 
-    async function initActividad() {
-      if (!cursoId || !tareaId) {
-        alert('Falta cursoId o tareaId');
-        return;
+      // Renderizar datos
+      document.getElementById('actividad-title').textContent = tarea.title || "(Sin título)";
+      document.getElementById('actividad-description').textContent = tarea.description || "";
+      document.getElementById('actividad-due_at').textContent = fmt(tarea.due_at);
+      document.getElementById('actividad-points').textContent = tarea.points ?? 0;
+      document.getElementById('actividad-status').textContent = tarea.status || "pendiente";
+
+      // Botones
+      btnsHolder.innerHTML = '';
+
+      if (esProfesor) {
+        const editar = document.createElement('button');
+        editar.textContent = "Editar tarea";
+        editar.className = "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700";
+        editar.addEventListener('click', () => alert("Abrir modal de edición"));
+        btnsHolder.appendChild(editar);
+      } else {
+        const entregar = document.createElement('button');
+        entregar.textContent = "Entregar";
+        entregar.className = "px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50";
+
+        // ⚡ Espera a que la función global esté disponible
+        entregar.addEventListener('click', () => {
+          if (typeof window.openEntrega === "function") {
+            window.openEntrega(tareaId);
+          } else {
+            alert("Función de entrega no disponible. Espera unos segundos y vuelve a intentar.");
+          }
+        });
+
+        btnsHolder.appendChild(entregar);
+
+        const ver = document.createElement('a');
+        ver.textContent = "Ver última entrega";
+        ver.href = `/api/entregas?action=descargar&tarea_id=${tareaId}`;
+        ver.className = "px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 inline-block";
+        btnsHolder.appendChild(ver);
       }
 
-      try {
-        const [perfil, tarea] = await Promise.all([getPerfil(), getTarea()]);
-        if (!tarea) throw new Error("Tarea no encontrada");
-
-        const esProfesor = perfil?.rol === 'profesor' || perfil?.rol === 'admin' || Number(perfil?.id) === Number(tarea.profesor_id);
-
-        // Renderizar datos
-        document.getElementById('actividad-title').textContent = tarea.title || "(Sin título)";
-        document.getElementById('actividad-description').textContent = tarea.description || "";
-        document.getElementById('actividad-due_at').textContent = fmt(tarea.due_at);
-        document.getElementById('actividad-points').textContent = tarea.points ?? 0;
-        document.getElementById('actividad-status').textContent = tarea.status || "pendiente";
-
-        // Botones
-        btnsHolder.innerHTML = '';
-
-        if (esProfesor) {
-          const editar = document.createElement('button');
-          editar.textContent = "Editar tarea";
-          editar.className = "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700";
-          editar.addEventListener('click', () => alert("Abrir modal de edición"));
-          btnsHolder.appendChild(editar);
-        } else {
-          const entregar = document.createElement('button');
-          entregar.textContent = "Entregar";
-          entregar.className = "px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50";
-
-          // ⚡ Aquí asignamos correctamente la función global de entrega
-          entregar.addEventListener('click', () => {
-            if (typeof window.openEntrega === "function") {
-              window.openEntrega(tareaId);
-            } else {
-              alert("Función de entrega no disponible");
-            }
-          });
-
-          btnsHolder.appendChild(entregar);
-
-          const ver = document.createElement('a');
-          ver.textContent = "Ver última entrega";
-          ver.href = `/api/entregas?action=descargar&tarea_id=${tareaId}`;
-          ver.className = "px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 inline-block";
-          btnsHolder.appendChild(ver);
-        }
-
-      } catch (err) {
-        console.error(err);
-        holder.innerHTML = `<p class="text-red-600">Error al cargar la actividad: ${err.message}</p>`;
-      }
+    } catch (err) {
+      console.error(err);
+      holder.innerHTML = `<p class="text-red-600">Error al cargar la actividad: ${err.message}</p>`;
     }
+  }
 
-    document.addEventListener("DOMContentLoaded", initActividad);
-  </script>
+  document.addEventListener("DOMContentLoaded", initActividad);
+</script>
+
 </body>
 </html>
