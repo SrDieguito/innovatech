@@ -27,8 +27,8 @@
     </div>
   </main>
 
-  <!-- Importar tareas.js -->
   <script src="/assets/js/tasks.js"></script>
+
 
   <script>
     // Cargar header
@@ -49,6 +49,19 @@
       return t.toLocaleString();
     }
 
+    async function getPerfil() {
+      const res = await fetch('/api/perfil', { credentials: 'include' });
+      if (!res.ok) return null;
+      return res.json();
+    }
+
+    async function getTarea() {
+      const res = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`, { credentials: 'include' });
+      if (!res.ok) return null;
+      const tareas = await res.json();
+      return tareas.find(t => t.id == tareaId);
+    }
+
     async function initActividad() {
       if (!cursoId || !tareaId) {
         alert('Falta cursoId o tareaId');
@@ -56,16 +69,7 @@
       }
 
       try {
-        // Inicializamos TasksPage para poder usar sus modales
-        await TasksPage.init();
-
-        // Traer perfil
-        const perfil = await fetch('/api/perfil', { credentials: 'include' }).then(r => r.ok ? r.json() : null);
-
-        // Traer la tarea
-        const tareas = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`, { credentials: 'include' })
-          .then(r => r.ok ? r.json() : []);
-        const tarea = tareas.find(t => t.id == tareaId);
+        const [perfil, tarea] = await Promise.all([getPerfil(), getTarea()]);
         if (!tarea) throw new Error("Tarea no encontrada");
 
         const esProfesor = perfil?.rol === 'profesor' || perfil?.rol === 'admin' || Number(perfil?.id) === Number(tarea.profesor_id);
@@ -84,13 +88,13 @@
           const editar = document.createElement('button');
           editar.textContent = "Editar tarea";
           editar.className = "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700";
-          editar.addEventListener('click', () => TasksPage.openModal(tarea));
+          editar.addEventListener('click', () => alert("Abrir modal de edición"));
           btnsHolder.appendChild(editar);
         } else {
           const entregar = document.createElement('button');
           entregar.textContent = "Entregar tarea";
           entregar.className = "px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700";
-          entregar.addEventListener('click', () => TasksPage.openEntrega(tarea.id));
+          entregar.addEventListener('click', () => alert("Abrir modal de entrega"));
           btnsHolder.appendChild(entregar);
 
           const ver = document.createElement('a');
