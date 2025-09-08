@@ -487,6 +487,14 @@
       return;
     }
 
+    holder.querySelectorAll('.actividad-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const actividadId = item.dataset.id;
+    window.location.href = `/views/actividad.html?id=${actividadId}&curso=${cursoId}`;
+  });
+});
+
+
     // 4) Hidratar entregas del alumno y renderizar
     try {
       if (state.role === "estudiante" && state.courseId) {
