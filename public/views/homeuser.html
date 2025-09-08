@@ -1,200 +1,142 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bienvenido Usuario</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenido Usuario</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
 </head>
-<body class="bg-gradient-to-b from-green-50 to-white text-gray-900 font-sans">
+<body class="bg-gradient-to-b from-green-50 to-white text-gray-900 font-sans min-h-screen flex flex-col">
 
-<!-- Header -->
-<div id="header-container"></div>
+  <!-- Header -->
+  <div id="header-container"></div>
 
-<main class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-6 space-y-6" x-data="dashboard()">
-  <!-- Bienvenida -->
-  <section class="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row items-center justify-between animate-fade-in">
-    <div>
-      <h1 class="text-2xl md:text-3xl font-extrabold text-green-700 mb-2">
-        ¡Bienvenido/a, <span class="uppercase" x-text="userName">USUARIO</span>! 👋
-      </h1>
-      <p class="text-gray-700">Coordinación General de Tutorías</p>
-    </div>
-    <img src="https://storage.googleapis.com/a1aa/image/e5493b0f-72c1-46a1-a99d-8b6600e36418.jpg" alt="Logo Tutorías" class="w-32 h-20 object-contain mt-4 md:mt-0">
-  </section>
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-6" x-data="homePage()">
+    <!-- Bienvenida -->
+    <h1 class="text-3xl sm:text-4xl font-extrabold mb-6 text-green-700">
+      ¡Bienvenido/a, <span x-text="userName">USUARIO</span>! 👋
+    </h1>
 
-  <!-- Tarjetas resumen -->
-  <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-    <div class="bg-white rounded-xl shadow-md p-4 flex flex-col items-center hover:shadow-xl transition transform hover:scale-105">
-      <i class="fas fa-book text-green-600 text-3xl mb-2"></i>
-      <p class="font-semibold text-gray-700">Cursos activos</p>
-      <p class="text-2xl font-bold text-green-700" x-text="cursosActivos">0</p>
-    </div>
-    <div class="bg-white rounded-xl shadow-md p-4 flex flex-col items-center hover:shadow-xl transition transform hover:scale-105">
-      <i class="fas fa-tasks text-green-600 text-3xl mb-2"></i>
-      <p class="font-semibold text-gray-700">Actividades pendientes</p>
-      <p class="text-2xl font-bold text-green-700" x-text="actividadesPendientes">0</p>
-    </div>
-    <div class="bg-white rounded-xl shadow-md p-4 flex flex-col items-center hover:shadow-xl transition transform hover:scale-105">
-      <i class="fas fa-file-alt text-green-600 text-3xl mb-2"></i>
-      <p class="font-semibold text-gray-700">Exámenes próximos</p>
-      <p class="text-2xl font-bold text-green-700" x-text="examenesProximos">0</p>
-    </div>
-  </section>
-
-  <!-- Accesos recientes -->
-  <section class="bg-white rounded-xl shadow-md p-6 animate-fade-in">
-    <h2 class="text-lg font-semibold mb-4">Elementos accedidos recientemente</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-      <template x-for="item in recientes" :key="item.id">
-        <div class="border rounded-lg p-3 hover:bg-green-50 transition cursor-pointer" x-text="item.nombre"></div>
-      </template>
-      <template x-if="recientes.length === 0">
-        <div class="text-center text-gray-400 col-span-full">
-          <img src="https://storage.googleapis.com/a1aa/image/cda9149f-76a1-4642-7cf2-9256e772d96b.jpg" class="mx-auto mb-2 w-12 h-12">
-          Sin elementos recientes
-        </div>
-      </template>
-    </div>
-  </section>
-
-  <!-- Calendario -->
-  <section class="bg-white rounded-xl shadow-md p-6 animate-fade-in">
-    <div class="flex justify-between items-center mb-4">
-      <button @click="prevMonth" class="text-green-700 hover:underline text-sm">&larr; Anterior</button>
-      <h2 class="text-xl font-semibold text-gray-900" x-text="monthYear"></h2>
-      <button @click="nextMonth" class="text-green-700 hover:underline text-sm">Siguiente &rarr;</button>
-    </div>
-    <div class="w-full overflow-auto">
-      <table class="w-full border-collapse border border-gray-300 text-center">
-        <thead class="bg-green-900 text-white">
-          <tr>
-            <th class="border border-gray-300 px-2 py-1 text-sm">Dom</th>
-            <th class="border border-gray-300 px-2 py-1 text-sm">Lun</th>
-            <th class="border border-gray-300 px-2 py-1 text-sm">Mar</th>
-            <th class="border border-gray-300 px-2 py-1 text-sm">Mié</th>
-            <th class="border border-gray-300 px-2 py-1 text-sm">Jue</th>
-            <th class="border border-gray-300 px-2 py-1 text-sm">Vie</th>
-            <th class="border border-gray-300 px-2 py-1 text-sm">Sáb</th>
-          </tr>
-        </thead>
-        <tbody class="text-sm text-gray-900">
-          <template x-for="week in calendar" :key="week[0]">
+    <!-- Calendario -->
+    <section class="rounded border border-gray-300 p-6">
+      <div class="flex justify-between items-center mb-4">
+        <button @click="prevMonth()" class="text-green-700 hover:underline text-sm">&larr; Anterior</button>
+        <h2 class="text-xl font-semibold text-gray-900" x-text="monthYear"></h2>
+        <button @click="nextMonth()" class="text-green-700 hover:underline text-sm">Siguiente &rarr;</button>
+      </div>
+      <div class="w-full overflow-auto">
+        <table class="w-full border-collapse border border-gray-300 text-center">
+          <thead class="bg-green-900 text-white">
             <tr>
-              <template x-for="day in week" :key="day.date">
-                <td class="border border-gray-300 px-2 py-1 h-10 align-top relative" 
-                    :class="day.isToday ? 'bg-green-200 font-bold' : ''"
-                    @click="alert('Día seleccionado: ' + day.date + '/' + (day.month+1) + '/' + day.year)">
-                  <span x-text="day.number"></span>
-                  <span x-show="day.event" class="absolute bottom-1 left-1 w-1 h-1 bg-green-600 rounded-full"></span>
-                </td>
-              </template>
+              <th class="border border-gray-300 px-2 py-1 text-sm">Dom</th>
+              <th class="border border-gray-300 px-2 py-1 text-sm">Lun</th>
+              <th class="border border-gray-300 px-2 py-1 text-sm">Mar</th>
+              <th class="border border-gray-300 px-2 py-1 text-sm">Mié</th>
+              <th class="border border-gray-300 px-2 py-1 text-sm">Jue</th>
+              <th class="border border-gray-300 px-2 py-1 text-sm">Vie</th>
+              <th class="border border-gray-300 px-2 py-1 text-sm">Sáb</th>
             </tr>
-          </template>
-        </tbody>
-      </table>
-    </div>
-  </section>
-</main>
+          </thead>
+          <tbody>
+            <template x-for="week in calendar" :key="week[0].date">
+              <tr>
+                <template x-for="day in week" :key="day.date">
+                  <td class="border border-gray-300 px-2 py-1 h-10 align-top"
+                      :class="{'bg-green-200 font-bold': day.today}"
+                      x-text="day.number">
+                  </td>
+                </template>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 
-<!-- Scripts -->
-<script>
-  fetch('/views/header.html')
-    .then(res => res.text())
-    .then(html => {
-      const container = document.getElementById('header-container');
-      container.innerHTML = html;
-      const scripts = container.querySelectorAll('script');
-      scripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        if (oldScript.src) newScript.src = oldScript.src;
-        else newScript.textContent = oldScript.textContent;
-        document.body.appendChild(newScript);
-        oldScript.remove();
-      });
-    });
+  <script>
+    function homePage() {
+      return {
+        userName: 'USUARIO',
+        currentDate: new Date(),
+        monthYear: '',
+        calendar: [],
 
-  function dashboard() {
-    return {
-      userName: 'USUARIO',
-      cursosActivos: 5,
-      actividadesPendientes: 3,
-      examenesProximos: 1,
-      recientes: [],
-      calendar: [],
-      monthYear: '',
-      currentDate: new Date(),
+        init() {
+          // Traer nombre del usuario
+          fetch('/api/perfil', { credentials: 'include' })
+            .then(res => { if(!res.ok) throw new Error('No autenticado'); return res.json(); })
+            .then(p => {
+              this.userName = (p?.nombre || 'USUARIO').trim();
+              this.generateCalendar(this.currentDate);
+            })
+            .catch(() => {
+              this.userName = 'USUARIO';
+              this.generateCalendar(this.currentDate);
+            });
+        },
 
-      init() {
-        this.loadRecientes();
-        this.renderCalendar();
-      },
+        generateCalendar(date) {
+          const year = date.getFullYear();
+          const month = date.getMonth();
+          this.monthYear = `${["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"][month]} ${year}`;
 
-      loadRecientes() {
-        // Simulación de API
-        this.recientes = [
-          {id:1, nombre:'Tarea 1'},
-          {id:2, nombre:'Examen Parcial'},
-          {id:3, nombre:'Material de lectura'}
-        ];
-      },
+          const firstDay = new Date(year, month, 1).getDay();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+          const today = new Date();
 
-      renderCalendar() {
-        const date = this.currentDate;
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const today = new Date();
-        this.monthYear = `${["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"][month]} ${year}`;
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month+1, 0).getDate();
+          let weeks = [];
+          let dayCount = 1;
 
-        let dayCount = 1;
-        let cal = [];
-
-        for(let w=0; w<6; w++){
-          let week=[];
-          for(let d=0; d<7; d++){
-            if(w===0 && d<firstDay || dayCount>daysInMonth){
-              week.push({number:'', date:null, month, year, isToday:false, event:false});
-            } else {
-              week.push({number:dayCount, date:dayCount, month, year, isToday: dayCount===today.getDate() && month===today.getMonth() && year===today.getFullYear(), event: false});
-              dayCount++;
+          for (let w = 0; w < 6; w++) {
+            let week = [];
+            for (let d = 0; d < 7; d++) {
+              if ((w === 0 && d < firstDay) || dayCount > daysInMonth) {
+                week.push({ number: '', date: null, today: false });
+              } else {
+                week.push({
+                  number: dayCount,
+                  date: new Date(year, month, dayCount),
+                  today: dayCount === today.getDate() && month === today.getMonth() && year === today.getFullYear()
+                });
+                dayCount++;
+              }
             }
+            weeks.push(week);
+            if(dayCount > daysInMonth) break;
           }
-          cal.push(week);
-          if(dayCount>daysInMonth) break;
+          this.calendar = weeks;
+        },
+
+        prevMonth() {
+          this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+          this.generateCalendar(this.currentDate);
+        },
+
+        nextMonth() {
+          this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+          this.generateCalendar(this.currentDate);
         }
-        this.calendar = cal;
-      },
-
-      prevMonth() {
-        this.currentDate.setMonth(this.currentDate.getMonth()-1);
-        this.renderCalendar();
-      },
-
-      nextMonth() {
-        this.currentDate.setMonth(this.currentDate.getMonth()+1);
-        this.renderCalendar();
       }
     }
-  }
 
-  document.addEventListener('alpine:init', () => {
-    Alpine.data('dashboard', dashboard);
-  });
-</script>
-
-<style>
-  .animate-fade-in {
-    animation: fadeIn 0.8s ease-in-out;
-  }
-  @keyframes fadeIn {
-    from {opacity:0; transform:translateY(10px);}
-    to {opacity:1; transform:translateY(0);}
-  }
-</style>
+    // Cargar header
+    fetch('/views/header.html')
+      .then(res => res.text())
+      .then(html => {
+        const container = document.getElementById('header-container');
+        container.innerHTML = html;
+        container.querySelectorAll('script').forEach(oldScript => {
+          const newScript = document.createElement('script');
+          if(oldScript.src) newScript.src = oldScript.src;
+          else newScript.textContent = oldScript.textContent;
+          document.body.appendChild(newScript);
+          oldScript.remove();
+        });
+      });
+  </script>
 
 </body>
 </html>
