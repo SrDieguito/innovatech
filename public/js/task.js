@@ -60,7 +60,7 @@
       return await r.json(); // { profesor_id, ... }
     } catch { return null; }
   }
-  // ===== API Entregas =====
+
   async function apiEntregasList(cursoId) {
     const url = new URL(API_ENTREGAS, location.origin);
     url.searchParams.set("action", "listar");
@@ -87,19 +87,14 @@
     if (!r.ok) throw new Error("HTTP " + r.status);
     return r.json();
   }
-  // Resuelve rol: profesor si (perfil.rol==='profesor' || 'admin') o si perfil.id == profesor_id del curso
+
   async function resolveRoleForCourse(courseId) {
     const perfil = await apiPerfil();
     const curso  = await apiCursoDetalle(courseId);
-
     const isAdmin     = (perfil?.rol || "").toLowerCase() === "admin";
     const isProfesor  = (perfil?.rol || "").toLowerCase() === "profesor";
     const isOwner     = perfil?.id && curso?.profesor_id && Number(perfil.id) === Number(curso.profesor_id);
-
-    const role = (isAdmin || isProfesor || isOwner) ? "profesor" : "estudiante";
-    // DEBUG opcional
-    // console.log({perfil, curso, role});
-    return role;
+    return (isAdmin || isProfesor || isOwner) ? "profesor" : "estudiante";
   }
 
   async function apiList(course_id) {
@@ -156,8 +151,6 @@
       }),
     }));
     if (!r.ok) throw new Error("HTTP " + r.status);
-    const updated = await r.json();
-    const { id: _id, ...rest } = patch;
     return { id, ...patch };
   }
 
@@ -186,41 +179,31 @@
       .sort((a, b) => parseTS(a.due_at) - parseTS(b.due_at));
 
     if (!filtradas.length) {
-      // Show a nice modal when there are no tasks
       const noTasksModal = `
         <div id="no-tasks-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
-            <div class="text-center">
-              <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
-                <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 class="text-lg font-medium text-gray-900 mb-2">No hay tareas disponibles</h3>
-              <p class="text-gray-500 mb-6">
-                ${state.role === 'profesor' ? 
-                  'Aún no has creado ninguna tarea para este curso. ¡Crea tu primera tarea ahora!' : 
-                  'Aún no hay tareas disponibles para este curso. Por favor, revisa más tarde.'}
-              </p>
-              <div class="flex justify-center">
-                ${state.role === 'profesor' ? 
-                  `<button id="btnCreateFirstTask" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                    Crear primera tarea
-                  </button>` :
-                  `<button id="closeNoTasksModal" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-                    Cerrar
-                  </button>`
-                }
-              </div>
+          <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+              <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay tareas disponibles</h3>
+            <p class="text-gray-500 mb-6">
+              ${state.role === 'profesor' ? 
+                'Aún no has creado ninguna tarea para este curso. ¡Crea tu primera tarea ahora!' : 
+                'Aún no hay tareas disponibles para este curso. Por favor, revisa más tarde.'}
+            </p>
+            <div class="flex justify-center">
+              ${state.role === 'profesor' ? 
+                `<button id="btnCreateFirstTask" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Crear primera tarea</button>` :
+                `<button id="closeNoTasksModal" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">Cerrar</button>`
+              }
             </div>
           </div>
         </div>
       `;
-      
-      // Add the modal to the page
       document.body.insertAdjacentHTML('beforeend', noTasksModal);
-      
-      // Add event listeners
+
       if (state.role === 'profesor') {
         document.getElementById('btnCreateFirstTask')?.addEventListener('click', () => {
           document.getElementById('no-tasks-modal')?.remove();
@@ -231,25 +214,22 @@
           document.getElementById('no-tasks-modal')?.remove();
         });
       }
-      
-      // Also show a message in the tasks list
+
       lista.innerHTML = `
         <div class="p-8 text-center text-gray-500">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
           <h3 class="mt-2 text-sm font-medium text-gray-900">No hay tareas</h3>
-          <p class="mt-1 text-sm text-gray-500">
-            ${state.role === 'profesor' ? 
-              'Comienza creando una nueva tarea.' : 
-              'Aún no hay tareas disponibles para este curso.'}
-          </p>
+          <p class="mt-1 text-sm text-gray-500">${state.role === 'profesor' ? 'Comienza creando una nueva tarea.' : 'Aún no hay tareas disponibles para este curso.'}</p>
         </div>
       `;
     } else {
       const tpl = $("#tpl-tarea");
       filtradas.forEach((t) => {
         const node = tpl.content.cloneNode(true);
+
+        node.querySelector('.actividad-item').dataset.id = t.id;
         node.querySelector('[data-field="title"]').textContent = t.title || "(Sin título)";
         node.querySelector('[data-field="description"]').textContent = t.description || "";
         node.querySelector('[data-field="due_at"]').textContent = fmt(t.due_at);
@@ -263,6 +243,7 @@
           actions.classList.toggle("flex", isProf);
           actions.dataset.id = t.id;
         }
+
         const sActions = node.querySelector('[data-field="student-actions"]');
         if (sActions) {
           const isEst = state.role === "estudiante";
@@ -277,11 +258,20 @@
           if (btnEntregar) btnEntregar.textContent = tiene ? "Reemplazar entrega" : "Entregar";
           if (btnEliminarE) btnEliminarE.classList.toggle("hidden", !tiene);
         }
+
         lista.appendChild(node);
       });
     }
 
     $("#btnNuevaTarea")?.classList.toggle("hidden", state.role !== "profesor");
+
+    // Delegar clic en actividad para detalle
+    root.querySelectorAll('.actividad-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const actividadId = item.dataset.id;
+        window.location.href = `/views/actividad.html?id=${actividadId}&curso=${state.courseId}`;
+      });
+    });
   }
 
   function openModal(data = null) {
@@ -307,7 +297,6 @@
     f.tarea_id.value = tareaId;
     if (f.curso_id) f.curso_id.value = state.courseId;
     $("#pesoArchivo").textContent = "—";
-    // Mostrar nombre actual si existe
     const $actual = $("#archivoActual");
     if ($actual) $actual.textContent = "—";
     apiEntregaDetalle(tareaId).then(e => {
@@ -345,14 +334,9 @@
     try {
       const url = new URL(API_ENTREGAS, location.origin);
       url.searchParams.append("action", "subir");
-      const resp = await fetch(url, {
-        method: "POST",
-        body: fd,
-        credentials: "include",
-      });
+      const resp = await fetch(url, { method: "POST", body: fd, credentials: "include" });
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
-      // Marcar la tarjeta como completada y guardar entrega
       const tId = String(f.tarea_id.value);
       const idx = state.tareas.findIndex(x => String(x.id) === tId);
       if (idx >= 0) {
@@ -374,12 +358,11 @@
 
     const qs = new URLSearchParams(location.search);
     state.courseId = root.dataset.courseId || qs.get("id") || qs.get("courseId") || qs.get("curso_id") || null;
-
-    // 1) Resolver rol (perfil.rol || dueño || admin)
     if (!state.courseId) { console.warn('Falta courseId para tareas'); }
+
     state.role = await resolveRoleForCourse(state.courseId);
 
-    // 2) Eventos UI
+    /* Eventos UI */
     $("#btnNuevaTarea")?.addEventListener("click", () => openModal());
     $("#btnCancelarModal")?.addEventListener("click", closeModal);
     $("#buscarTarea")?.addEventListener("input", (e) => { state.filtro.q = e.target.value; render(); });
@@ -401,16 +384,8 @@
       try {
         if (f.id.value) {
           const id = f.id.value;
-          const updated = await apiUpdate(id, {
-            id,
-            course_id: payload.course_id,
-            title: payload.title,
-            description: payload.description,
-            due_at: payload.due_at,
-            points: payload.points,
-            status: payload.status,
-          });
-          const i = state.tareas.findIndex(x => x.id === String(id || f.id.value));
+          const updated = await apiUpdate(id, { id, ...payload });
+          const i = state.tareas.findIndex(x => x.id === String(id));
           if (i >= 0) state.tareas[i] = { ...state.tareas[i], ...updated };
         } else {
           const created = await apiCreate(payload);
@@ -423,7 +398,7 @@
       }
     });
 
-    // Delegación: acciones de profesor y estudiante
+    /* Delegación de acciones */
     document.querySelector('#listaTareas')?.addEventListener('click', async (e) => {
       const btn = e.target.closest("button");
       if (!btn) return;
@@ -454,67 +429,48 @@
         } else if (btn.dataset.action === "eliminar-entrega") {
           if (state.role !== "estudiante") return;
           if (!confirm("¿Eliminar tu entrega?")) return;
-          try {
-            await apiEntregaEliminar(t.id);
-            t.status = "pendiente";
-            delete t._entrega;
-            render();
-          } catch (err) {
-            alert("No se pudo eliminar: " + err.message);
-          }
-        } else {
-          // noop
+          await apiEntregaEliminar(t.id);
+          t.status = "pendiente";
+          delete t._entrega;
+          render();
         }
       } catch (err) {
         console.error(err); alert("Acción no realizada");
       }
     });
 
-    // 3) Cargar tareas
+    /* Cargar tareas */
     try {
       state.tareas = await apiList(state.courseId);
     } catch (err) {
       console.error(err);
-      const holder = $("#tasks-root");
-      if (holder) {
-        holder.innerHTML = `
-          <div class="p-6 text-red-700 bg-red-50 rounded-xl border border-red-200">
-            Error cargando tareas. Revisa tu API.
-            <div class="mt-1">
-              <code class="text-xs">/api/tareas?action=listar&curso_id=${state.courseId ?? "?"}</code>
-          </div>`;
-      }
+      root.innerHTML = `
+        <div class="p-6 text-red-700 bg-red-50 rounded-xl border border-red-200">
+          Error cargando tareas. Revisa tu API.
+          <div class="mt-1"><code class="text-xs">/api/tareas?action=listar&curso_id=${state.courseId ?? "?"}</code></div>
+        </div>`;
       return;
     }
 
-    holder.querySelectorAll('.actividad-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const actividadId = item.dataset.id;
-    window.location.href = `/views/actividad.html?id=${actividadId}&curso=${cursoId}`;
-  });
-});
-
-
-    // 4) Hidratar entregas del alumno y renderizar
+    /* Hidratar entregas del estudiante */
     try {
       if (state.role === "estudiante" && state.courseId) {
         const { entregas } = await apiEntregasList(state.courseId);
         const mapa = new Map((entregas || []).map(e => [String(e.tarea_id), e]));
         state.tareas = state.tareas.map(t => {
           const e = mapa.get(String(t.id));
-          if (e) {
-            t.status = "completada";
-            t._entrega = e;
-          }
+          if (e) { t.status = "completada"; t._entrega = e; }
           return t;
         });
       }
     } catch {}
+
     render();
   }
 
   document.addEventListener("DOMContentLoaded", () => {
     if (document.querySelector("#tasks-root")) init();
   });
+
   window.TasksPage = { init };
 })();
