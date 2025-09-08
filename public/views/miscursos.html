@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Mis cursos</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
 </head>
 <body class="bg-gradient-to-b from-green-50 to-white text-gray-900 font-sans">
@@ -12,25 +13,25 @@
 <!-- Header -->
 <div id="header-container" class="shadow-lg bg-white"></div>
 
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+<main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-10" x-data="cursosApp()">
 
   <!-- Título -->
   <div class="mb-8 text-center">
     <h1 class="text-3xl md:text-4xl font-extrabold text-green-700 mb-1">Mis cursos</h1>
-    <p class="text-gray-700 text-md md:text-lg">Vista general de los cursos en los que está inscrito</p>
+    <p class="text-gray-700 text-md md:text-lg">Vista general de los cursos en los que estás inscrito</p>
   </div>
 
   <!-- Filtros -->
   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
     <div class="flex gap-2 w-full md:w-auto">
-      <select id="filtro" class="border border-gray-300 rounded px-3 py-2 w-full md:w-auto">
+      <select x-model="filtro" @change="aplicarFiltros" class="border border-gray-300 rounded px-3 py-2 w-full md:w-auto">
         <option value="todos">Todos</option>
         <option value="activos">Activos</option>
         <option value="finalizados">Finalizados</option>
       </select>
-      <input id="busqueda" type="text" placeholder="Buscar por nombre" class="border border-gray-300 rounded px-3 py-2 w-full md:w-64"/>
+      <input x-model="busqueda" @input="aplicarFiltros" type="text" placeholder="Buscar por nombre" class="border border-gray-300 rounded px-3 py-2 w-full md:w-64"/>
     </div>
-    <select id="orden" class="border border-gray-300 rounded px-3 py-2 w-full md:w-auto">
+    <select x-model="orden" @change="aplicarFiltros" class="border border-gray-300 rounded px-3 py-2 w-full md:w-auto">
       <option value="nombre">Ordenar por nombre</option>
       <option value="ultimoAcceso">Ordenar por último acceso</option>
     </select>
@@ -38,18 +39,26 @@
 
   <!-- Contenedor de cursos -->
   <section id="cursos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-    <!-- Los cursos se agregan dinámicamente aquí -->
+    <template x-for="curso in cursosFiltrados" :key="curso.id">
+      <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col justify-between transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
+        <div>
+          <h3 class="text-xl font-bold text-green-700 mb-1" x-text="curso.nombre"></h3>
+          <p class="text-gray-600 mb-1" x-text="curso.profesor || 'Sin tutor asignado'"></p>
+          <p class="text-sm italic text-gray-500" x-text="curso.rol==='profesor' ? 'Eres el profesor' : 'Estás matriculado'"></p>
+        </div>
+        <a :href="`/views/curso.html?id=${curso.id}`" class="mt-4 inline-block bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded transition transform hover:scale-105">Ir al curso</a>
+      </div>
+    </template>
   </section>
 
   <!-- Mensaje si no hay cursos -->
-  <section id="no-cursos" class="hidden flex flex-col items-center text-center px-4 sm:px-0">
+  <section x-show="cursosFiltrados.length===0" class="flex flex-col items-center text-center px-4 sm:px-0">
     <img class="mb-4 w-20 h-20" src="https://storage.googleapis.com/a1aa/image/ede5611e-3825-4243-5061-17a8dea70976.jpg" alt="Sin cursos"/>
     <p class="font-semibold text-gray-900 mb-2">No estás inscrito en ningún curso</p>
     <p class="text-gray-700 max-w-sm">Una vez que te inscribas, tus cursos aparecerán aquí.</p>
   </section>
 
 </main>
-
 
   <button aria-label="Ayuda" class="fixed bottom-4 right-4 w-8 h-8 rounded-full bg-gray-300 text-gray-700 text-sm font-semibold flex items-center justify-center select-none">
    ?
