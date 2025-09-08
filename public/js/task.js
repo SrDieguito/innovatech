@@ -473,4 +473,5 @@
   });
 
   window.TasksPage = { init };
+  window.openEntrega = openEntrega;
 })();
