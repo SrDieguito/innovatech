@@ -1,175 +1,146 @@
 <!DOCTYPE html>
-<html lang="es" x-data="mainPage()">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bienvenido Usuario</title>
+  <title>Mis cursos</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-  <style>
-    .bg-green-900 { background-color: #00983d !important; }
-    .border-green-800 { border-color: #00983d !important; }
-    .peer-checked\:bg-green-600:checked { background-color: #00983d !important; }
-    .peer-focus\:ring-green-300:focus { --tw-ring-color: #00983d !important; }
-    .text-green-700 { color: #00983d !important; }
-    .bg-green-200 { background-color: #c6f0cc !important; }
-    a:hover { text-decoration: underline; text-decoration-thickness: 1px; }
-  </style>
 </head>
-<body class="bg-white text-gray-900 font-sans min-h-screen flex flex-col">
+<body class="bg-gradient-to-b from-green-50 to-white text-gray-900 font-sans min-h-screen flex flex-col">
 
   <!-- Header -->
-  <div id="header-container" x-html="headerHtml" x-init="loadHeader()"></div>
+  <div id="header-container"></div>
 
-  <!-- Bienvenida -->
-  <main class="flex flex-col md:flex-row max-w-7xl mx-auto mt-6 px-4 sm:px-6 md:px-8 space-y-6 md:space-y-0 md:space-x-6">
-    <section class="flex-1 rounded border border-gray-300 p-6 flex flex-col">
-      <h1 class="text-3xl sm:text-4xl font-extrabold mb-6 text-green-700 opacity-0" 
-          x-text="`¡Bienvenido/a, ${userName}! 👋`" 
-          x-transition.opacity.duration.700ms
-          x-show="loaded"></h1>
+  <main class="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8" x-data="cursosPage()">
+    <h1 class="text-3xl sm:text-4xl font-extrabold mb-2 text-green-700">Mis cursos</h1>
+    <p class="text-gray-700 mb-6">Vista general de los cursos en los que estás matriculado</p>
 
-      <article class="bg-gray-100 rounded border border-gray-300 p-6 flex-grow flex items-center justify-center">
-        <img src="https://storage.googleapis.com/a1aa/image/e5493b0f-72c1-46a1-a99d-8b6600e36418.jpg" 
-             alt="Logo General de Tutorías" 
-             class="h-16 w-auto mr-4">
-        <p class="text-gray-700 text-lg font-medium">General de Tutorías</p>
-      </article>
+    <!-- Filtros -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div class="flex gap-2 flex-wrap">
+        <select x-model="filtro" class="border border-gray-300 rounded px-3 py-2" @change="aplicarFiltros()">
+          <option value="todos">Todos</option>
+          <option value="activos">Activos</option>
+          <option value="finalizados">Finalizados</option>
+        </select>
+        <input type="text" x-model="busqueda" placeholder="Buscar por nombre"
+               class="border border-gray-300 rounded px-3 py-2 w-full md:w-64"
+               @input="aplicarFiltros()" />
+      </div>
+      <select x-model="orden" class="border border-gray-300 rounded px-3 py-2" @change="aplicarFiltros()">
+        <option value="nombre">Ordenar por nombre</option>
+        <option value="ultimoAcceso">Ordenar por último acceso</option>
+      </select>
+    </div>
+
+    <!-- Contenedor de cursos -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Mensaje de carga -->
+      <template x-if="loading">
+        <div class="col-span-full text-center py-12 animate-pulse">
+          <i class="fas fa-spinner fa-spin text-4xl text-green-600 mb-4"></i>
+          <p class="text-gray-600">Cargando sus cursos...</p>
+        </div>
+      </template>
+
+      <!-- Mensaje si no hay cursos -->
+      <template x-if="!loading && cursosFiltrados.length === 0">
+        <div class="col-span-full flex flex-col items-center text-center py-12">
+          <i class="fas fa-book-open text-5xl text-gray-400 mb-4"></i>
+          <p class="font-semibold text-gray-900 mb-2">Usted no está matriculado en ningún curso</p>
+          <p class="text-gray-700 max-w-md">Una vez que se inscriba en un curso, aparecerá aquí.</p>
+        </div>
+      </template>
+
+      <!-- Cards de cursos -->
+      <template x-for="curso in cursosFiltrados" :key="curso.id">
+        <div class="bg-white rounded-xl shadow-md p-6 transform transition hover:-translate-y-1 hover:shadow-xl">
+          <h3 class="text-xl font-semibold text-green-700 mb-2" x-text="curso.nombre"></h3>
+          <p class="text-gray-600 mb-1" x-text="curso.profesor || 'Sin tutor asignado'"></p>
+          <p class="text-sm italic text-gray-500 mb-3" x-text="curso.rol === 'profesor' ? 'Usted es el profesor' : 'Usted está matriculado'"></p>
+          <a :href="`/views/curso.html?id=${curso.id}`"
+             class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+            Ir al curso
+          </a>
+        </div>
+      </template>
     </section>
 
-    <!-- Recientes -->
-    <aside class="w-full md:w-80 rounded border border-gray-300 p-4">
-      <h3 class="font-semibold mb-4 text-gray-900">Elementos accedidos recientemente</h3>
-      <div class="border border-gray-200 rounded p-4 text-center text-gray-400">
-        <img src="https://storage.googleapis.com/a1aa/image/cda9149f-76a1-4642-7cf2-9256e772d96b.jpg"
-             alt="Icono elementos recientes"
-             class="mx-auto mb-2 h-12 w-12">
-        <p class="text-sm">Sin elementos recientes</p>
+    <!-- Error -->
+    <template x-if="error">
+      <div class="col-span-full text-center py-8 mt-6 bg-red-50 border border-red-200 rounded-lg">
+        <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-2"></i>
+        <p class="font-semibold text-red-600 mb-2">Error al cargar los cursos</p>
+        <p class="text-sm text-red-500 mb-4" x-text="error"></p>
+        <button @click="cargarCursos()"
+                class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-6 rounded transition">
+          <i class="fas fa-sync-alt mr-2"></i> Reintentar
+        </button>
       </div>
-    </aside>
+    </template>
+
   </main>
 
-  <!-- Calendario -->
-  <section class="max-w-7xl mx-auto mt-6 px-4 sm:px-6 md:px-8" x-show="loaded" x-transition.opacity>
-    <div class="rounded border border-gray-300 p-6 max-w-4xl mx-auto">
-      <div class="flex justify-between items-center mb-4">
-        <button @click="prevMonth" class="text-green-700 hover:underline text-sm">&larr; Anterior</button>
-        <h2 class="text-xl font-semibold text-gray-900" x-text="monthYear"></h2>
-        <button @click="nextMonth" class="text-green-700 hover:underline text-sm">Siguiente &rarr;</button>
-      </div>
-      <div class="w-full overflow-auto">
-        <table class="w-full border-collapse border border-gray-300 text-center">
-          <thead class="bg-green-900 text-white">
-            <tr>
-              <th class="border border-gray-300 px-2 py-1 text-sm">Dom</th>
-              <th class="border border-gray-300 px-2 py-1 text-sm">Lun</th>
-              <th class="border border-gray-300 px-2 py-1 text-sm">Mar</th>
-              <th class="border border-gray-300 px-2 py-1 text-sm">Mié</th>
-              <th class="border border-gray-300 px-2 py-1 text-sm">Jue</th>
-              <th class="border border-gray-300 px-2 py-1 text-sm">Vie</th>
-              <th class="border border-gray-300 px-2 py-1 text-sm">Sáb</th>
-            </tr>
-          </thead>
-          <tbody id="calendar-body" class="text-sm text-gray-900">
-            <template x-for="week in calendar" :key="week[0]">
-              <tr>
-                <template x-for="day in week" :key="day?.date">
-                  <td class="border border-gray-300 px-2 py-1 h-10 align-top"
-                      :class="{'bg-green-200 font-bold': day.today}"
-                      @click="selectDay(day)">
-                    <span x-text="day?.day || ''"></span>
-                  </td>
-                </template>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
 <script>
-function mainPage() {
+function cursosPage() {
   return {
-    userName: 'USUARIO',
-    headerHtml: '',
-    loaded: false,
-    calendar: [],
-    monthYear: '',
-    currentDate: new Date(),
-
-    loadHeader() {
-      fetch('/views/header.html')
-        .then(res => res.text())
-        .then(html => {
-          this.headerHtml = html;
-          this.loadUser();
-        });
-    },
-
-    loadUser() {
-      fetch('/api/perfil', { credentials: 'include' })
-        .then(res => { if(!res.ok) throw new Error('No autenticado'); return res.json(); })
-        .then(p => {
-          const nombre = p?.nombre?.trim() || 'USUARIO';
-          this.userName = nombre;
-          this.loaded = true;
-          this.generateCalendar(this.currentDate);
+    todosLosCursos: [],
+    cursosFiltrados: [],
+    busqueda: '',
+    filtro: 'todos',
+    orden: 'nombre',
+    loading: true,
+    error: '',
+    cargarCursos() {
+      this.loading = true;
+      this.error = '';
+      fetch('/api/miscursos', { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => {
+          this.todosLosCursos = Array.isArray(data.data) ? data.data : [];
+          this.aplicarFiltros();
+          this.loading = false;
         })
-        .catch(() => {
-          this.userName = 'USUARIO';
-          this.loaded = true;
-          this.generateCalendar(this.currentDate);
+        .catch(e => {
+          console.error(e);
+          this.loading = false;
+          this.error = 'No se pudo conectar al servidor. Intente nuevamente.';
         });
     },
-
-    getInitials(fullName) {
-      if (!fullName) return 'US';
-      const stop = new Set(['de','del','la','las','los','y','da','do','dos','das']);
-      const clean = fullName.normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/\s+/g,' ').trim();
-      const words = clean.split(' ').filter(w => !stop.has(w.toLowerCase()));
-      if(words.length===0) return 'US';
-      const first = words[0].split('-')[0];
-      const last = (words.length>1 ? words[words.length-1] : words[0]).split('-')[0];
-      return (first[0]+last[0]).toUpperCase();
+    aplicarFiltros() {
+      let lista = this.todosLosCursos.filter(curso =>
+        curso.nombre.toLowerCase().includes(this.busqueda.toLowerCase())
+      );
+      if (this.filtro === 'activos') lista = lista.filter(c => c.activo);
+      if (this.filtro === 'finalizados') lista = lista.filter(c => !c.activo);
+      if (this.orden === 'nombre') lista.sort((a,b) => a.nombre.localeCompare(b.nombre));
+      if (this.orden === 'ultimoAcceso') lista.sort((a,b) => new Date(b.ultimoAcceso) - new Date(a.ultimoAcceso));
+      this.cursosFiltrados = lista;
     },
-
-    generateCalendar(date) {
-      const months = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-      const year = date.getFullYear();
-      const month = date.getMonth();
-      this.monthYear = `${months[month]} ${year}`;
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month+1, 0).getDate();
-      const today = new Date();
-
-      let dayCount = 1;
-      const weeks = [];
-      for(let w=0; w<6; w++){
-        const week = [];
-        for(let d=0; d<7; d++){
-          if((w===0 && d<firstDay) || dayCount>daysInMonth) week.push({});
-          else {
-            week.push({
-              day: dayCount,
-              date: new Date(year, month, dayCount),
-              today: dayCount===today.getDate() && month===today.getMonth() && year===today.getFullYear()
-            });
-            dayCount++;
-          }
-        }
-        weeks.push(week);
-        if(dayCount>daysInMonth) break;
-      }
-      this.calendar = weeks;
-    },
-
-    prevMonth() { this.currentDate.setMonth(this.currentDate.getMonth()-1); this.generateCalendar(this.currentDate); },
-    nextMonth() { this.currentDate.setMonth(this.currentDate.getMonth()+1); this.generateCalendar(this.currentDate); },
-    selectDay(day) { if(day.day) alert(`Día seleccionado: ${day.day}/${day.date.getMonth()+1}/${day.date.getFullYear()}`); }
+    init() {
+      this.cargarCursos();
+    }
   }
 }
+</script>
+
+<script>
+  // Cargar header
+  fetch('/views/header.html')
+    .then(res => res.text())
+    .then(html => {
+      const container = document.getElementById('header-container');
+      container.innerHTML = html;
+      container.querySelectorAll('script').forEach(oldScript => {
+        const newScript = document.createElement('script');
+        if (oldScript.src) newScript.src = oldScript.src;
+        else newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+        oldScript.remove();
+      });
+    });
 </script>
 
 </body>
