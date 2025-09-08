@@ -10,24 +10,64 @@
 
   <div id="header-container"></div>
 
-  <main class="flex-grow flex items-center justify-center px-4 py-6">
-    <div class="w-full max-w-3xl">
+  <main class="flex-grow px-4 py-8">
+    <div class="max-w-5xl mx-auto space-y-6">
 
-      <!-- Tarjeta de tarea -->
-      <div id="actividad-root" class="bg-white rounded-xl shadow-md p-6 text-center">
-        <h1 id="actividad-title" class="text-3xl font-bold text-green-700 mb-3">Cargando...</h1>
-        <p id="actividad-description" class="text-gray-700 mb-3"></p>
-        <p class="text-gray-500 mb-1">Fecha límite: <span id="actividad-due_at">—</span></p>
-        <p class="text-gray-500 mb-3">Puntos: <span id="actividad-points">0</span></p>
-        <p class="text-gray-500 mb-6">Estado: <span id="actividad-status">—</span></p>
-
-        <div id="actividad-buttons" class="flex flex-wrap justify-center gap-2"></div>
+      <!-- Título y botones principales -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 id="actividad-title" class="text-3xl font-bold text-emerald-700">Cargando...</h1>
+          <p id="actividad-description" class="text-gray-600 mt-1"></p>
+        </div>
+        <div id="actividad-buttons" class="flex flex-wrap gap-3"></div>
       </div>
 
+      <!-- Detalles de la tarea -->
+      <div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2">Detalles de la tarea</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <p><span class="font-medium text-gray-700">Fecha de creación:</span> <span id="actividad-created_at" class="text-gray-600">—</span></p>
+          <p><span class="font-medium text-gray-700">Fecha límite:</span> <span id="actividad-due_at" class="text-gray-600">—</span></p>
+          <p><span class="font-medium text-gray-700">Estado:</span> <span id="actividad-status" class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">—</span></p>
+          <p><span class="font-medium text-gray-700">Puntos:</span> <span id="actividad-points" class="text-gray-600">0</span></p>
+          <p><span class="font-medium text-gray-700">Profesor:</span> <span id="actividad-profesor" class="text-gray-600">—</span></p>
+        </div>
+      </div>
+
+      <!-- Calificación -->
+      <div class="bg-white rounded-2xl shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Calificación</h2>
+        <div id="actividad-calificacion" class="text-center text-gray-600">Aún no calificado</div>
+      </div>
+
+      <!-- Sección de comentarios -->
+      <div class="bg-white rounded-2xl shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Comentarios</h2>
+        <div id="comentarios-list" class="space-y-4">
+          <p class="text-gray-500 text-center">Sin comentarios aún</p>
+        </div>
+
+        <!-- Formulario de comentario -->
+        <form id="formComentario" class="mt-4 flex gap-2">
+          <input 
+            type="text" 
+            name="comentario" 
+            placeholder="Escribe un comentario..." 
+            required
+            class="flex-1 px-3 py-2 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          >
+          <button 
+            type="submit" 
+            class="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition"
+          >
+            Enviar
+          </button>
+        </form>
+      </div>
     </div>
   </main>
 
-    <!-- Modal de entrega -->
+  <!-- Modal de entrega -->
   <dialog id="modalEntrega" class="rounded-2xl p-0 w-full max-w-md backdrop:bg-black/30">
     <form id="formEntrega" class="p-6 space-y-4" method="post" action="/api/entregas?action=subir" enctype="multipart/form-data">
       <h4 class="text-lg font-semibold">Entregar archivo</h4>
@@ -49,32 +89,36 @@
     </form>
   </dialog>
 
-  <!-- Cargar el JS principal -->
+  <!-- JS principal -->
   <script src="/js/task.js"></script>
 
 <script>
-  // Cargar header
   fetch('/views/header.html')
     .then(res => res.text())
     .then(html => { document.getElementById('header-container').innerHTML = html });
-
-  const holder = document.getElementById('actividad-root');
-  const btnsHolder = document.getElementById('actividad-buttons');
 
   const params = new URLSearchParams(window.location.search);
   const cursoId = params.get("curso") || params.get("courseId") || params.get("curso_id");
   const tareaId = params.get("id") || params.get("tarea_id");
 
-  function fmt(v) {
-    if (!v) return "—";
-    const t = new Date(v);
-    return t.toLocaleString();
-  }
+  const holder = {
+    title: document.getElementById('actividad-title'),
+    desc: document.getElementById('actividad-description'),
+    createdAt: document.getElementById('actividad-created_at'),
+    dueAt: document.getElementById('actividad-due_at'),
+    status: document.getElementById('actividad-status'),
+    points: document.getElementById('actividad-points'),
+    profesor: document.getElementById('actividad-profesor'),
+    calificacion: document.getElementById('actividad-calificacion'),
+    botones: document.getElementById('actividad-buttons'),
+    comentarios: document.getElementById('comentarios-list'),
+  };
+
+  function fmtDate(v) { return v ? new Date(v).toLocaleString() : "—"; }
 
   async function getPerfil() {
     const res = await fetch('/api/perfil', { credentials: 'include' });
-    if (!res.ok) return null;
-    return res.json();
+    return res.ok ? res.json() : null;
   }
 
   async function getTarea() {
@@ -84,11 +128,36 @@
     return tareas.find(t => t.id == tareaId);
   }
 
-  async function initActividad() {
-    if (!cursoId || !tareaId) {
-      alert('Falta cursoId o tareaId');
+  async function getComentarios() {
+    const res = await fetch(`/api/comentarios?tarea_id=${tareaId}`, { credentials: 'include' });
+    return res.ok ? res.json() : [];
+  }
+
+  async function renderComentarios() {
+    const comentarios = await getComentarios();
+    holder.comentarios.innerHTML = '';
+    if (!comentarios.length) {
+      holder.comentarios.innerHTML = `<p class="text-gray-500 text-center">Sin comentarios aún</p>`;
       return;
     }
+    comentarios.forEach(c => {
+      const div = document.createElement('div');
+      div.className = "flex items-start gap-3 border-b pb-2";
+      div.innerHTML = `
+        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold">
+          ${c.usuario[0].toUpperCase()}
+        </div>
+        <div class="flex-1">
+          <p class="text-sm"><span class="font-medium">${c.usuario}</span> <span class="text-gray-500 text-xs">(${fmtDate(c.fecha)})</span></p>
+          <p class="text-gray-700">${c.texto}</p>
+        </div>
+      `;
+      holder.comentarios.appendChild(div);
+    });
+  }
+
+  async function initActividad() {
+    if (!cursoId || !tareaId) { alert('Falta cursoId o tareaId'); return; }
 
     try {
       const [perfil, tarea] = await Promise.all([getPerfil(), getTarea()]);
@@ -97,47 +166,77 @@
       const esProfesor = perfil?.rol === 'profesor' || perfil?.rol === 'admin' || Number(perfil?.id) === Number(tarea.profesor_id);
 
       // Renderizar datos
-      document.getElementById('actividad-title').textContent = tarea.title || "(Sin título)";
-      document.getElementById('actividad-description').textContent = tarea.description || "";
-      document.getElementById('actividad-due_at').textContent = fmt(tarea.due_at);
-      document.getElementById('actividad-points').textContent = tarea.points ?? 0;
-      document.getElementById('actividad-status').textContent = tarea.status || "pendiente";
+      holder.title.textContent = tarea.title || "(Sin título)";
+      holder.desc.textContent = tarea.description || "";
+      holder.createdAt.textContent = fmtDate(tarea.created_at);
+      holder.dueAt.textContent = fmtDate(tarea.due_at);
+      holder.status.textContent = tarea.status || "pendiente";
+      holder.points.textContent = tarea.points ?? 0;
+      holder.profesor.textContent = tarea.profesor_nombre || "—";
+
+      holder.calificacion.innerHTML = tarea.calificacion 
+        ? `<span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10`
+        : `<span class="text-gray-500">Aún no calificado</span>`;
 
       // Botones
-      btnsHolder.innerHTML = '';
-
+      holder.botones.innerHTML = '';
       if (esProfesor) {
         const editar = document.createElement('button');
         editar.textContent = "Editar tarea";
-        editar.className = "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700";
+        editar.className = "px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition";
         editar.addEventListener('click', () => alert("Abrir modal de edición"));
-        btnsHolder.appendChild(editar);
+
+        const eliminar = document.createElement('button');
+        eliminar.textContent = "Eliminar tarea";
+        eliminar.className = "px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition";
+        eliminar.addEventListener('click', () => { if(confirm("¿Seguro que quieres eliminar esta tarea?")) alert("Tarea eliminada (demo)"); });
+
+        holder.botones.appendChild(editar);
+        holder.botones.appendChild(eliminar);
       } else {
         const entregar = document.createElement('button');
         entregar.textContent = "Entregar";
-        entregar.className = "px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50";
-
-        // ⚡ Espera a que la función global esté disponible
+        entregar.className = "px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-green-700 transition";
         entregar.addEventListener('click', () => {
-          if (typeof window.openEntrega === "function") {
-            window.openEntrega(tareaId);
-          } else {
-            alert("Función de entrega no disponible. Espera unos segundos y vuelve a intentar.");
-          }
+          if(typeof window.openEntrega==="function"){window.openEntrega(tareaId)}
+          else{alert("Función de entrega no disponible.");}
         });
-
-        btnsHolder.appendChild(entregar);
 
         const ver = document.createElement('a');
         ver.textContent = "Ver última entrega";
         ver.href = `/api/entregas?action=descargar&tarea_id=${tareaId}`;
-        ver.className = "px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 inline-block";
-        btnsHolder.appendChild(ver);
+        ver.className = "px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition";
+
+        holder.botones.appendChild(entregar);
+        holder.botones.appendChild(ver);
       }
 
-    } catch (err) {
+      await renderComentarios();
+
+      // WebSocket comentarios en tiempo real
+      const ws = new WebSocket(`wss://${window.location.host}/ws/comentarios?tarea_id=${tareaId}`);
+      ws.onmessage = event => {
+        const msg = JSON.parse(event.data);
+        if(msg.action === "nuevo_comentario") renderComentarios();
+      };
+
+      // Formulario de comentario
+      document.getElementById('formComentario').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const texto = e.target.comentario.value.trim();
+        if(!texto) return;
+        await fetch(`/api/comentarios?tarea_id=${tareaId}`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({texto})
+        });
+        e.target.comentario.value = '';
+      });
+
+    } catch(err) {
       console.error(err);
-      holder.innerHTML = `<p class="text-red-600">Error al cargar la actividad: ${err.message}</p>`;
+      holder.title.textContent="Error al cargar";
+      holder.desc.textContent=err.message;
     }
   }
 
