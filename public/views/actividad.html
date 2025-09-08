@@ -107,7 +107,7 @@ fetch('/views/header.html')
     const container = document.getElementById('header-container');
     container.innerHTML = html;
 
-    // Ejecutar scripts incluidos en header.html
+    // Ejecutar scripts del header
     const scripts = container.querySelectorAll('script');
     scripts.forEach(oldScript => {
       const newScript = document.createElement('script');
@@ -120,6 +120,7 @@ fetch('/views/header.html')
       oldScript.remove();
     });
   });
+
 
 const params = new URLSearchParams(window.location.search);
 const cursoId = params.get("curso") || params.get("courseId") || params.get("curso_id");
