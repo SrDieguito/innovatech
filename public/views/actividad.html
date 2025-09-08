@@ -13,28 +13,16 @@
   <main class="flex-grow flex items-center justify-center px-4 py-6">
     <div class="w-full max-w-3xl">
 
-      <!-- Contenedor de la tarea -->
+      <!-- Tarjeta de tarea -->
       <div id="actividad-root" class="bg-white rounded-xl shadow-md p-6 text-center">
         <h1 id="actividad-title" class="text-3xl font-bold text-green-700 mb-3">Cargando...</h1>
         <p id="actividad-description" class="text-gray-700 mb-3"></p>
         <p class="text-gray-500 mb-1">Fecha límite: <span id="actividad-due_at">—</span></p>
         <p class="text-gray-500 mb-3">Puntos: <span id="actividad-points">0</span></p>
         <p class="text-gray-500 mb-6">Estado: <span id="actividad-status">—</span></p>
-        <div id="actividad-buttons" class="space-x-2 mt-4"></div>
-      </div>
 
-      <!-- Modal de entrega -->
-      <dialog id="modalEntrega" class="rounded-xl p-6">
-        <form id="formEntrega" class="flex flex-col gap-4">
-          <input type="hidden" name="tarea_id" id="entrega-tarea_id">
-          <input type="file" name="archivo" required>
-          <p id="pesoArchivo" class="text-gray-500 text-sm">—</p>
-          <div class="flex justify-end gap-2">
-            <button type="button" id="btnCancelarEntrega" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
-            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Subir</button>
-          </div>
-        </form>
-      </dialog>
+        <div id="actividad-buttons" class="flex flex-wrap justify-center gap-2"></div>
+      </div>
 
     </div>
   </main>
@@ -43,101 +31,74 @@
     // Cargar header
     fetch('/views/header.html')
       .then(res => res.text())
-      .then(html => { document.getElementById('header-container').innerHTML = html; });
+      .then(html => { document.getElementById('header-container').innerHTML = html });
 
     const holder = document.getElementById('actividad-root');
+    const btnsHolder = document.getElementById('actividad-buttons');
+
     const params = new URLSearchParams(window.location.search);
     const cursoId = params.get("curso") || params.get("courseId") || params.get("curso_id");
     const tareaId = params.get("id") || params.get("tarea_id");
 
-    // Formatear fecha
     function fmt(v) {
       if (!v) return "—";
       const t = new Date(v);
       return t.toLocaleString();
     }
 
-    // Traer perfil del usuario
     async function getPerfil() {
       const res = await fetch('/api/perfil', { credentials: 'include' });
       if (!res.ok) return null;
       return res.json();
     }
 
-    // Traer detalle de la tarea
     async function getTarea() {
-      const res = await fetch(`/api/tareas?action=detalle&tarea_id=${tareaId}`, { credentials: 'include' });
+      const res = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`, { credentials: 'include' });
       if (!res.ok) return null;
-      return res.json();
+      const tareas = await res.json();
+      return tareas.find(t => t.id == tareaId);
     }
 
-    // Traer entrega del estudiante
-    async function getEntrega() {
-      const res = await fetch(`/api/entregas?action=detalle&tarea_id=${tareaId}`, { credentials: 'include' });
-      if (!res.ok) return null;
-      return (await res.json())?.entrega ?? null;
-    }
-
-    // Inicializar página
     async function initActividad() {
       if (!cursoId || !tareaId) {
         alert('Falta cursoId o tareaId');
         return;
       }
 
-      holder.querySelector('#actividad-title').textContent = "Cargando...";
-
       try {
-        const [perfil, tarea, entrega] = await Promise.all([getPerfil(), getTarea(), getEntrega()]);
-        if (!tarea) throw new Error("No se pudo cargar la actividad");
+        const [perfil, tarea] = await Promise.all([getPerfil(), getTarea()]);
+        if (!tarea) throw new Error("Tarea no encontrada");
 
         const esProfesor = perfil?.rol === 'profesor' || perfil?.rol === 'admin' || Number(perfil?.id) === Number(tarea.profesor_id);
 
-        // Renderizar la actividad
-        holder.querySelector('#actividad-title').textContent = tarea.title || "(Sin título)";
-        holder.querySelector('#actividad-description').textContent = tarea.description || "";
-        holder.querySelector('#actividad-due_at').textContent = fmt(tarea.due_at);
-        holder.querySelector('#actividad-points').textContent = tarea.points ?? 0;
-        holder.querySelector('#actividad-status').textContent = tarea.status || "pendiente";
+        // Renderizar datos
+        document.getElementById('actividad-title').textContent = tarea.title || "(Sin título)";
+        document.getElementById('actividad-description').textContent = tarea.description || "";
+        document.getElementById('actividad-due_at').textContent = fmt(tarea.due_at);
+        document.getElementById('actividad-points').textContent = tarea.points ?? 0;
+        document.getElementById('actividad-status').textContent = tarea.status || "pendiente";
 
-        const btns = document.getElementById('actividad-buttons');
-        btns.innerHTML = "";
+        // Botones
+        btnsHolder.innerHTML = '';
 
         if (esProfesor) {
-          // Botones profesor
           const editar = document.createElement('button');
           editar.textContent = "Editar tarea";
           editar.className = "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700";
           editar.addEventListener('click', () => alert("Abrir modal de edición"));
-          btns.appendChild(editar);
-
-          const cambiar = document.createElement('button');
-          cambiar.textContent = "Cambiar estado";
-          cambiar.className = "px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600";
-          cambiar.addEventListener('click', () => alert("Cambiar estado de la tarea"));
-          btns.appendChild(cambiar);
-
-          const eliminar = document.createElement('button');
-          eliminar.textContent = "Eliminar tarea";
-          eliminar.className = "px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700";
-          eliminar.addEventListener('click', () => alert("Eliminar tarea"));
-          btns.appendChild(eliminar);
-
+          btnsHolder.appendChild(editar);
         } else {
-          // Botones estudiante
-          const entregarBtn = document.createElement('button');
-          entregarBtn.textContent = entrega ? "Reemplazar entrega" : "Entregar tarea";
-          entregarBtn.className = "px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700";
-          entregarBtn.addEventListener('click', () => alert("Abrir modal de entrega"));
-          btns.appendChild(entregarBtn);
+          const entregar = document.createElement('button');
+          entregar.textContent = "Entregar tarea";
+          entregar.className = "px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700";
+          entregar.addEventListener('click', () => alert("Abrir modal de entrega"));
+          btnsHolder.appendChild(entregar);
 
-          if (entrega) {
-            const ver = document.createElement('a');
-            ver.textContent = "Ver última entrega";
-            ver.href = `/api/entregas?action=descargar&tarea_id=${tareaId}`;
-            ver.className = "px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 inline-block";
-            btns.appendChild(ver);
-          }
+          const ver = document.createElement('a');
+          ver.textContent = "Ver última entrega";
+          ver.href = `/api/entregas?action=descargar&tarea_id=${tareaId}`;
+          ver.className = "px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 inline-block";
+          btnsHolder.appendChild(ver);
         }
 
       } catch (err) {
@@ -148,6 +109,5 @@
 
     document.addEventListener("DOMContentLoaded", initActividad);
   </script>
-
 </body>
 </html>
