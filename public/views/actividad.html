@@ -101,9 +101,11 @@
   <script src="/js/task.js"></script>
 
 <script>
-fetch('/views/header.html')
-  .then(res => res.text())
-  .then(html => { document.getElementById('header-container').innerHTML = html });
+  fetch('/views/header.html')
+    .then(res => res.text())
+    .then(html => {
+      const container = document.getElementById('header-container');
+      container.innerHTML = html});
 
 const params = new URLSearchParams(window.location.search);
 const cursoId = params.get("curso") || params.get("courseId") || params.get("curso_id");
