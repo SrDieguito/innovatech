@@ -101,11 +101,25 @@
   <script src="/js/task.js"></script>
 
 <script>
-  fetch('/views/header.html')
-    .then(res => res.text())
-    .then(html => {
-      const container = document.getElementById('header-container');
-      container.innerHTML = html});
+fetch('/views/header.html')
+  .then(res => res.text())
+  .then(html => {
+    const container = document.getElementById('header-container');
+    container.innerHTML = html;
+
+    // Ejecutar scripts incluidos en header.html
+    const scripts = container.querySelectorAll('script');
+    scripts.forEach(oldScript => {
+      const newScript = document.createElement('script');
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
+      document.body.appendChild(newScript);
+      oldScript.remove();
+    });
+  });
 
 const params = new URLSearchParams(window.location.search);
 const cursoId = params.get("curso") || params.get("courseId") || params.get("curso_id");
