@@ -39,65 +39,66 @@ export default async function handler(req, res) {
   const { action } = req.query || {};
 
   try {
-    /* ===== SUBIR ENTREGA ===== */
-    if (req.method === 'POST' && action === 'subir') {
-      const userId = getUserId(req);
-      if (!userId) return res.status(401).json({ error: 'No autenticado' });
+ if (req.method === 'POST' && action === 'subir') {
+  const userId = getUserId(req);
+  if (!userId) return res.status(401).json({ error: 'No autenticado' });
 
-      try {
-        await runMulter(req, res);
-      } catch (err) {
-        if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ error: 'El archivo supera 2 MB' });
-        }
-        return res.status(400).json({ error: 'Archivo inválido', details: err.message });
-      }
+  try {
+    await runMulter(req, res);
+  } catch (err) {
+    if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ error: 'El archivo supera 2 MB' });
+    return res.status(400).json({ error: 'Archivo inválido', details: err.message });
+  }
 
-      const tarea_id = Number(req.body?.tarea_id);
-      const file = req.file;
-      if (!tarea_id || !file) {
-        return res.status(400).json({ error: 'Faltan datos: tarea_id y archivo son requeridos' });
-      }
+  const tarea_id = Number(req.body?.tarea_id);
+  const file = req.file;
+  if (!tarea_id || !file) return res.status(400).json({ error: 'Faltan datos: tarea_id y archivo son requeridos' });
+  if (!await canSubmit(userId, tarea_id)) return res.status(403).json({ error: 'No puedes entregar esta tarea' });
 
-      if (!await canSubmit(userId, tarea_id)) {
-        return res.status(403).json({ error: 'No puedes entregar esta tarea' });
-      }
+  const nombre = file.originalname || 'archivo';
+  const mime = file.mimetype || 'application/octet-stream';
+  const buffer = file.buffer;
+  const bytes = file.size;
 
-      const nombre = file.originalname || 'archivo';
-      const mime = file.mimetype || 'application/octet-stream';
-      const buffer = file.buffer;
-      const bytes = file.size;
+  const [[ex]] = await pool.query(
+    'SELECT id FROM tareas_entregas WHERE tarea_id = ? AND estudiante_id = ? LIMIT 1',
+    [tarea_id, userId]
+  );
 
-      // Upsert
-      const [[ex]] = await pool.query(
-        'SELECT id FROM tareas_entregas WHERE tarea_id = ? AND estudiante_id = ? LIMIT 1',
-        [tarea_id, userId]
-      );
+  let entregaId, mensaje;
+  if (ex?.id) {
+    await pool.query(
+      `UPDATE tareas_entregas
+         SET archivo_nombre=?, archivo_mime=?, archivo_blob=?, tamano_bytes=?, fecha_entrega=NOW(), estado='entregado'
+       WHERE id=?`,
+      [nombre, mime, buffer, bytes, ex.id]
+    );
+    entregaId = ex.id;
+    mensaje = 'Entrega actualizada';
+  } else {
+    const [ins] = await pool.query(
+      `INSERT INTO tareas_entregas
+         (tarea_id, estudiante_id, archivo_nombre, archivo_mime, archivo_blob, tamano_bytes, estado)
+       VALUES (?,?,?,?,?,?, 'entregado')`,
+      [tarea_id, userId, nombre, mime, buffer, bytes]
+    );
+    entregaId = ins.insertId;
+    mensaje = 'Entrega registrada';
+  }
 
-      let entregaId;
-      if (ex?.id) {
-        await pool.query(
-          `UPDATE tareas_entregas
-             SET archivo_nombre=?, archivo_mime=?, archivo_blob=?, tamano_bytes=?, fecha_entrega=NOW(), estado='entregado'
-           WHERE id=?`,
-          [nombre, mime, buffer, bytes, ex.id]
-        );
-        entregaId = ex.id;
-      } else {
-        const [ins] = await pool.query(
-          `INSERT INTO tareas_entregas
-             (tarea_id, estudiante_id, archivo_nombre, archivo_mime, archivo_blob, tamano_bytes, estado)
-           VALUES (?,?,?,?,?,?, 'entregado')`,
-          [tarea_id, userId, nombre, mime, buffer, bytes]
-        );
-        entregaId = ins.insertId;
-      }
+  // **Enviar respuesta primero**
+  res.status(200).json({ ok: true, id: entregaId, message: mensaje });
 
-      // Emitir actualización WS
-      emitirActualizacion(tarea_id, { estado: 'entregado', archivo: nombre });
+  // **Luego emitir WS sin bloquear la respuesta**
+  try {
+    emitirActualizacion(tarea_id, { estado: 'entregado', archivo: nombre });
+  } catch (err) {
+    console.error('Error al emitir WS:', err);
+  }
 
-      return res.status(200).json({ ok: true, id: entregaId, message: 'Entrega registrada' });
-    }
+  return;
+}
+
 
     /* ===== LISTAR MIS ENTREGAS por curso ===== */
     if (req.method === 'GET' && action === 'listar') {
