@@ -27,6 +27,28 @@
     </div>
   </main>
 
+    <!-- Modal de entrega -->
+  <dialog id="modalEntrega" class="rounded-2xl p-0 w-full max-w-md backdrop:bg-black/30">
+    <form id="formEntrega" class="p-6 space-y-4" method="post" action="/api/entregas?action=subir" enctype="multipart/form-data">
+      <h4 class="text-lg font-semibold">Entregar archivo</h4>
+      <input type="hidden" name="tarea_id">
+      <input type="hidden" name="curso_id">
+      <div class="text-xs text-gray-600">Archivo actual: <span id="archivoActual">—</span></div>
+      <label class="grid gap-1">
+        <span class="text-sm text-gray-700">Archivo (máx 2 MB)</span>
+        <input type="file" name="archivo" required
+          class="px-3 py-2 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        <span id="pesoArchivo" class="text-xs text-gray-500">—</span>
+      </label>
+      <div class="pt-2 flex items-center justify-end gap-2">
+        <button type="button" id="btnCancelarEntrega"
+          class="px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50">Cancelar</button>
+        <button type="submit"
+          class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">Subir</button>
+      </div>
+    </form>
+  </dialog>
+
   <!-- Cargar el JS principal -->
   <script src="/js/task.js"></script>
 
