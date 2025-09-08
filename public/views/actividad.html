@@ -272,20 +272,27 @@ document.getElementById('formEntrega').addEventListener('submit', async e => {
 
   const formData = new FormData(e.target);
 
-  const res = await fetch(e.target.action, {
+  // URL fija para enviar la entrega
+  const url = '/api/entregas?action=subir';
+
+  const res = await fetch(url, {
     method: 'POST',
     body: formData,
     credentials: 'include'
   });
 
   if (res.ok) {
+    const data = await res.json();
     alert('Archivo subido correctamente. Espera que se actualice el estado.');
     e.target.reset();
+    holder.archivoActual.textContent = formData.get('archivo')?.name || '—';
+    holder.ultimaEntrega.textContent = formData.get('archivo')?.name || '—';
   } else {
-    const data = await res.json().catch(()=>({error:'Error desconocido'}));
+    const data = await res.json().catch(() => ({ error: 'Error desconocido' }));
     alert('Error al subir el archivo: ' + (data.error || 'Desconocido'));
   }
 });
+
 
 
     await renderComentarios();
