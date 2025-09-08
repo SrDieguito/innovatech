@@ -1,97 +1,95 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Curso</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/@popperjs/core@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curso Moderno</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
 </head>
-
 <body class="bg-gradient-to-b from-green-50 to-white text-gray-900 min-h-screen flex flex-col">
-  
-  <div id="header-container"></div>
 
+<!-- Header -->
+<div id="header-container" class="shadow-lg bg-white"></div>
 
-  <main class="flex-grow flex items-center justify-center px-4 py-6">
-    <div class="w-full max-w-6xl" x-data="{ tab: 'curso', subTab: 'presentacion' }">
-    <!-- Encabezado del curso -->
-    <div class="bg-white rounded-xl shadow-md p-6 mb-6 text-center">
-      <h1 id="nombre-curso" class="text-4xl font-extrabold text-green-700 mb-2">Nombre del Curso</h1>
-      <p id="nombre-tutor" class="text-gray-600 text-lg">Tutor: Nombre del Tutor</p>
-    </div>
+<main class="flex-grow px-6 py-8 max-w-7xl mx-auto" x-data="{ tab: 'curso', subTab: 'presentacion' }">
 
-    <!-- Pestañas principales -->
-    <div class="mb-6 border-b border-gray-200">
-      <nav class="flex justify-center space-x-6">
-        <button @click="tab = 'curso'" :class="tab === 'curso' ? 'border-b-4 border-green-600 text-green-700 font-semibold' : 'text-gray-500 hover:text-gray-700'" class="px-3 py-2 text-lg transition">Curso</button>
-        <button @click="tab = 'participantes'" :class="tab === 'participantes' ? 'border-b-4 border-green-600 text-green-700 font-semibold' : 'text-gray-500 hover:text-gray-700'" class="px-3 py-2 text-lg transition">Participantes</button>
-        <button @click="tab = 'calificaciones'" :class="tab === 'calificaciones' ? 'border-b-4 border-green-600 text-green-700 font-semibold' : 'text-gray-500 hover:text-gray-700'" class="px-3 py-2 text-lg transition">Calificaciones</button>
-      </nav>
-    </div>
-
-    <!-- Contenido principal -->
-    <div x-show="tab === 'curso'">
-      <!-- Subpestañas -->
-      <div class="mb-4 border-b border-gray-200">
-        <nav class="flex flex-wrap justify-center gap-3">
-          <template x-for="sub in ['presentacion','cronograma','materiales','actividades','examenes','encuesta']">
-            <button @click="subTab = sub" :class="subTab === sub ? 'border-b-2 border-green-600 text-green-700 font-medium' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-1 text-sm transition capitalize" x-text="sub"></button>
-          </template>
-        </nav>
-      </div>
-
-      <!-- Contenido de subpestañas -->
-      <div x-show="subTab === 'presentacion'" x-transition class="bg-white rounded-xl shadow-md p-6 text-center">
-        <h2 class="text-2xl font-semibold mb-3">Presentación</h2>
-        <div id="presentacion-contenedor" class="text-gray-700">
-  <p id="presentacion-texto" class="mb-4">Cargando descripción...</p>
-
-  <!-- Este div solo se mostrará si el usuario es el profesor -->
-  <div id="presentacion-editor" class="hidden flex flex-col items-center gap-3">
-    <textarea id="descripcion-input" class="w-full border border-gray-300 rounded p-2 resize-none" rows="4"></textarea>
-    <button id="guardar-descripcion" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow">Guardar descripción</button>
+  <!-- Encabezado del curso -->
+  <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 text-center">
+    <h1 id="nombre-curso" class="text-4xl font-extrabold text-green-700 mb-2">Nombre del Curso</h1>
+    <p id="nombre-tutor" class="text-gray-600 text-lg flex items-center justify-center gap-2"><i class="fas fa-chalkboard-teacher"></i> Tutor: Nombre del Tutor</p>
   </div>
-</div>
 
-      </div>
-      <div x-show="subTab === 'cronograma'" x-transition class="bg-white rounded-xl shadow-md p-6 text-center">
-        <h2 class="text-2xl font-semibold mb-3">Cronograma</h2>
-        <p class="text-gray-700">Contenido del cronograma.....</p>
-      </div>
-      <div x-show="subTab === 'materiales'" x-transition class="bg-white rounded-xl shadow-md p-6 text-center">
-        <h2 class="text-2xl font-semibold mb-3">Materiales de aprendizaje</h2>
-        <p class="text-gray-700">Materiales aquí...</p>
-      </div>
-      <div x-show="subTab === 'actividades'" x-transition class="bg-white rounded-xl shadow-md p-6 text-center">
-        <h2 class="text-2xl font-semibold mb-3">Actividades de aprendizaje</h2>
-        <div id="actividades-holder" class="mt-2 text-left"></div>
-      </div>
-      <div x-show="subTab === 'examenes'" x-transition class="bg-white rounded-xl shadow-md p-6 text-center">
-        <h2 class="text-2xl font-semibold mb-3">Exámenes</h2>
-        <p class="text-gray-700">Exámenes aquí...</p>
-      </div>
-      <div x-show="subTab === 'encuesta'" x-transition class="bg-white rounded-xl shadow-md p-6 text-center">
-        <h2 class="text-2xl font-semibold mb-3">Encuesta</h2>
-        <p class="text-gray-700">Encuesta final...</p>
-      </div>
-    </div>
-
-    <!-- Participantes -->
-    <div x-show="tab === 'participantes'" x-transition class="bg-white rounded-xl shadow-md p-6 text-center">
-      <h2 class="text-2xl font-semibold mb-3">Participantes</h2>
-      <p class="text-gray-700">Lista de estudiantes...</p>
-    </div>
-
-    <!-- Calificaciones -->
-    <div x-show="tab === 'calificaciones'" x-transition class="bg-white rounded-xl shadow-md p-6 text-center">
-      <h2 class="text-2xl font-semibold mb-3">Calificaciones</h2>
-      <p class="text-gray-700">Calificaciones del curso...</p>
-    </div>
+  <!-- Pestañas principales -->
+  <div class="flex justify-center gap-4 mb-6">
+    <button @click="tab='curso'" :class="tab==='curso' ? 'bg-green-100 text-green-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'" class="px-5 py-2 rounded-full transition">Curso</button>
+    <button @click="tab='participantes'" :class="tab==='participantes' ? 'bg-green-100 text-green-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'" class="px-5 py-2 rounded-full transition">Participantes</button>
+    <button @click="tab='calificaciones'" :class="tab==='calificaciones' ? 'bg-green-100 text-green-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'" class="px-5 py-2 rounded-full transition">Calificaciones</button>
   </div>
+
+  <!-- Contenido -->
+  <div x-show="tab==='curso'">
+
+    <!-- Subpestañas -->
+    <div class="flex flex-wrap justify-center gap-2 mb-6">
+      <template x-for="sub in ['presentacion','cronograma','materiales','actividades','examenes','encuesta']">
+        <button @click="subTab=sub" :class="subTab===sub ? 'bg-green-200 text-green-800 font-medium' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="px-4 py-1 rounded-full text-sm transition capitalize" x-text="sub"></button>
+      </template>
+    </div>
+
+    <!-- Subcontenido -->
+    <div x-show="subTab==='presentacion'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-book-open mr-2"></i> Presentación</h2>
+      <p id="presentacion-texto" class="text-gray-700 mb-4">Cargando descripción...</p>
+      <!-- Editor solo se mantiene si quieres que el profesor pueda actualizar descripción -->
+      <div id="presentacion-editor" class="hidden flex flex-col items-center gap-3">
+        <textarea id="descripcion-input" class="w-full border border-gray-300 rounded p-2 resize-none" rows="4"></textarea>
+        <button id="guardar-descripcion" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow">Guardar descripción</button>
+      </div>
+    </div>
+
+    <div x-show="subTab==='cronograma'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-calendar-alt mr-2"></i> Cronograma</h2>
+      <p class="text-gray-700">Contenido del cronograma...</p>
+    </div>
+
+    <div x-show="subTab==='materiales'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-folder-open mr-2"></i> Materiales de aprendizaje</h2>
+      <p class="text-gray-700">Materiales aquí...</p>
+    </div>
+
+    <div x-show="subTab==='actividades'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-tasks mr-2"></i> Actividades de aprendizaje</h2>
+      <div id="actividades-holder" class="mt-2 text-left"></div>
+    </div>
+
+    <div x-show="subTab==='examenes'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-file-alt mr-2"></i> Exámenes</h2>
+      <p class="text-gray-700">Exámenes aquí...</p>
+    </div>
+
+    <div x-show="subTab==='encuesta'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-poll mr-2"></i> Encuesta</h2>
+      <p class="text-gray-700">Encuesta final...</p>
+    </div>
+
+  </div>
+
+  <!-- Participantes -->
+  <div x-show="tab==='participantes'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+    <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-users mr-2"></i> Participantes</h2>
+    <p class="text-gray-700">Lista de estudiantes...</p>
+  </div>
+
+  <!-- Calificaciones -->
+  <div x-show="tab==='calificaciones'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+    <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-graduation-cap mr-2"></i> Calificaciones</h2>
+    <p class="text-gray-700">Calificaciones del curso...</p>
+  </div>
+
+</main>
 
 <script src="/js/task.js"></script>
 <script>
