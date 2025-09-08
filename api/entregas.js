@@ -1,7 +1,6 @@
 // api/entregas.js
 import multer from 'multer';
 import { pool } from './db.js';
-import { emitirActualizacion } from './wsServer.js';
 
 /* ===== Helpers ===== */
 function getUserId(req) {
@@ -9,6 +8,7 @@ function getUserId(req) {
 }
 
 async function canSubmit(userId, tareaId) {
+  // verifica que la tarea pertenece a un curso donde el estudiante está matriculado
   const [[row]] = await pool.query(
     `SELECT 1
        FROM tareas t
@@ -26,11 +26,11 @@ const upload = multer({
   limits: { fileSize: 2 * 1024 * 1024 },
 });
 
+// Adaptador para usar multer como promesa
 function runMulter(req, res) {
   return new Promise((resolve, reject) => {
     upload.single('archivo')(req, res, (err) => {
-      if (err) reject(err);
-      else resolve();
+      if (err) reject(err); else resolve();
     });
   });
 }
@@ -44,29 +44,39 @@ export default async function handler(req, res) {
       const userId = getUserId(req);
       if (!userId) return res.status(401).json({ error: 'No autenticado' });
 
+      // parse multipart
       try {
         await runMulter(req, res);
       } catch (err) {
-        if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ error: 'El archivo supera 2 MB' });
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: 'El archivo supera 2 MB' });
+        }
         return res.status(400).json({ error: 'Archivo inválido', details: err.message });
       }
 
       const tarea_id = Number(req.body?.tarea_id);
       const file = req.file;
-      if (!tarea_id || !file) return res.status(400).json({ error: 'Faltan datos: tarea_id y archivo son requeridos' });
-      if (!await canSubmit(userId, tarea_id)) return res.status(403).json({ error: 'No puedes entregar esta tarea' });
+
+      if (!tarea_id || !file) {
+        return res.status(400).json({ error: 'Faltan datos: tarea_id y archivo son requeridos' });
+      }
+
+      // seguridad: confirmar que puede entregar esa tarea
+      if (!await canSubmit(userId, tarea_id)) {
+        return res.status(403).json({ error: 'No puedes entregar esta tarea' });
+      }
 
       const nombre = file.originalname || 'archivo';
       const mime = file.mimetype || 'application/octet-stream';
       const buffer = file.buffer;
       const bytes = file.size;
 
+      // upsert
       const [[ex]] = await pool.query(
         'SELECT id FROM tareas_entregas WHERE tarea_id = ? AND estudiante_id = ? LIMIT 1',
         [tarea_id, userId]
       );
 
-      let entregaId, mensaje;
       if (ex?.id) {
         await pool.query(
           `UPDATE tareas_entregas
@@ -74,8 +84,7 @@ export default async function handler(req, res) {
            WHERE id=?`,
           [nombre, mime, buffer, bytes, ex.id]
         );
-        entregaId = ex.id;
-        mensaje = 'Entrega actualizada';
+        return res.status(200).json({ ok: true, id: ex.id, message: 'Entrega actualizada' });
       } else {
         const [ins] = await pool.query(
           `INSERT INTO tareas_entregas
@@ -83,18 +92,8 @@ export default async function handler(req, res) {
            VALUES (?,?,?,?,?,?, 'entregado')`,
           [tarea_id, userId, nombre, mime, buffer, bytes]
         );
-        entregaId = ins.insertId;
-        mensaje = 'Entrega registrada';
+        return res.status(201).json({ ok: true, id: ins.insertId, message: 'Entrega registrada' });
       }
-
-      // Emitir actualización WS en try/catch para no romper la respuesta
-      try {
-        emitirActualizacion(tarea_id, { estado: 'entregado', archivo: nombre });
-      } catch (err) {
-        console.error('Error al emitir WS:', err);
-      }
-
-      return res.status(200).json({ ok: true, id: entregaId, message: mensaje });
     }
 
     /* ===== LISTAR MIS ENTREGAS por curso ===== */
@@ -103,7 +102,6 @@ export default async function handler(req, res) {
       if (!userId) return res.status(401).json({ error: 'No autenticado' });
       const curso_id = Number(req.query?.curso_id);
       if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
-
       const [rows] = await pool.query(
         `SELECT e.tarea_id, e.archivo_nombre, e.tamano_bytes, e.fecha_entrega
            FROM tareas_entregas e
@@ -115,14 +113,16 @@ export default async function handler(req, res) {
       return res.status(200).json({ entregas: rows });
     }
 
-    /* ===== DETALLE de mi entrega ===== */
+    /* ===== DETALLE de mi entrega (última) ===== */
     if (req.method === 'GET' && action === 'detalle') {
       const userId = getUserId(req);
       if (!userId) return res.status(401).json({ error: 'No autenticado' });
       const tarea_id = Number(req.query?.tarea_id);
       if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
-      if (!await canSubmit(userId, tarea_id)) return res.status(403).json({ error: 'No autorizado' });
-
+      // seguridad: debe poder entregar esa tarea
+      if (!await canSubmit(userId, tarea_id)) {
+        return res.status(403).json({ error: 'No autorizado' });
+      }
       const [[row]] = await pool.query(
         `SELECT id, tarea_id, archivo_nombre, tamano_bytes, fecha_entrega
            FROM tareas_entregas
@@ -132,10 +132,7 @@ export default async function handler(req, res) {
         [tarea_id, userId]
       );
       if (!row) return res.status(404).json({ error: 'No hay entrega' });
-
-      // Agregar URL para preview
-      row.archivo_url = `/api/entregas?action=descargar&tarea_id=${tarea_id}`;
-      return res.status(200).json(row);
+      return res.status(200).json({ entrega: row });
     }
 
     /* ===== ELIMINAR mi entrega ===== */
@@ -144,8 +141,9 @@ export default async function handler(req, res) {
       if (!userId) return res.status(401).json({ error: 'No autenticado' });
       const tarea_id = Number(req.query?.tarea_id);
       if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
-      if (!await canSubmit(userId, tarea_id)) return res.status(403).json({ error: 'No autorizado' });
-
+      if (!await canSubmit(userId, tarea_id)) {
+        return res.status(403).json({ error: 'No autorizado' });
+      }
       const [r] = await pool.query(
         `DELETE FROM tareas_entregas
           WHERE tarea_id=? AND estudiante_id=?`,
@@ -154,18 +152,19 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, deleted: r.affectedRows });
     }
 
-    /* ===== DESCARGAR ÚLTIMA ENTREGA ===== */
+    /* ===== DESCARGAR ÚLTIMA ENTREGA (opcional) ===== */
     if (req.method === 'GET' && action === 'descargar') {
       const userId = getUserId(req);
       const tarea_id = Number(req.query?.tarea_id);
       const estudiante_id = Number(req.query?.estudiante_id) || userId;
+
       if (!tarea_id || !estudiante_id) return res.status(400).json({ error: 'tarea_id requerido' });
 
       const [[row]] = await pool.query(
-        `SELECT archivo_nombre, archivo_mime, archivo_blob
-           FROM tareas_entregas
-          WHERE tarea_id=? AND estudiante_id=?
-          ORDER BY fecha_entrega DESC
+        `SELECT archivo_nombre, archivo_mime, archivo_blob 
+           FROM tareas_entregas 
+          WHERE tarea_id=? AND estudiante_id=? 
+          ORDER BY fecha_entrega DESC 
           LIMIT 1`,
         [tarea_id, estudiante_id]
       );
@@ -177,7 +176,6 @@ export default async function handler(req, res) {
     }
 
     return res.status(400).json({ error: 'Acción inválida o método no soportado' });
-
   } catch (err) {
     console.error('Error en entregas API:', err);
     return res.status(500).json({ error: 'Error interno del servidor', details: err.message });
