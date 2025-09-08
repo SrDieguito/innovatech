@@ -1,241 +1,147 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Mis cursos</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis cursos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
 </head>
-<body class="bg-gradient-to-b from-green-50 to-white text-gray-900 font-sans">
+<body class="bg-gradient-to-b from-green-50 to-white text-gray-900 font-sans min-h-screen flex flex-col">
 
-<!-- Header -->
-<div id="header-container" class="shadow-lg bg-white"></div>
+  <!-- Header -->
+  <div id="header-container"></div>
 
-<main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-10" x-data="cursosApp()">
+  <main class="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8" x-data="cursosPage()">
+    <h1 class="text-3xl sm:text-4xl font-extrabold mb-2 text-green-700">Mis cursos</h1>
+    <p class="text-gray-700 mb-6">Vista general de los cursos en los que estás matriculado</p>
 
-  <!-- Título -->
-  <div class="mb-8 text-center">
-    <h1 class="text-3xl md:text-4xl font-extrabold text-green-700 mb-1">Mis cursos</h1>
-    <p class="text-gray-700 text-md md:text-lg">Vista general de los cursos en los que estás inscrito</p>
-  </div>
-
-  <!-- Filtros -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-    <div class="flex gap-2 w-full md:w-auto">
-      <select x-model="filtro" @change="aplicarFiltros" class="border border-gray-300 rounded px-3 py-2 w-full md:w-auto">
-        <option value="todos">Todos</option>
-        <option value="activos">Activos</option>
-        <option value="finalizados">Finalizados</option>
+    <!-- Filtros -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div class="flex gap-2 flex-wrap">
+        <select x-model="filtro" class="border border-gray-300 rounded px-3 py-2" @change="aplicarFiltros()">
+          <option value="todos">Todos</option>
+          <option value="activos">Activos</option>
+          <option value="finalizados">Finalizados</option>
+        </select>
+        <input type="text" x-model="busqueda" placeholder="Buscar por nombre"
+               class="border border-gray-300 rounded px-3 py-2 w-full md:w-64"
+               @input="aplicarFiltros()" />
+      </div>
+      <select x-model="orden" class="border border-gray-300 rounded px-3 py-2" @change="aplicarFiltros()">
+        <option value="nombre">Ordenar por nombre</option>
+        <option value="ultimoAcceso">Ordenar por último acceso</option>
       </select>
-      <input x-model="busqueda" @input="aplicarFiltros" type="text" placeholder="Buscar por nombre" class="border border-gray-300 rounded px-3 py-2 w-full md:w-64"/>
     </div>
-    <select x-model="orden" @change="aplicarFiltros" class="border border-gray-300 rounded px-3 py-2 w-full md:w-auto">
-      <option value="nombre">Ordenar por nombre</option>
-      <option value="ultimoAcceso">Ordenar por último acceso</option>
-    </select>
-  </div>
 
-  <!-- Contenedor de cursos -->
-  <section id="cursos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-    <template x-for="curso in cursosFiltrados" :key="curso.id">
-      <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col justify-between transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
-        <div>
-          <h3 class="text-xl font-bold text-green-700 mb-1" x-text="curso.nombre"></h3>
-          <p class="text-gray-600 mb-1" x-text="curso.profesor || 'Sin tutor asignado'"></p>
-          <p class="text-sm italic text-gray-500" x-text="curso.rol==='profesor' ? 'Eres el profesor' : 'Estás matriculado'"></p>
+    <!-- Contenedor de cursos -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Mensaje de carga -->
+      <template x-if="loading">
+        <div class="col-span-full text-center py-12 animate-pulse">
+          <i class="fas fa-spinner fa-spin text-4xl text-green-600 mb-4"></i>
+          <p class="text-gray-600">Cargando sus cursos...</p>
         </div>
-        <a :href="`/views/curso.html?id=${curso.id}`" class="mt-4 inline-block bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded transition transform hover:scale-105">Ir al curso</a>
+      </template>
+
+      <!-- Mensaje si no hay cursos -->
+      <template x-if="!loading && cursosFiltrados.length === 0">
+        <div class="col-span-full flex flex-col items-center text-center py-12">
+          <i class="fas fa-book-open text-5xl text-gray-400 mb-4"></i>
+          <p class="font-semibold text-gray-900 mb-2">Usted no está matriculado en ningún curso</p>
+          <p class="text-gray-700 max-w-md">Una vez que se inscriba en un curso, aparecerá aquí.</p>
+        </div>
+      </template>
+
+      <!-- Cards de cursos -->
+      <template x-for="curso in cursosFiltrados" :key="curso.id">
+        <div class="bg-white rounded-xl shadow-md p-6 transform transition hover:-translate-y-1 hover:shadow-xl">
+          <h3 class="text-xl font-semibold text-green-700 mb-2" x-text="curso.nombre"></h3>
+          <p class="text-gray-600 mb-1" x-text="curso.profesor || 'Sin tutor asignado'"></p>
+          <p class="text-sm italic text-gray-500 mb-3" x-text="curso.rol === 'profesor' ? 'Usted es el profesor' : 'Usted está matriculado'"></p>
+          <a :href="`/views/curso.html?id=${curso.id}`"
+             class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+            Ir al curso
+          </a>
+        </div>
+      </template>
+    </section>
+
+    <!-- Error -->
+    <template x-if="error">
+      <div class="col-span-full text-center py-8 mt-6 bg-red-50 border border-red-200 rounded-lg">
+        <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-2"></i>
+        <p class="font-semibold text-red-600 mb-2">Error al cargar los cursos</p>
+        <p class="text-sm text-red-500 mb-4" x-text="error"></p>
+        <button @click="cargarCursos()"
+                class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-6 rounded transition">
+          <i class="fas fa-sync-alt mr-2"></i> Reintentar
+        </button>
       </div>
     </template>
-  </section>
 
-  <!-- Mensaje si no hay cursos -->
-  <section x-show="cursosFiltrados.length===0" class="flex flex-col items-center text-center px-4 sm:px-0">
-    <img class="mb-4 w-20 h-20" src="https://storage.googleapis.com/a1aa/image/ede5611e-3825-4243-5061-17a8dea70976.jpg" alt="Sin cursos"/>
-    <p class="font-semibold text-gray-900 mb-2">No estás inscrito en ningún curso</p>
-    <p class="text-gray-700 max-w-sm">Una vez que te inscribas, tus cursos aparecerán aquí.</p>
-  </section>
-
-</main>
-
-  <button aria-label="Ayuda" class="fixed bottom-4 right-4 w-8 h-8 rounded-full bg-gray-300 text-gray-700 text-sm font-semibold flex items-center justify-center select-none">
-   ?
-  </button>
+  </main>
 
 <script>
-  // Cargar el header (esto se mantiene igual)
+function cursosPage() {
+  return {
+    todosLosCursos: [],
+    cursosFiltrados: [],
+    busqueda: '',
+    filtro: 'todos',
+    orden: 'nombre',
+    loading: true,
+    error: '',
+    cargarCursos() {
+      this.loading = true;
+      this.error = '';
+      fetch('/api/miscursos', { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => {
+          this.todosLosCursos = Array.isArray(data.data) ? data.data : [];
+          this.aplicarFiltros();
+          this.loading = false;
+        })
+        .catch(e => {
+          console.error(e);
+          this.loading = false;
+          this.error = 'No se pudo conectar al servidor. Intente nuevamente.';
+        });
+    },
+    aplicarFiltros() {
+      let lista = this.todosLosCursos.filter(curso =>
+        curso.nombre.toLowerCase().includes(this.busqueda.toLowerCase())
+      );
+      if (this.filtro === 'activos') lista = lista.filter(c => c.activo);
+      if (this.filtro === 'finalizados') lista = lista.filter(c => !c.activo);
+      if (this.orden === 'nombre') lista.sort((a,b) => a.nombre.localeCompare(b.nombre));
+      if (this.orden === 'ultimoAcceso') lista.sort((a,b) => new Date(b.ultimoAcceso) - new Date(a.ultimoAcceso));
+      this.cursosFiltrados = lista;
+    },
+    init() {
+      this.cargarCursos();
+    }
+  }
+}
+</script>
+
+<script>
+  // Cargar header
   fetch('/views/header.html')
     .then(res => res.text())
     .then(html => {
       const container = document.getElementById('header-container');
       container.innerHTML = html;
-
-      const scripts = container.querySelectorAll('script');
-      scripts.forEach(oldScript => {
+      container.querySelectorAll('script').forEach(oldScript => {
         const newScript = document.createElement('script');
-        if (oldScript.src) {
-          newScript.src = oldScript.src;
-        } else {
-          newScript.textContent = oldScript.textContent;
-        }
+        if (oldScript.src) newScript.src = oldScript.src;
+        else newScript.textContent = oldScript.textContent;
         document.body.appendChild(newScript);
         oldScript.remove();
       });
     });
-
-  let todosLosCursos = [];
-
-  async function cargarCursos() {
-    const container = document.getElementById('cursos-container');
-    const noCursos = document.getElementById('no-cursos');
-    
-    try {
-      // Show loading state
-      container.innerHTML = `
-        <div class="col-span-full text-center py-12">
-          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p class="text-gray-600">Cargando sus cursos...</p>
-        </div>`;
-      
-      const startTime = Date.now();
-      const res = await fetch('/api/miscursos', {
-        method: 'GET',
-        credentials: 'include',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      });
-
-      const responseTime = Date.now() - startTime;
-      console.log(`API response time: ${responseTime}ms`);
-
-      // Check if response is JSON
-      const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await res.text();
-        console.error('Expected JSON, got:', text);
-        throw new Error('La respuesta del servidor no es válida');
-      }
-
-      const data = await res.json();
-      console.log('API Response:', data);
-      
-      if (!res.ok) {
-        if (res.status === 401) {
-          window.location.href = '/auth/login.html';
-          return;
-        }
-        // Show server error details if available
-        const errorMsg = data.details ? 
-          `${data.message || 'Error al cargar los cursos'}<br/><small class="text-gray-500">${JSON.stringify(data.details)}</small>` : 
-          (data.message || 'Error al cargar los cursos');
-        throw new Error(errorMsg);
-      }
-
-      // Extract courses from the response data
-      if (!data || typeof data !== 'object') {
-        throw new Error('Formato de respuesta inesperado del servidor');
-      }
-
-      const cursos = Array.isArray(data.data) ? data.data : [];
-      todosLosCursos = cursos;
-      
-      if (todosLosCursos.length === 0) {
-        renderizarSinCursos();
-      } else {
-        renderizarCursos(todosLosCursos);
-      }
-      
-    } catch (error) {
-      console.error('Error al cargar cursos:', error);
-      container.innerHTML = `
-        <div class="col-span-full text-center py-8">
-          <div class="text-red-500 mb-4">
-            <i class="fas fa-exclamation-triangle text-4xl mb-2"></i>
-            <p class="font-semibold">Error al cargar los cursos</p>
-            <p class="text-sm mt-2 text-gray-600">${error.message || 'Por favor, intente nuevamente más tarde.'}</p>
-          </div>
-          <button onclick="cargarCursos()" 
-                  class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-md transition-colors">
-            <i class="fas fa-sync-alt mr-2"></i> Reintentar
-          </button>
-        </div>`;
-    }
-  }
-
-  function renderizarCursos(lista) {
-    const container = document.getElementById('cursos-container');
-    const noCursos = document.getElementById('no-cursos');
-
-    if (lista.length === 0) {
-      noCursos.classList.remove('hidden');
-      container.innerHTML = '';
-      return;
-    }
-
-    noCursos.classList.add('hidden');
-    container.innerHTML = '';
-
-    lista.forEach(curso => {
-      const card = document.createElement('div');
-      card.className = 'flex items-center bg-white rounded-lg shadow p-4';
-
-      card.innerHTML = `
-        <img src="${curso.imagen || 'https://unsplash.com/es/fotos/un-grupo-de-gorras-de-graduacion-sentadas-una-encima-de-la-otra-pLRAaxH0vHA'}" alt="Miniatura del curso" class="w-24 h-24 rounded object-cover mr-4"/>
-        <div class="flex-1">
-          <h3 class="text-lg font-semibold text-green-700">${curso.nombre}</h3>
-          <p class="text-sm text-gray-600">${curso.profesor || 'Sin tutor asignado'}</p>
-          <p class="text-xs text-gray-500 italic">${curso.rol === 'profesor' ? 'Usted es el profesor' : 'Usted está matriculado'}</p>
-
-         <a href="/views/curso.html?id=${curso.id}" class="inline-block mt-2 bg-green-600 text-white text-sm px-4 py-2 rounded hover:bg-green-700 transition">
-            Ir al curso
-          </a>
-        </div>
-      `;
-
-      container.appendChild(card);
-    });
-  }
-
-  function aplicarFiltros() {
-    const texto = document.getElementById('busqueda').value.toLowerCase();
-    const filtro = document.getElementById('filtro').value;
-    const orden = document.getElementById('orden').value;
-
-    let cursosFiltrados = todosLosCursos.filter(curso =>
-      curso.nombre.toLowerCase().includes(texto)
-    );
-
-    if (filtro === 'activos') {
-      cursosFiltrados = cursosFiltrados.filter(c => c.activo === true);
-    } else if (filtro === 'finalizados') {
-      cursosFiltrados = cursosFiltrados.filter(c => c.activo === false);
-    }
-
-    if (orden === 'nombre') {
-      cursosFiltrados.sort((a, b) => a.nombre.localeCompare(b.nombre));
-    } else if (orden === 'ultimoAcceso') {
-      cursosFiltrados.sort((a, b) => new Date(b.ultimoAcceso) - new Date(a.ultimoAcceso));
-    }
-
-    renderizarCursos(cursosFiltrados);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    cargarCursos();
-
-    document.getElementById('busqueda').addEventListener('input', aplicarFiltros);
-    document.getElementById('filtro').addEventListener('change', aplicarFiltros);
-    document.getElementById('orden').addEventListener('change', aplicarFiltros);
-  });
 </script>
 
-
- </body>
- 
+</body>
 </html>
