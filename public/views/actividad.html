@@ -59,7 +59,118 @@
       .then(res => res.text())
       .then(html => {
         document.getElementById('header-container').innerHTML = html;
-      });
+      })
+
+      <script>
+(async () => {
+  // Obtener parámetros de la URL
+  const params = new URLSearchParams(window.location.search);
+  const cursoId = params.get("curso_id") || params.get("courseId") || params.get("id");
+  const tareaId = params.get("tarea_id") || params.get("id");
+
+  if (!cursoId || !tareaId) {
+    alert("Falta ID de curso o tarea");
+    location.href = "/mis-cursos.html";
+    return;
+  }
+
+  // Función helper para fetch con credenciales
+  const withCreds = (opt = {}) => ({ credentials: "include", ...opt });
+
+  const parseTS = (v) => {
+    if (!v) return 0;
+    const t = typeof v === "string" ? Date.parse(v) : (v?.getTime?.() || v);
+    return Number.isFinite(t) ? t : 0;
+  };
+  const fmt = (v) => {
+    const t = parseTS(v);
+    if (!t) return "—";
+    const d = new Date(t);
+    return d.toLocaleString();
+  };
+
+  // Obtener perfil de usuario
+  const perfil = await fetch("/api/perfil", withCreds()).then(r => r.ok ? r.json() : null);
+  const rol = (perfil?.rol === "profesor" || perfil?.rol === "admin") ? "profesor" : "estudiante";
+
+  // Traer detalle del curso
+  const curso = await fetch(`/api/cursos?action=obtener-detalle&id=${cursoId}`, withCreds())
+                      .then(r => r.ok ? r.json() : null);
+  if (!curso) {
+    alert("Error al cargar el curso");
+    return;
+  }
+
+  // Traer la tarea específica
+  const tareas = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`, withCreds())
+                        .then(r => r.ok ? r.json() : []);
+  const tarea = tareas.find(t => String(t.id) === String(tareaId));
+  if (!tarea) {
+    alert("Error al cargar la actividad");
+    return;
+  }
+
+  // Contenedor donde se mostrará la tarea
+  const holder = document.getElementById('actividad-holder');
+  if (!holder) {
+    console.error("Falta div con id 'actividad-holder'");
+    return;
+  }
+
+  // Renderizar la información de la tarea
+  holder.innerHTML = `
+    <h2 class="text-2xl font-semibold mb-2">${tarea.title || "(Sin título)"}</h2>
+    <p class="mb-2 text-gray-700">${tarea.description || ""}</p>
+    <p class="mb-2 text-gray-500">Fecha límite: ${fmt(tarea.due_at)}</p>
+    <p class="mb-2 text-gray-500">Puntos: ${tarea.points ?? 0}</p>
+    <p class="mb-2 text-gray-500">Estado: ${tarea.status || "pendiente"}</p>
+    <div class="flex gap-2 mt-4">
+      ${rol === "estudiante" ? `
+        <button id="btnEntregar" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Entregar</button>
+        <button id="btnVerEntrega" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Ver entrega</button>
+      ` : `
+        <button id="btnEditar" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Editar</button>
+        <button id="btnEliminar" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Eliminar</button>
+      `}
+    </div>
+  `;
+
+  // Funciones de botones
+  if (rol === "estudiante") {
+    const btnEntregar = document.getElementById("btnEntregar");
+    const btnVerEntrega = document.getElementById("btnVerEntrega");
+
+    btnEntregar?.addEventListener("click", () => {
+      // Abrir modal o redirigir a formulario de entrega
+      alert("Aquí abrirías el modal de entrega para la tarea " + tareaId);
+    });
+
+    btnVerEntrega?.addEventListener("click", async () => {
+      const entrega = await fetch(`/api/entregas?action=detalle&tarea_id=${tareaId}`, withCreds())
+                              .then(r => r.ok ? r.json() : null);
+      if (entrega?.entrega?.archivo_nombre) {
+        alert("Archivo entregado: " + entrega.entrega.archivo_nombre);
+      } else {
+        alert("Aún no has entregado esta tarea");
+      }
+    });
+  } else {
+    const btnEditar = document.getElementById("btnEditar");
+    const btnEliminar = document.getElementById("btnEliminar");
+
+    btnEditar?.addEventListener("click", () => {
+      alert("Abrir modal de edición para la tarea " + tareaId);
+    });
+
+    btnEliminar?.addEventListener("click", async () => {
+      if (!confirm("¿Eliminar esta tarea?")) return;
+      await fetch(`/api/tareas?action=eliminar&tarea_id=${tareaId}&curso_id=${cursoId}`, { method: "DELETE", credentials: "include" });
+      alert("Tarea eliminada");
+      location.href = `/curso.html?id=${cursoId}`;
+    });
+  }
+})();
+</script>
   </script>
 </body>
 </html>
