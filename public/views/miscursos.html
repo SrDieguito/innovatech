@@ -1,0 +1,229 @@
+<html lang="es">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Mis cursos
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+ </head>
+ <body class="bg-white text-gray-900 font-sans">
+  
+  <div id="header-container"></div>
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+  <h1 class="text-2xl font-extrabold mb-2">Mis cursos</h1>
+  <h2 class="font-semibold text-gray-900 mb-4">Vista general de curso</h2>
+  <hr class="border-gray-300 mb-6"/>
+
+  <!-- Filtros -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+  <div class="flex gap-2">
+    <select id="filtro" class="border border-gray-300 rounded px-3 py-2">
+      <option value="todos">Todos</option>
+      <option value="activos">Activos</option>
+      <option value="finalizados">Finalizados</option>
+    </select>
+    <input id="busqueda" type="text" placeholder="Buscar por nombre" class="border border-gray-300 rounded px-3 py-2 w-full md:w-64" />
+  </div>
+  <select id="orden" class="border border-gray-300 rounded px-3 py-2">
+    <option value="nombre">Ordenar por nombre</option>
+    <option value="ultimoAcceso">Ordenar por último acceso</option>
+  </select>
+</div>
+
+  <!-- Contenedor de cursos -->
+  <section id="cursos-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Aquí se agregan los cursos dinámicamente -->
+  </section>
+
+  <!-- Mensaje si no hay cursos -->
+  <section id="no-cursos" class="hidden flex-col items-center text-center px-4 sm:px-0">
+    <img class="mb-4" src="https://storage.googleapis.com/a1aa/image/ede5611e-3825-4243-5061-17a8dea70976.jpg" width="64" height="64" alt="Sin cursos"/>
+    <p class="font-semibold text-gray-900 mb-2">Usted no está matriculado en ningún curso</p>
+    <p class="text-gray-700 max-w-md">Una vez que usted se inscriba en un curso, aparecerá aquí.</p>
+  </section>
+</main>
+
+
+  <button aria-label="Ayuda" class="fixed bottom-4 right-4 w-8 h-8 rounded-full bg-gray-300 text-gray-700 text-sm font-semibold flex items-center justify-center select-none">
+   ?
+  </button>
+
+<script>
+  // Cargar el header (esto se mantiene igual)
+  fetch('/views/header.html')
+    .then(res => res.text())
+    .then(html => {
+      const container = document.getElementById('header-container');
+      container.innerHTML = html;
+
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(newScript);
+        oldScript.remove();
+      });
+    });
+
+  let todosLosCursos = [];
+
+  async function cargarCursos() {
+    const container = document.getElementById('cursos-container');
+    const noCursos = document.getElementById('no-cursos');
+    
+    try {
+      // Show loading state
+      container.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p class="text-gray-600">Cargando sus cursos...</p>
+        </div>`;
+      
+      const startTime = Date.now();
+      const res = await fetch('/api/miscursos', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+
+      const responseTime = Date.now() - startTime;
+      console.log(`API response time: ${responseTime}ms`);
+
+      // Check if response is JSON
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await res.text();
+        console.error('Expected JSON, got:', text);
+        throw new Error('La respuesta del servidor no es válida');
+      }
+
+      const data = await res.json();
+      console.log('API Response:', data);
+      
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = '/auth/login.html';
+          return;
+        }
+        // Show server error details if available
+        const errorMsg = data.details ? 
+          `${data.message || 'Error al cargar los cursos'}<br/><small class="text-gray-500">${JSON.stringify(data.details)}</small>` : 
+          (data.message || 'Error al cargar los cursos');
+        throw new Error(errorMsg);
+      }
+
+      // Extract courses from the response data
+      if (!data || typeof data !== 'object') {
+        throw new Error('Formato de respuesta inesperado del servidor');
+      }
+
+      const cursos = Array.isArray(data.data) ? data.data : [];
+      todosLosCursos = cursos;
+      
+      if (todosLosCursos.length === 0) {
+        renderizarSinCursos();
+      } else {
+        renderizarCursos(todosLosCursos);
+      }
+      
+    } catch (error) {
+      console.error('Error al cargar cursos:', error);
+      container.innerHTML = `
+        <div class="col-span-full text-center py-8">
+          <div class="text-red-500 mb-4">
+            <i class="fas fa-exclamation-triangle text-4xl mb-2"></i>
+            <p class="font-semibold">Error al cargar los cursos</p>
+            <p class="text-sm mt-2 text-gray-600">${error.message || 'Por favor, intente nuevamente más tarde.'}</p>
+          </div>
+          <button onclick="cargarCursos()" 
+                  class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-md transition-colors">
+            <i class="fas fa-sync-alt mr-2"></i> Reintentar
+          </button>
+        </div>`;
+    }
+  }
+
+  function renderizarCursos(lista) {
+    const container = document.getElementById('cursos-container');
+    const noCursos = document.getElementById('no-cursos');
+
+    if (lista.length === 0) {
+      noCursos.classList.remove('hidden');
+      container.innerHTML = '';
+      return;
+    }
+
+    noCursos.classList.add('hidden');
+    container.innerHTML = '';
+
+    lista.forEach(curso => {
+      const card = document.createElement('div');
+      card.className = 'flex items-center bg-white rounded-lg shadow p-4';
+
+      card.innerHTML = `
+        <img src="${curso.imagen || 'https://unsplash.com/es/fotos/un-grupo-de-gorras-de-graduacion-sentadas-una-encima-de-la-otra-pLRAaxH0vHA'}" alt="Miniatura del curso" class="w-24 h-24 rounded object-cover mr-4"/>
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-green-700">${curso.nombre}</h3>
+          <p class="text-sm text-gray-600">${curso.profesor || 'Sin tutor asignado'}</p>
+          <p class="text-xs text-gray-500 italic">${curso.rol === 'profesor' ? 'Usted es el profesor' : 'Usted está matriculado'}</p>
+
+         <a href="/views/curso.html?id=${curso.id}" class="inline-block mt-2 bg-green-600 text-white text-sm px-4 py-2 rounded hover:bg-green-700 transition">
+            Ir al curso
+          </a>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  function aplicarFiltros() {
+    const texto = document.getElementById('busqueda').value.toLowerCase();
+    const filtro = document.getElementById('filtro').value;
+    const orden = document.getElementById('orden').value;
+
+    let cursosFiltrados = todosLosCursos.filter(curso =>
+      curso.nombre.toLowerCase().includes(texto)
+    );
+
+    if (filtro === 'activos') {
+      cursosFiltrados = cursosFiltrados.filter(c => c.activo === true);
+    } else if (filtro === 'finalizados') {
+      cursosFiltrados = cursosFiltrados.filter(c => c.activo === false);
+    }
+
+    if (orden === 'nombre') {
+      cursosFiltrados.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    } else if (orden === 'ultimoAcceso') {
+      cursosFiltrados.sort((a, b) => new Date(b.ultimoAcceso) - new Date(a.ultimoAcceso));
+    }
+
+    renderizarCursos(cursosFiltrados);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    cargarCursos();
+
+    document.getElementById('busqueda').addEventListener('input', aplicarFiltros);
+    document.getElementById('filtro').addEventListener('change', aplicarFiltros);
+    document.getElementById('orden').addEventListener('change', aplicarFiltros);
+  });
+</script>
+
+
+ </body>
+ 
+</html>

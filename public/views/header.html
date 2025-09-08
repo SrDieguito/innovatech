@@ -1,0 +1,132 @@
+   <style>
+   /* Custom green color override */
+   .bg-green-900 {
+    background-color: #00983d !important;
+   }
+   .border-green-800 {
+    border-color: #00983d !important;
+   }
+   .peer-checked\:bg-green-600:checked {
+    background-color: #00983d !important;
+   }
+   .peer-focus\:ring-green-300:focus {
+    --tw-ring-color: #00983d !important;
+   }
+   .peer-focus\:ring-green-800:focus {
+    --tw-ring-color: #00983d !important;
+   }
+   .text-green-700 {
+    color: #00983d !important;
+   }
+   .bg-green-200 {
+    background-color: #c6f0cc !important;
+   }
+  </style>
+ 
+ <header class="bg-green-900 text-white flex items-center justify-between px-4 sm:px-6 md:px-8 h-12">
+   <nav class="flex space-x-4 text-sm">
+    <a class="hover:underline" href="homeuser.html">
+     Área personal
+    </a>
+    <a class="hover:underline" href="miscursos.html">
+     Mis cursos
+    </a>
+   </nav>
+   <div class="flex items-center space-x-4 text-sm">
+    <button aria-label="Notificaciones" class="relative focus:outline-none">
+     <i class="fas fa-bell">
+     </i>
+    </button>
+    <button aria-label="Mensajes" class="relative focus:outline-none">
+     <i class="fas fa-comment-alt">
+     </i>
+    </button>
+<div class="flex items-center space-x-2 border-l border-green-800 pl-4 relative">
+  <div aria-label="User initials" class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-green-900 font-semibold text-sm" id="user-initials">
+    US
+  </div>
+  <!-- Botón con más padding -->
+  <button id="user-menu-button" aria-label="User menu" class="focus:outline-none p-2 hover:bg-white/20 rounded-full transition">
+    <i class="fas fa-chevron-down"></i>
+  </button>
+
+  <!-- Dropdown con z-index alto y shadow -->
+  <div id="user-dropdown" class="rounded-lg	hidden absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded shadow-xl z-50">
+    <!-- Opciones del menú -->
+    <a href="perfil.html" href="/perfil.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Perfil</a>
+    <a href="calificaciones.html" href="/calificaciones.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Calificaciones</a>
+    <a href="calendario.html" href="/calendario.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Calendario</a>
+    <a href="archivos.html" href="/archivos.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Archivos privados</a>
+    <a href="informes.html" href="/informes.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Informes</a>
+    <a href="preferencias.html" href="/preferencias.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Preferencias</a>
+    <a href="idioma.html" href="/idioma.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Idioma</a>
+    <a id="logout-link" href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-100">Cerrar sesión</a>
+  </div>
+</div>
+
+
+    <div class="border-l border-green-800 pl-4 flex items-center space-x-2 text-gray-400 select-none">
+     <span class="text-sm">
+      Modo de edición
+     </span>
+     <label class="relative inline-flex items-center cursor-pointer" for="toggle-edit">
+      <input class="sr-only peer" id="toggle-edit" type="checkbox" value=""/>
+      <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:bg-green-600 transition-colors">
+      </div>
+      <div class="absolute left-0.5 top-0.5 bg-white border border-gray-300 rounded-full w-5 h-5 transition-transform peer-checked:translate-x-5">
+      </div>
+     </label>
+    </div>
+   </div>
+  </header>
+
+
+
+  <script>
+    (function () {
+      const initEl = document.getElementById('user-initials');
+      const nameEl = document.getElementById('user-name');
+    
+      function getInitials(fullName) {
+        if (!fullName) return '';
+        const stop = new Set(['de','del','la','las','los','y','da','do','dos','das']);
+        // quita acentos y espacios raros
+        const clean = fullName.normalize('NFD').replace(/\p{Diacritic}/gu,'')
+                      .replace(/\s+/g,' ').trim();
+        const words = clean.split(' ').filter(Boolean).filter(w => !stop.has(w.toLowerCase()));
+        if (words.length === 0) return '';
+        const first = words[0].split('-')[0];
+        const last  = (words.length > 1 ? words[words.length - 1] : words[0]).split('-')[0];
+        return (first[0] + last[0]).toUpperCase();
+      }
+    
+      fetch('/api/perfil', { credentials: 'include' })
+        .then(res => { if (!res.ok) throw new Error('No autenticado'); return res.json(); })
+        .then(p => {
+          const nombre = (p?.nombre || '').trim();
+          const ini = getInitials(nombre) || 'US';
+          if (initEl) initEl.textContent = ini;
+          if (nameEl) nameEl.textContent = nombre || 'USUARIO';
+        })
+        .catch(() => {
+          if (initEl) initEl.textContent = 'US';
+          if (nameEl) nameEl.textContent = 'USUARIO';
+        });
+    
+      // dropdown (igual que lo tienes)
+      const userMenuButton = document.getElementById('user-menu-button');
+      const userDropdown = document.getElementById('user-dropdown');
+      userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('hidden'); });
+      window.addEventListener('click', (e) => { if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.add('hidden'); });
+      userDropdown.addEventListener('click', (e) => e.stopPropagation());
+    
+      // logout
+      const logoutLink = document.getElementById('logout-link');
+      if (logoutLink) logoutLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const r = await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+        if (r.ok) location.href = '/auth/login.html'; else alert('Error al cerrar sesión');
+      });
+    })();
+    </script>
+    

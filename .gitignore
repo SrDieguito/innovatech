@@ -1,0 +1,7 @@
+.vercel
+.env
+innovatech.zip
+
+# Dependencias y zip
+**/node_modules/
+innovatech.zip
