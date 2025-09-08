@@ -102,13 +102,24 @@
   }
 
   // Traer la tarea específica
-  const tareas = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`, withCreds())
-                        .then(r => r.ok ? r.json() : []);
-  const tarea = tareas.find(t => String(t.id) === String(tareaId));
-  if (!tarea) {
-    alert("Error al cargar la actividad");
-    return;
-  }
+const tarea = await fetch(`/api/tareas?action=detalle&tarea_id=${tareaId}`, withCreds())
+                     .then(r => r.ok ? r.json() : null);
+
+if (!tarea) {
+  alert("No se pudo cargar la actividad");
+  return;
+}
+
+// Ahora tarea tiene los campos correctos:
+holder.innerHTML = `
+  <h2>${tarea.title || "(Sin título)"}</h2>
+  <p>${tarea.description || ""}</p>
+  <p>Fecha límite: ${fmt(tarea.due_at)}</p>
+  <p>Puntos: ${tarea.points ?? 0}</p>
+  <p>Estado: ${tarea.status || "pendiente"}</p>
+  ...
+`;
+
 
   // Contenedor donde se mostrará la tarea
   const holder = document.getElementById('actividad-holder');
