@@ -3,9 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Actividad</title>
+  <title>Actividad - Sistema de Calificaciones</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <style>
+    .calification-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .calification-badge.excellent {
+      background-color: #10B981;
+      color: white;
+    }
+    .calification-badge.good {
+      background-color: #F59E0B;
+      color: white;
+    }
+    .calification-badge.poor {
+      background-color: #EF4444;
+      color: white;
+    }
+    .calification-badge.pending {
+      background-color: #9CA3AF;
+      color: white;
+    }
+    .debug-info {
+      background-color: #f3f4f6;
+      border-left: 4px solid #EF4444;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-family: monospace;
+      font-size: 0.875rem;
+      border-radius: 0.5rem;
+    }
+  </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
@@ -14,27 +51,27 @@
   <main class="flex-grow px-4 py-8">
     <div class="max-w-5xl mx-auto space-y-6">
 
-<!-- Título -->
-<div>
-  <h1 id="actividad-title" class="text-3xl font-bold text-emerald-700 text-center sm:text-left">Cargando...</h1>
-  <p id="actividad-description" class="text-gray-600 mt-1 text-center sm:text-left"></p>
-</div>
+      <!-- Título -->
+      <div>
+        <h1 id="actividad-title" class="text-3xl font-bold text-emerald-700 text-center sm:text-left">Cargando...</h1>
+        <p id="actividad-description" class="text-gray-600 mt-1 text-center sm:text-left"></p>
+      </div>
 
-<!-- Detalles de la tarea -->
-<div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
-  <h2 class="text-lg font-semibold text-gray-800 border-b pb-2">Detalles de la tarea</h2>
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-    <p><span class="font-medium text-gray-700">Fecha de creación:</span> <span id="actividad-created_at" class="text-gray-600">—</span></p>
-    <p><span class="font-medium text-gray-700">Fecha límite:</span> <span id="actividad-due_at" class="text-gray-600">—</span></p>
-    <p><span class="font-medium text-gray-700">Estado:</span> <span id="actividad-status" class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">—</span></p>
-    <p><span class="font-medium text-gray-700">Puntos:</span> <span id="actividad-points" class="text-gray-600">0</span></p>
-    <p><span class="font-medium text-gray-700">Profesor:</span> <span id="actividad-profesor" class="text-gray-600">—</span></p>
-    <p><span class="font-medium text-gray-700">Última entrega:</span> <span id="actividad-ultima-entrega" class="text-gray-600">—</span></p>
-  </div>
-</div>
+      <!-- Detalles de la tarea -->
+      <div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2">Detalles de la tarea</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <p><span class="font-medium text-gray-700">Fecha de creación:</span> <span id="actividad-created_at" class="text-gray-600">—</span></p>
+          <p><span class="font-medium text-gray-700">Fecha límite:</span> <span id="actividad-due_at" class="text-gray-600">—</span></p>
+          <p><span class="font-medium text-gray-700">Estado:</span> <span id="actividad-status" class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">—</span></p>
+          <p><span class="font-medium text-gray-700">Puntos:</span> <span id="actividad-points" class="text-gray-600">0</span></p>
+          <p><span class="font-medium text-gray-700">Profesor:</span> <span id="actividad-profesor" class="text-gray-600">—</span></p>
+          <p><span class="font-medium text-gray-700">Última entrega:</span> <span id="actividad-ultima-entrega" class="text-gray-600">—</span></p>
+        </div>
+      </div>
 
-<!-- Contenedor de botones independiente, centrado -->
-<div id="actividad-buttons" class="flex flex-wrap gap-3 mt-4 justify-center"></div>
+      <!-- Contenedor de botones independiente, centrado -->
+      <div id="actividad-buttons" class="flex flex-wrap gap-3 mt-4 justify-center"></div>
 
       <!-- Calificación -->
       <div class="bg-white rounded-2xl shadow-md p-6">
@@ -69,13 +106,24 @@
     </div>
 
     <!-- CONTENEDOR DE ENTREGAS DEL PROFESOR -->
-<div id="profesor-entregas" class="bg-white rounded-2xl shadow-md p-6 mt-6 hidden">
-  <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Entregas de estudiantes</h2>
-  <div id="entregas-list" class="space-y-4">
-    <p class="text-gray-500 text-center">Cargando entregas...</p>
-  </div>
-</div>
+    <div id="profesor-entregas" class="bg-white rounded-2xl shadow-md p-6 mt-6 hidden">
+      <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Entregas de estudiantes</h2>
+      <div class="mb-4 flex items-center justify-between">
+        <span class="text-sm text-gray-600">Mostrando <span id="entregas-count">0</span> entregas</span>
+        <button id="btn-exportar" class="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Exportar calificaciones</button>
+      </div>
+      <div id="entregas-list" class="space-y-4">
+        <p class="text-gray-500 text-center">Cargando entregas...</p>
+      </div>
+    </div>
 
+    <!-- Panel de depuración -->
+    <div class="debug-info mt-6">
+      <h3 class="font-bold text-gray-800">Información de Depuración:</h3>
+      <div id="debug-info-content" class="mt-2">
+        <p>Esperando datos...</p>
+      </div>
+    </div>
   </main>
 
   <!-- Modal de entrega -->
@@ -107,7 +155,36 @@
     </form>
   </dialog>
 
+  <!-- Modal de calificación -->
+  <div id="modalCalificacion" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4">
+      <div class="p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Calificar entrega de <span id="student-name">estudiante</span></h3>
+        
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Calificación (0-10)</label>
+          <input type="number" id="calificacion-input" min="0" max="10" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Comentario para el estudiante</label>
+          <textarea id="comentario-calificacion" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Escribe tus comentarios sobre la entrega..."></textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+          <button id="btn-cancelar-calificacion" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+            Cancelar
+          </button>
+          <button id="btn-guardar-calificacion" class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            Guardar calificación
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
+// Cargar el header
 fetch('/views/header.html')
   .then(res => res.text())
   .then(html => {
@@ -142,13 +219,19 @@ const holder = {
   ultimaEntrega: document.getElementById('actividad-ultima-entrega'),
   preview: document.getElementById('previewContent'),
   archivoActual: document.getElementById('archivoActual'),
+  entregasCount: document.getElementById('entregas-count'),
+  debugInfo: document.getElementById('debug-info-content')
 };
 
 function fmtDate(v){ return v ? new Date(v).toLocaleString() : "—"; }
 
+function updateDebugInfo(message) {
+  holder.debugInfo.innerHTML += `<p>${new Date().toLocaleTimeString()}: ${message}</p>`;
+}
+
 async function getPerfil(){
   const res = await fetch('/api/perfil',{credentials:'include'});
-  return res.ok?res.json():null;
+  return res.ok ? await res.json() : null;
 }
 
 async function getTarea(){
@@ -160,12 +243,12 @@ async function getTarea(){
 
 async function getEntrega(){
   const res = await fetch(`/api/entregas?action=detalle&tarea_id=${tareaId}`,{credentials:'include'});
-  return res.ok?await res.json():null;
+  return res.ok ? await res.json() : null;
 }
 
 async function getComentarios(){
   const res = await fetch(`/api/comentarios?tarea_id=${tareaId}`,{credentials:'include'});
-  return res.ok?await res.json():[];
+  return res.ok ? await res.json() : [];
 }
 
 async function renderComentarios(){
@@ -258,141 +341,281 @@ function updateStatusVisual(statusEl, estado) {
 
 // ---- Funciones de profesor ----
 async function getEntregasProfesor() {
+  updateDebugInfo("Solicitando entregas para profesor...");
   const res = await fetch(`/api/entregas?action=listar_por_tarea_profesor&tarea_id=${tareaId}`, {
     credentials: 'include'
   });
+  
   if (!res.ok) {
-    console.error('Error al obtener entregas:', res.status, res.statusText);
-    return [];
+    const errorText = await res.text();
+    updateDebugInfo(`Error en la respuesta: ${res.status} - ${errorText}`);
+    throw new Error(`Error ${res.status}: ${errorText}`);
   }
+  
   const data = await res.json();
+  updateDebugInfo(`Entregas recibidas: ${data.entregas ? data.entregas.length : 0}`);
   return data.entregas || [];
 }
 
 async function renderEntregasProfesor() {
   const contenedor = document.getElementById('profesor-entregas');
   const lista = document.getElementById('entregas-list');
-  const entregas = await getEntregasProfesor();
+  
+  // Mostrar estado de carga
+  lista.innerHTML = `
+    <div class="text-center py-4">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-600"></div>
+      <p class="text-gray-500 mt-2">Cargando entregas...</p>
+    </div>
+  `;
+  contenedor.classList.remove('hidden');
 
-  lista.innerHTML = '';
-  if (!entregas.length) {
-    lista.innerHTML = '<p class="text-gray-500 text-center">Aún no hay entregas</p>';
-    return;
-  }
+  try {
+    const entregas = await getEntregasProfesor();
+    
+    // Actualizar contador
+    holder.entregasCount.textContent = entregas.length;
+    
+    lista.innerHTML = '';
+    if (!entregas.length) {
+      lista.innerHTML = '<p class="text-gray-500 text-center py-4">Aún no hay entregas</p>';
+      return;
+    }
 
-  entregas.forEach(entrega => {
-    const div = document.createElement('div');
-    div.className = "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-2";
-    div.innerHTML = `
-      <div class="flex-1">
-        <p class="text-sm font-medium">${entrega.estudiante_nombre}</p>
-        <p class="text-xs text-gray-500">Email: ${entrega.estudiante_email}</p>
-        <p class="text-xs text-gray-500">Fecha: ${fmtDate(entrega.fecha_entrega)}</p>
-        <p class="text-xs text-gray-500">Archivo: ${entrega.archivo_nombre}</p>
-        ${entrega.calificacion ? `<p class="text-xs text-green-500">Calificación: ${entrega.calificacion}/10</p>` : ''}
-        ${entrega.observacion ? `<p class="text-xs text-gray-500">Observación: ${entrega.observacion}</p>` : ''}
-      </div>
-      <div class="flex gap-2 mt-2 sm:mt-0">
-        <a href="/api/entregas?action=descargar&tarea_id=${tareaId}&estudiante_id=${entrega.estudiante_id}" class="px-3 py-1 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-xs transition">Descargar</a>
-        <button class="btn-calificar px-3 py-1 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-xs transition" data-entrega-id="${entrega.id}" data-estudiante-id="${entrega.estudiante_id}" data-estudiante-nombre="${entrega.estudiante_nombre}">Calificar</button>
-      </div>
-    `;
-
-    const btnCalificar = div.querySelector('.btn-calificar');
-    btnCalificar.addEventListener('click', async () => {
-      const nota = prompt(`Calificar a ${entrega.estudiante_nombre} (0-10)`, entrega.calificacion ?? '');
-      if (nota === null) return;
-      const observacion = prompt(`Observación para ${entrega.estudiante_nombre}:`, entrega.observacion ?? '');
-      if (observacion === null) return;
-
-      const res = await fetch(`/api/entregas?action=calificar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          entrega_id: entrega.id,
-          calificacion: Number(nota),
-          observacion: observacion
-        })
-      });
-      if (res.ok) {
-        alert(`Calificación de ${entrega.estudiante_nombre} actualizada a ${nota}`);
-        renderEntregasProfesor(); // Recargar la lista
-      } else {
-        alert('Error al calificar');
+    entregas.forEach(entrega => {
+      const div = document.createElement('div');
+      div.className = "border rounded-xl p-4";
+      
+      // Determinar clase de badge según calificación
+      let badgeClass = "pending";
+      let badgeText = "Pendiente";
+      
+      if (entrega.calificacion !== null) {
+        if (entrega.calificacion >= 9) {
+          badgeClass = "excellent";
+        } else if (entrega.calificacion >= 7) {
+          badgeClass = "good";
+        } else {
+          badgeClass = "poor";
+        }
+        badgeText = entrega.calificacion;
       }
+      
+      div.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex-1">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
+                ${entrega.estudiante_nombre.charAt(0)}
+              </div>
+              <div>
+                <p class="font-medium">${entrega.estudiante_nombre}</p>
+                <p class="text-xs text-gray-500">${entrega.estudiante_email}</p>
+                <p class="text-xs text-gray-500">Entregado: ${fmtDate(entrega.fecha_entrega)}</p>
+              </div>
+            </div>
+            <div class="mt-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-blue-400" fill="currentColor" viewBox="0 0 8 8">
+                  <circle cx="4" cy="4" r="3" />
+                </svg>
+                ${entrega.archivo_nombre}
+              </span>
+            </div>
+            ${entrega.observacion ? `
+              <div class="mt-2 p-2 bg-gray-50 rounded-md">
+                <p class="text-xs text-gray-700"><span class="font-medium">Observación:</span> ${entrega.observacion}</p>
+              </div>
+            ` : ''}
+          </div>
+          <div class="flex flex-col sm:items-end space-y-2">
+            <div class="flex items-center space-x-2">
+              <span class="text-sm text-gray-600">Calificación:</span>
+              <span class="calification-badge ${badgeClass}">${badgeText}</span>
+            </div>
+            <div class="flex space-x-2">
+              <a href="/api/entregas?action=descargar&tarea_id=${tareaId}&estudiante_id=${entrega.estudiante_id}" 
+                 class="px-3 py-1 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-xs transition">
+                Descargar
+              </a>
+              <button class="btn-calificar px-3 py-1 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-xs transition" 
+                data-estudiante-id="${entrega.estudiante_id}" data-estudiante-nombre="${entrega.estudiante_nombre}" data-entrega-id="${entrega.id}">
+                ${entrega.calificacion !== null ? 'Revisar' : 'Calificar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Añadir event listener al botón de calificar
+      const btnCalificar = div.querySelector('.btn-calificar');
+      btnCalificar.addEventListener('click', function() {
+        const studentName = this.getAttribute('data-estudiante-nombre');
+        const entregaId = this.getAttribute('data-entrega-id');
+        const calificacionActual = entrega.calificacion || '';
+        const observacionActual = entrega.observacion || '';
+        
+        abrirModalCalificacion(studentName, entregaId, calificacionActual, observacionActual);
+      });
+      
+      lista.appendChild(div);
     });
 
-    lista.appendChild(div);
-  });
-
-  contenedor.classList.remove('hidden');
+    updateDebugInfo("Entregas renderizadas correctamente");
+    
+  } catch (error) {
+    console.error("Error al cargar entregas:", error);
+    updateDebugInfo(`Error: ${error.message}`);
+    lista.innerHTML = `
+      <div class="text-center py-4 text-red-600">
+        <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+        <p>Error al cargar las entregas</p>
+        <button onclick="renderEntregasProfesor()" class="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-md text-sm">
+          Reintentar
+        </button>
+      </div>
+    `;
+  }
 }
+
+// Funciones para el modal de calificación
+let entregaActualId = null;
+
+function abrirModalCalificacion(studentName, entregaId, calificacionActual, observacionActual) {
+  document.getElementById('student-name').textContent = studentName;
+  document.getElementById('calificacion-input').value = calificacionActual || '';
+  document.getElementById('comentario-calificacion').value = observacionActual || '';
+  entregaActualId = entregaId;
+  
+  document.getElementById('modalCalificacion').classList.remove('hidden');
+}
+
+function cerrarModalCalificacion() {
+  document.getElementById('modalCalificacion').classList.add('hidden');
+  document.getElementById('calificacion-input').value = '';
+  document.getElementById('comentario-calificacion').value = '';
+  entregaActualId = null;
+}
+
+async function guardarCalificacion() {
+  const calificacion = document.getElementById('calificacion-input').value;
+  const comentario = document.getElementById('comentario-calificacion').value;
+  const studentName = document.getElementById('student-name').textContent;
+  
+  if (!calificacion || calificacion < 0 || calificacion > 10) {
+    alert('Por favor ingresa una calificación válida entre 0 y 10');
+    return;
+  }
+  
+  try {
+    updateDebugInfo(`Guardando calificación para entrega ID: ${entregaActualId}`);
+    
+    const res = await fetch('/api/entregas?action=calificar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        entrega_id: entregaActualId,
+        calificacion: parseFloat(calificacion),
+        observacion: comentario
+      })
+    });
+    
+    if (res.ok) {
+      alert(`Calificación de ${calificacion}/10 guardada para ${studentName}`);
+      cerrarModalCalificacion();
+      // Recargar las entregas para reflejar los cambios
+      renderEntregasProfesor();
+    } else {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Error al guardar la calificación');
+    }
+  } catch (error) {
+    console.error("Error al guardar calificación:", error);
+    alert("Error al guardar la calificación: " + error.message);
+  }
+}
+
 // ---- Inicialización principal ----
 async function initActividad() {
-  if(!cursoId||!tareaId){alert('Falta cursoId o tareaId');return;}
-  try{
-    const [perfil,tarea]=await Promise.all([getPerfil(),getTarea()]);
+  updateDebugInfo("Inicializando actividad...");
+  
+  if(!cursoId || !tareaId) {
+    alert('Falta cursoId o tareaId');
+    updateDebugInfo("Error: Falta cursoId o tareaId");
+    return;
+  }
+  
+  try {
+    const [perfil, tarea] = await Promise.all([getPerfil(), getTarea()]);
     if(!tarea) throw new Error("Tarea no encontrada");
 
-    const esProfesor=perfil?.rol==='profesor'||perfil?.rol==='admin'||Number(perfil?.id)===Number(tarea.profesor_id);
+    const esProfesor = perfil?.rol === 'profesor' || perfil?.rol === 'admin' || Number(perfil?.id) === Number(tarea.profesor_id);
+    updateDebugInfo(`Rol de usuario: ${perfil?.rol}, Es profesor: ${esProfesor}`);
 
-    holder.title.textContent=tarea.title||"(Sin título)";
-    holder.desc.textContent=tarea.description||"";
-    holder.createdAt.textContent=fmtDate(tarea.created_at);
-    holder.dueAt.textContent=fmtDate(tarea.due_at);
+    holder.title.textContent = tarea.titulo || "(Sin título)";
+    holder.desc.textContent = tarea.descripcion || "";
+    holder.createdAt.textContent = fmtDate(tarea.fecha_creacion);
+    holder.dueAt.textContent = fmtDate(tarea.fecha_limite);
+    
     const entrega = await getEntrega();
     updateStatusVisual(holder.status, entrega?.entrega?.estado || 'pendiente');
     holder.ultimaEntrega.textContent = entrega?.entrega?.archivo_nombre || '—';
     holder.archivoActual.textContent = entrega?.entrega?.archivo_nombre || '—';
-    holder.points.textContent=tarea.points??0;
+    holder.points.textContent = tarea.puntos ?? 0;
     holder.profesor.textContent = tarea.profesor || "—";
-    holder.calificacion.innerHTML=tarea.calificacion?`<span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10`:`<span class="text-gray-500">Aún no calificado</span>`;
-    holder.botones.innerHTML='';
+    
+    holder.calificacion.innerHTML = tarea.calificacion ? 
+      `<span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10` : 
+      `<span class="text-gray-500">Aún no calificado</span>`;
+    
+    holder.botones.innerHTML = '';
 
     if(esProfesor){
-      const editar=document.createElement('button');
-      editar.textContent="Editar tarea";
-      editar.className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition";
-      editar.addEventListener('click',()=>alert("Abrir modal de edición"));
+      const editar = document.createElement('button');
+      editar.textContent = "Editar tarea";
+      editar.className = "px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition";
+      editar.addEventListener('click', () => alert("Abrir modal de edición"));
 
-      const eliminar=document.createElement('button');
-      eliminar.textContent="Eliminar tarea";
-      eliminar.className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition";
-      eliminar.addEventListener('click',()=>{if(confirm("¿Seguro que quieres eliminar esta tarea?"))alert("Tarea eliminada (demo)");});
+      const eliminar = document.createElement('button');
+      eliminar.textContent = "Eliminar tarea";
+      eliminar.className = "px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition";
+      eliminar.addEventListener('click', () => {
+        if(confirm("¿Seguro que quieres eliminar esta tarea?")) alert("Tarea eliminada (demo)");
+      });
 
       holder.botones.appendChild(editar);
       holder.botones.appendChild(eliminar);
 
-      await renderEntregasProfesor(); // <-- llamamoss a la vista del prssofesor
+      await renderEntregasProfesor(); // Llamar a la vista del profesor
     } else {
-      const entregar=document.createElement('button');
-      entregar.textContent="Entregar";
-      entregar.className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-green-700 transition";
-      entregar.addEventListener('click',()=>openEntrega(tareaId));
+      const entregar = document.createElement('button');
+      entregar.textContent = "Entregar";
+      entregar.className = "px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-green-700 transition";
+      entregar.addEventListener('click', () => openEntrega(tareaId));
 
-      const ver=document.createElement('a');
-      ver.textContent="Ver última entrega";
-      ver.href=`/api/entregas?action=descargar&tarea_id=${tareaId}`;
-      ver.className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition";
+      const ver = document.createElement('a');
+      ver.textContent = "Ver última entrega";
+      ver.href = `/api/entregas?action=descargar&tarea_id=${tareaId}`;
+      ver.className = "px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition";
 
-      const eliminarEntrega=document.createElement('button');
-      eliminarEntrega.textContent="Eliminar entrega";
-      eliminarEntrega.className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition";
-      eliminarEntrega.addEventListener('click', async ()=>{
+      const eliminarEntrega = document.createElement('button');
+      eliminarEntrega.textContent = "Eliminar entrega";
+      eliminarEntrega.className = "px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition";
+      eliminarEntrega.addEventListener('click', async () => {
         if(!confirm("¿Seguro que quieres eliminar tu entrega?")) return;
-        const res = await fetch(`/api/entregas?action=eliminar&tarea_id=${tareaId}`,{
-          method:'DELETE',
-          credentials:'include'
+        const res = await fetch(`/api/entregas?action=eliminar&tarea_id=${tareaId}`, {
+          method: 'DELETE',
+          credentials: 'include'
         });
         if(res.ok){
           alert("Entrega eliminada");
-          holder.ultimaEntrega.textContent='—';
+          holder.ultimaEntrega.textContent = '—';
           updateStatusVisual(holder.status, 'pendiente');
-          holder.archivoActual.textContent='—';
-        }else{
-          const data = await res.json().catch(()=>({error:'Error desconocido'}));
-          alert('Error al eliminar entrega: '+(data.error||'Desconocido'));
+          holder.archivoActual.textContent = '—';
+        } else {
+          const data = await res.json().catch(() => ({error: 'Error desconocido'}));
+          alert('Error al eliminar entrega: ' + (data.error || 'Desconocido'));
         }
       });
 
@@ -400,13 +623,19 @@ async function initActividad() {
       holder.botones.appendChild(ver);
       holder.botones.appendChild(eliminarEntrega);
     }
-  } catch(err){
+    
+    await renderComentarios();
+    updateDebugInfo("Actividad inicializada correctamente");
+    
+  } catch(err) {
     console.error(err);
+    updateDebugInfo(`Error: ${err.message}`);
     alert("Error cargando la actividad");
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Configurar event listeners para el modal de entrega
   const btnCancelar = document.getElementById('btnCancelarEntrega');
   btnCancelar.addEventListener('click', () => {
     document.getElementById('modalEntrega').close();
@@ -428,6 +657,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Configurar event listeners para el modal de calificación
+  document.getElementById('btn-cancelar-calificacion').addEventListener('click', cerrarModalCalificacion);
+  document.getElementById('btn-guardar-calificacion').addEventListener('click', guardarCalificacion);
+  
+  // Cerrar modal al hacer clic fuera de él
+  document.getElementById('modalCalificacion').addEventListener('click', function(e) {
+    if (e.target === this) {
+      cerrarModalCalificacion();
+    }
+  });
+
+  // Inicializar la actividad
   initActividad();
 });
 </script>
