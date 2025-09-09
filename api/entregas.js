@@ -152,32 +152,30 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, deleted: r.affectedRows });
     }
 
-    /* ===== DESCARGAR ÚLTIMA ENTREGA (opcional) ===== */
-    if (req.method === 'GET' && action === 'descargar') {
-      const userId = getUserId(req);
-      const tarea_id = Number(req.query?.tarea_id);
-      const estudiante_id = Number(req.query?.estudiante_id) || userId;
+/* ===== DESCARGAR ÚLTIMA ENTREGA (opcional) ===== */
+if (req.method === 'GET' && action === 'descargar') {
+  const userId = getUserId(req);
+  const tarea_id = Number(req.query?.tarea_id);
+  const estudiante_id = Number(req.query?.estudiante_id) || userId;
 
-      if (!tarea_id || !estudiante_id) return res.status(400).json({ error: 'tarea_id requerido' });
+  if (!tarea_id || !estudiante_id) return res.status(400).json({ error: 'tarea_id requerido' });
 
-      const [[row]] = await pool.query(
-        `SELECT archivo_nombre, archivo_mime, archivo_blob 
-           FROM tareas_entregas 
-          WHERE tarea_id=? AND estudiante_id=? 
-          ORDER BY fecha_entrega DESC 
-          LIMIT 1`,
-        [tarea_id, estudiante_id]
-      );
-      if (!row) return res.status(404).json({ error: 'No hay entrega' });
+  const [[row]] = await pool.query(
+    `SELECT archivo_nombre, archivo_mime, archivo_blob 
+       FROM tareas_entregas 
+      WHERE tarea_id=? AND estudiante_id=? 
+      ORDER BY fecha_entrega DESC 
+      LIMIT 1`,
+    [tarea_id, estudiante_id]
+  );
 
-      res.setHeader('Content-Type', row.archivo_mime || 'application/octet-stream');
-      res.setHeader('Content-Disposition', `attachment; filename="${row.archivo_nombre || 'entrega'}"`);
-      return res.status(200).send(row.archivo_blob);
-    }
+  if (!row) return res.status(404).json({ error: 'No hay entrega' });
 
-    return res.status(400).json({ error: 'Acción inválida o método no soportado' });
-  } catch (err) {
-    console.error('Error en entregas API:', err);
-    return res.status(500).json({ error: 'Error interno del servidor', details: err.message });
-  }
+  // Encodificar el nombre del archivo para evitar errores con caracteres especiales
+  const nombreArchivo = row.archivo_nombre || 'entrega';
+  const encodedName = encodeURIComponent(nombreArchivo);
+
+  res.setHeader('Content-Type', row.archivo_mime || 'application/octet-stream');
+  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodedName}`);
+  return res.status(200).send(row.archivo_blob);
 }
