@@ -219,13 +219,38 @@ document.getElementById('formEntrega').addEventListener('submit', async e => {
     const data = await res.json();
 holder.archivoActual.textContent = data?.entrega?.archivo_nombre || formData.get('archivo')?.name || '—';
 holder.ultimaEntrega.textContent = data?.entrega?.archivo_nombre || formData.get('archivo')?.name || '—';
-holder.status.textContent = data?.entrega?.estado || 'entregada';
+updateStatusVisual(holder.status, data?.entrega?.estado || 'entregado');
 
   } else {
     const data = await res.json().catch(() => ({ error: 'Error desconocido' }));
     alert('Error al subir el archivo: ' + (data.error || 'Desconocido'));
   }
 });
+
+function updateStatusVisual(statusEl, estado) {
+  statusEl.textContent = estado || 'pendiente';
+
+  // Limpiar clases de color previas
+  statusEl.className = "px-2 py-0.5 rounded-full text-xs";
+
+  switch ((estado||'').toLowerCase()) {
+    case 'pendiente':
+      statusEl.classList.add('bg-red-100','text-red-700');
+      break;
+    case 'entregado':
+      statusEl.classList.add('bg-orange-100','text-orange-700');
+      break;
+    case 'calificado':
+      statusEl.classList.add('bg-green-100','text-green-700');
+      break;
+    case 'expirado':
+      statusEl.classList.add('bg-red-100','text-red-700');
+      break;
+    default:
+      statusEl.classList.add('bg-gray-100','text-gray-800');
+  }
+}
+
 
 async function initActividad(){
   if(!cursoId||!tareaId){alert('Falta cursoId o tareaId');return;}
@@ -240,7 +265,7 @@ async function initActividad(){
     holder.createdAt.textContent=fmtDate(tarea.created_at);
     holder.dueAt.textContent=fmtDate(tarea.due_at);
     const entrega = await getEntrega();
-holder.status.textContent = entrega?.entrega?.estado || 'pendiente';
+updateStatusVisual(holder.status, entrega?.entrega?.estado || 'pendiente');
 holder.ultimaEntrega.textContent = entrega?.entrega?.archivo_nombre || '—';
 holder.archivoActual.textContent = entrega?.entrega?.archivo_nombre || '—';
 
