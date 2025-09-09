@@ -43,6 +43,7 @@
     <div x-show="subTab==='presentacion'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
       <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-book-open mr-2"></i> Presentación</h2>
       <p id="presentacion-texto" class="text-gray-700 mb-4">Cargando descripción...</p>
+      <!-- Editor solo se mantiene si quieres que el profesor pueda actualizar descripción -->
       <div id="presentacion-editor" class="hidden flex flex-col items-center gap-3">
         <textarea id="descripcion-input" class="w-full border border-gray-300 rounded p-2 resize-none" rows="4"></textarea>
         <button id="guardar-descripcion" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow">Guardar descripción</button>
@@ -77,12 +78,14 @@
   </div>
 
   <!-- Participantes -->
-  <div x-show="tab==='participantes'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-    <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-users mr-2"></i> Participantes</h2>
-    <div id="participantes-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-      <p id="cargando-participantes" class="text-gray-500 col-span-full">Cargando participantes...</p>
-    </div>
+<div x-show="tab==='participantes'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+  <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-users mr-2"></i> Participantes</h2>
+  <div id="participantes-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <p id="cargando-participantes" class="text-gray-500 col-span-full">Cargando participantes...</p>
   </div>
+</div>
+
+
 
   <!-- Calificaciones -->
   <div x-show="tab==='calificaciones'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
@@ -94,86 +97,117 @@
 
 <script src="/js/task.js"></script>
 <script>
+  // Cargar header
 fetch('/views/header.html')
   .then(res => res.text())
   .then(html => {
     const container = document.getElementById('header-container');
     container.innerHTML = html;
+
+    // Ejecutar scripts del header
     const scripts = container.querySelectorAll('script');
     scripts.forEach(oldScript => {
       const newScript = document.createElement('script');
-      if (oldScript.src) newScript.src = oldScript.src;
-      else newScript.textContent = oldScript.textContent;
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
       document.body.appendChild(newScript);
       oldScript.remove();
     });
   });
 
-const params = new URLSearchParams(window.location.search);
-const cursoId = params.get("id") || params.get("curso_id") || params.get("courseId");
 
-if (!cursoId) {
-  alert("No se proporcionó ID de curso");
-  location.href = "/mis-cursos.html";
-}
+  // Obtener ID de curso de la URL
+  const params = new URLSearchParams(window.location.search);
+  const cursoId = params.get("id") || params.get("curso_id") || params.get("courseId");
 
-// === CARGAR ACTIVIDADES (con actualización de estados) ===
+  if (!cursoId) {
+    alert("No se proporcionó ID de curso");
+    location.href = "/mis-cursos.html";
+  }
+// === CARGAR ACTIVIDADES (fragmento + init) ===
 async function cargarActividades(esProfesor) {
     const holder = document.getElementById('actividades-holder');
-    if (!holder || holder.dataset.loaded) return;
+    if (!holder || holder.dataset.loaded) return; // evita doble carga
 
-    // ---------- ACTUALIZAR ESTADOS DE TAREAS ----------
-    try {
-        await fetch('/api/actualizar', { method: 'POST' });
-    } catch(err) {
-        console.error('Error al actualizar estados de tareas:', err);
-    }
-    // -----------------------------------------------
-
+    // Trae el fragmento /partials/tasks.html
     const res = await fetch('/partials/task.html');
     holder.innerHTML = await res.text();
 
+    // Configura dataset para rol y curso
     const root = holder.querySelector('#tasks-root');
     root.dataset.role = esProfesor ? 'profesor' : 'estudiante';
     root.dataset.courseId = cursoId;
 
+    // Inicializa la página de tareas
     window.TasksPage?.init();
     holder.dataset.loaded = "1";
-}
-
-fetch(`/api/cursos?action=obtener-detalle&id=${cursoId}`)
-  .then(res => res.json())
-  .then(curso => {
+  }
+  // Cargar datos del curso
+  fetch(`/api/cursos?action=obtener-detalle&id=${cursoId}`)
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`Error al cargar el curso: ${res.status} ${res.statusText}`);
+      }
+      return res.json();
+    })
+    .then(curso => {
+      if (!curso) {
+        throw new Error('No se pudo cargar la información del curso');
+      }
       document.getElementById('nombre-curso').textContent = curso.nombre || 'Curso sin nombre';
       document.getElementById('nombre-tutor').textContent = `Tutor: ${curso.profesor || 'No asignado'}`;
       document.getElementById('presentacion-texto').textContent = curso.descripcion || 'Sin descripción';
 
+      // Obtener usuario actual
       return fetch('/api/perfil')
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Error al cargar el perfil de usuario: ${res.status} ${res.statusText}`);
+          }
+          return res.json();
+        })
         .then(usuario => {
+          if (!usuario || !usuario.id) {
+            throw new Error('No se pudo cargar la información del usuario');
+          }
           const esProfesor = usuario.id === curso.profesor_id || usuario.rol === 'profesor' || usuario.rol === 'admin';
           
           if (esProfesor) {
+            // Mostrar editor solo para profesores
             const editor = document.getElementById('presentacion-editor');
-            editor.classList.remove('hidden');
-            document.getElementById('descripcion-input').value = curso.descripcion || '';
+            if (editor) {
+              editor.classList.remove('hidden');
+              const descInput = document.getElementById('descripcion-input');
+              if (descInput) {
+                descInput.value = curso.descripcion || '';
+              }
+            }
           }
-
+          
+          // Cargar actividades con el ID del curso
           cargarActividades(esProfesor);
+
+          // Cargar participantes
           cargarParticipantes(cursoId);
         });
-  })
-  .catch(error => {
-      console.error(error);
-      alert('Error al cargar el curso');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert(error.message || 'Ocurrió un error al cargar el curso');
+      // Redirigir a la página de cursos si hay un error
       window.location.href = '/mis-cursos.html';
-  });
+    });
 
+// Función para cargar participantes
 async function cargarParticipantes(cursoId){
   const listContainer = document.getElementById('participantes-list');
   const cargando = document.getElementById('cargando-participantes');
   try {
     const res = await fetch(`/api/participantes?id=${cursoId}`, { credentials:'include' });
+    if(!res.ok) throw new Error('Error al cargar participantes');
     const data = await res.json();
     cargando.remove();
     if(Array.isArray(data) && data.length>0){
@@ -198,8 +232,27 @@ async function cargarParticipantes(cursoId){
   }
 }
 
-document.getElementById('guardar-descripcion').addEventListener('click', () => {
+
+  // Navegación entre pestañas
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', e => {
+      e.preventDefault();
+      const selected = tab.dataset.tab;
+
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('text-green-600', 'font-medium'));
+      tab.classList.add('text-green-600', 'font-medium');
+
+      document.querySelectorAll('.tab-content').forEach(section => {
+        section.classList.add('hidden');
+      });
+
+      document.getElementById(selected).classList.remove('hidden');
+    });
+  });
+
+  document.getElementById('guardar-descripcion').addEventListener('click', () => {
   const nuevaDescripcion = document.getElementById('descripcion-input').value;
+
   fetch(`/api/cursos`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -209,14 +262,17 @@ document.getElementById('guardar-descripcion').addEventListener('click', () => {
       descripcion: nuevaDescripcion
     })
   })
-  .then(res => res.json())
-  .then(res => {
-    if (res.success) {
-      document.getElementById('presentacion-texto').textContent = nuevaDescripcion;
-      alert('Descripción actualizada');
-    } else alert('Error al actualizar');
-  });
+    .then(res => res.json())
+    .then(res => {
+      if (res.success) {
+        document.getElementById('presentacion-texto').textContent = nuevaDescripcion;
+        alert('Descripción actualizada');
+      } else {
+        alert('Error al actualizar');
+      }
+    });
 });
+
 </script>
 </body>
 </html>
