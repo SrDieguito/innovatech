@@ -258,8 +258,15 @@ function updateStatusVisual(statusEl, estado) {
 
 // ---- Funciones de profesor ----
 async function getEntregasProfesor() {
-  const res = await fetch(`/api/entregas?action=listar&tarea_id=${tareaId}`, {credentials:'include'});
-  return res.ok ? await res.json() : [];
+  const res = await fetch(`/api/entregas?action=listar_por_tarea_profesor&tarea_id=${tareaId}`, {
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    console.error('Error al obtener entregas:', res.status, res.statusText);
+    return [];
+  }
+  const data = await res.json();
+  return data.entregas || [];
 }
 
 async function renderEntregasProfesor() {
@@ -268,7 +275,7 @@ async function renderEntregasProfesor() {
   const entregas = await getEntregasProfesor();
 
   lista.innerHTML = '';
-  if(!entregas.length) {
+  if (!entregas.length) {
     lista.innerHTML = '<p class="text-gray-500 text-center">Aún no hay entregas</p>';
     return;
   }
@@ -278,28 +285,39 @@ async function renderEntregasProfesor() {
     div.className = "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-2";
     div.innerHTML = `
       <div class="flex-1">
-        <p class="text-sm font-medium">${entrega.estudiante}</p>
-        <p class="text-xs text-gray-500">Fecha: ${fmtDate(entrega.fecha)}</p>
+        <p class="text-sm font-medium">${entrega.estudiante_nombre}</p>
+        <p class="text-xs text-gray-500">Email: ${entrega.estudiante_email}</p>
+        <p class="text-xs text-gray-500">Fecha: ${fmtDate(entrega.fecha_entrega)}</p>
+        <p class="text-xs text-gray-500">Archivo: ${entrega.archivo_nombre}</p>
+        ${entrega.calificacion ? `<p class="text-xs text-green-500">Calificación: ${entrega.calificacion}/10</p>` : ''}
+        ${entrega.observacion ? `<p class="text-xs text-gray-500">Observación: ${entrega.observacion}</p>` : ''}
       </div>
       <div class="flex gap-2 mt-2 sm:mt-0">
-        <a href="${entrega.archivo_url}" target="_blank" class="px-3 py-1 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-xs transition">Descargar</a>
-        <button class="px-3 py-1 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-xs transition">Calificar</button>
+        <a href="/api/entregas?action=descargar&tarea_id=${tareaId}&estudiante_id=${entrega.estudiante_id}" class="px-3 py-1 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-xs transition">Descargar</a>
+        <button class="btn-calificar px-3 py-1 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-xs transition" data-entrega-id="${entrega.id}" data-estudiante-id="${entrega.estudiante_id}" data-estudiante-nombre="${entrega.estudiante_nombre}">Calificar</button>
       </div>
     `;
 
-    const btnCalificar = div.querySelector('button');
+    const btnCalificar = div.querySelector('.btn-calificar');
     btnCalificar.addEventListener('click', async () => {
-      const nota = prompt(`Calificar a ${entrega.estudiante} (0-10)`, entrega.calificacion ?? '');
-      if(nota === null) return;
-      const res = await fetch(`/api/entregas?action=calificar&tarea_id=${tareaId}&estudiante_id=${entrega.estudiante_id}`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        credentials:'include',
-        body: JSON.stringify({calificacion: Number(nota)})
+      const nota = prompt(`Calificar a ${entrega.estudiante_nombre} (0-10)`, entrega.calificacion ?? '');
+      if (nota === null) return;
+      const observacion = prompt(`Observación para ${entrega.estudiante_nombre}:`, entrega.observacion ?? '');
+      if (observacion === null) return;
+
+      const res = await fetch(`/api/entregas?action=calificar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          entrega_id: entrega.id,
+          calificacion: Number(nota),
+          observacion: observacion
+        })
       });
-      if(res.ok) {
-        alert(`Calificación de ${entrega.estudiante} actualizada a ${nota}`);
-        renderEntregasProfesor();
+      if (res.ok) {
+        alert(`Calificación de ${entrega.estudiante_nombre} actualizada a ${nota}`);
+        renderEntregasProfesor(); // Recargar la lista
       } else {
         alert('Error al calificar');
       }
@@ -310,7 +328,6 @@ async function renderEntregasProfesor() {
 
   contenedor.classList.remove('hidden');
 }
-
 // ---- Inicialización principal ----
 async function initActividad() {
   if(!cursoId||!tareaId){alert('Falta cursoId o tareaId');return;}
