@@ -135,14 +135,14 @@ export default async function handler(req, res) {
       if (!await canSubmit(userId, tarea_id)) {
         return res.status(403).json({ error: 'No autorizado' });
       }
-      const [[row]] = await pool.query(
-        `SELECT id, tarea_id, archivo_nombre, tamano_bytes, fecha_entrega
-           FROM tareas_entregas
-          WHERE tarea_id=? AND estudiante_id=?
-          ORDER BY fecha_entrega DESC
-          LIMIT 1`,
-        [tarea_id, userId]
-      );
+const [[row]] = await pool.query(
+  `SELECT id, tarea_id, archivo_nombre, tamano_bytes, fecha_entrega, estado
+     FROM tareas_entregas
+    WHERE tarea_id=? AND estudiante_id=?
+    ORDER BY fecha_entrega DESC
+    LIMIT 1`,
+  [tarea_id, userId]
+);
       if (!row) return res.status(404).json({ error: 'No hay entrega' });
       return res.status(200).json({ entrega: row });
     }
