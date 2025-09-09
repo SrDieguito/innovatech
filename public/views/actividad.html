@@ -217,10 +217,10 @@ document.getElementById('formEntrega').addEventListener('submit', async e => {
   });
   if (res.ok) {
     const data = await res.json();
-    alert('Archivo subido correctamente. Espera que se actualice el estado.');
-    e.target.reset();
-    holder.archivoActual.textContent = formData.get('archivo')?.name || '—';
-    holder.ultimaEntrega.textContent = formData.get('archivo')?.name || '—';
+holder.archivoActual.textContent = data?.entrega?.archivo_nombre || formData.get('archivo')?.name || '—';
+holder.ultimaEntrega.textContent = data?.entrega?.archivo_nombre || formData.get('archivo')?.name || '—';
+holder.status.textContent = data?.entrega?.estado || 'entregada';
+
   } else {
     const data = await res.json().catch(() => ({ error: 'Error desconocido' }));
     alert('Error al subir el archivo: ' + (data.error || 'Desconocido'));
@@ -239,7 +239,11 @@ async function initActividad(){
     holder.desc.textContent=tarea.description||"";
     holder.createdAt.textContent=fmtDate(tarea.created_at);
     holder.dueAt.textContent=fmtDate(tarea.due_at);
-    holder.status.textContent=tarea.status||"pendiente";
+    const entrega = await getEntrega();
+holder.status.textContent = entrega?.entrega?.estado || 'pendiente';
+holder.ultimaEntrega.textContent = entrega?.entrega?.archivo_nombre || '—';
+holder.archivoActual.textContent = entrega?.entrega?.archivo_nombre || '—';
+
     holder.points.textContent=tarea.points??0;
     holder.profesor.textContent=tarea.profesor_nombre||"—";
     holder.calificacion.innerHTML=tarea.calificacion?`<span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10`:`<span class="text-gray-500">Aún no calificado</span>`;
@@ -298,29 +302,6 @@ async function initActividad(){
 // ----------------------------
 // Auto actualizar estado al subir entrega
 // ----------------------------
-let ultimaEntregaAnterior = holder.ultimaEntrega.textContent;
-
-setInterval(async () => {
-  const actual = holder.ultimaEntrega.textContent;
-  if (actual && actual !== ultimaEntregaAnterior) {
-    ultimaEntregaAnterior = actual;
-
-    try {
-      // Llamada a tu API para actualizar estado
-      await fetch('/api/actualizar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tarea_id: tareaId })
-      });
-
-      // Actualizar visualmente el estado
-      holder.status.textContent = 'entregada';
-    } catch (err) {
-      console.error('Error al actualizar estado:', err);
-    }
-  }
-}, 1000);
-
 document.addEventListener("DOMContentLoaded",initActividad);
 </script>
 
