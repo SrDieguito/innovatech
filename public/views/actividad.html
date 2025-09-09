@@ -67,6 +67,15 @@
         </form>
       </div>
     </div>
+
+    <!-- CONTENEDOR DE ENTREGAS DEL PROFESOR -->
+<div id="profesor-entregas" class="bg-white rounded-2xl shadow-md p-6 mt-6 hidden">
+  <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Entregas de estudiantes</h2>
+  <div id="entregas-list" class="space-y-4">
+    <p class="text-gray-500 text-center">Cargando entregas...</p>
+  </div>
+</div>
+
   </main>
 
   <!-- Modal de entrega -->
@@ -247,6 +256,62 @@ function updateStatusVisual(statusEl, estado) {
   }
 }
 
+// ---- Funciones de profesor ----
+async function getEntregasProfesor() {
+  const res = await fetch(`/api/entregas?action=listar&tarea_id=${tareaId}`, {credentials:'include'});
+  return res.ok ? await res.json() : [];
+}
+
+async function renderEntregasProfesor() {
+  const contenedor = document.getElementById('profesor-entregas');
+  const lista = document.getElementById('entregas-list');
+  const entregas = await getEntregasProfesor();
+
+  lista.innerHTML = '';
+  if(!entregas.length) {
+    lista.innerHTML = '<p class="text-gray-500 text-center">Aún no hay entregas</p>';
+    return;
+  }
+
+  entregas.forEach(entrega => {
+    const div = document.createElement('div');
+    div.className = "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-2";
+    div.innerHTML = `
+      <div class="flex-1">
+        <p class="text-sm font-medium">${entrega.estudiante}</p>
+        <p class="text-xs text-gray-500">Fecha: ${fmtDate(entrega.fecha)}</p>
+      </div>
+      <div class="flex gap-2 mt-2 sm:mt-0">
+        <a href="${entrega.archivo_url}" target="_blank" class="px-3 py-1 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-xs transition">Descargar</a>
+        <button class="px-3 py-1 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-xs transition">Calificar</button>
+      </div>
+    `;
+
+    const btnCalificar = div.querySelector('button');
+    btnCalificar.addEventListener('click', async () => {
+      const nota = prompt(`Calificar a ${entrega.estudiante} (0-10)`, entrega.calificacion ?? '');
+      if(nota === null) return;
+      const res = await fetch(`/api/entregas?action=calificar&tarea_id=${tareaId}&estudiante_id=${entrega.estudiante_id}`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        credentials:'include',
+        body: JSON.stringify({calificacion: Number(nota)})
+      });
+      if(res.ok) {
+        alert(`Calificación de ${entrega.estudiante} actualizada a ${nota}`);
+        renderEntregasProfesor();
+      } else {
+        alert('Error al calificar');
+      }
+    });
+
+    lista.appendChild(div);
+  });
+
+  contenedor.classList.remove('hidden');
+}
+
+// ---- Inicialización principal ----
 async function initActividad() {
   if(!cursoId||!tareaId){alert('Falta cursoId o tareaId');return;}
   try{
@@ -281,6 +346,8 @@ async function initActividad() {
 
       holder.botones.appendChild(editar);
       holder.botones.appendChild(eliminar);
+
+      await renderEntregasProfesor(); // <-- llamamos a la vista del profesor
     } else {
       const entregar=document.createElement('button');
       entregar.textContent="Entregar";
@@ -323,13 +390,11 @@ async function initActividad() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Botón Cancelar
   const btnCancelar = document.getElementById('btnCancelarEntrega');
   btnCancelar.addEventListener('click', () => {
     document.getElementById('modalEntrega').close();
   });
 
-  // Previsualización de archivo
   const inputArchivo = document.querySelector('input[name="archivo"]');
   inputArchivo.addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -346,10 +411,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Ahora sí inicializamos la actividad
   initActividad();
 });
-
 </script>
+
 </body>
 </html>
