@@ -12,14 +12,12 @@ export const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-
 /* ===== Helpers ===== */
 function getUserId(req) {
   return req.cookies?.user_id || null;
 }
 
 async function canSubmit(userId, tareaId) {
-  // verifica que la tarea pertenece a un curso donde el estudiante está matriculado
   const [[row]] = await pool.query(
     `SELECT 1
        FROM tareas t
@@ -114,13 +112,13 @@ export default async function handler(req, res) {
       const curso_id = Number(req.query?.curso_id);
       if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
       const [rows] = await pool.query(
-  `SELECT e.tarea_id, e.archivo_nombre, e.tamano_bytes, e.fecha_entrega, e.estado
-     FROM tareas_entregas e
-     JOIN tareas t ON t.id = e.tarea_id
-    WHERE e.estudiante_id = ? AND t.curso_id = ?
-    ORDER BY e.fecha_entrega DESC`,
-  [userId, curso_id]
-);
+        `SELECT e.tarea_id, e.archivo_nombre, e.tamano_bytes, e.fecha_entrega, e.estado
+         FROM tareas_entregas e
+         JOIN tareas t ON t.id = e.tarea_id
+         WHERE e.estudiante_id = ? AND t.curso_id = ?
+         ORDER BY e.fecha_entrega DESC`,
+        [userId, curso_id]
+      );
 
       return res.status(200).json({ entregas: rows });
     }
@@ -135,14 +133,14 @@ export default async function handler(req, res) {
       if (!await canSubmit(userId, tarea_id)) {
         return res.status(403).json({ error: 'No autorizado' });
       }
-const [[row]] = await pool.query(
-  `SELECT id, tarea_id, archivo_nombre, tamano_bytes, fecha_entrega, estado
-     FROM tareas_entregas
-    WHERE tarea_id=? AND estudiante_id=?
-    ORDER BY fecha_entrega DESC
-    LIMIT 1`,
-  [tarea_id, userId]
-);
+      const [[row]] = await pool.query(
+        `SELECT id, tarea_id, archivo_nombre, tamano_bytes, fecha_entrega, estado
+         FROM tareas_entregas
+         WHERE tarea_id=? AND estudiante_id=?
+         ORDER BY fecha_entrega DESC
+         LIMIT 1`,
+        [tarea_id, userId]
+      );
       if (!row) return res.status(404).json({ error: 'No hay entrega' });
       return res.status(200).json({ entrega: row });
     }
@@ -173,22 +171,99 @@ const [[row]] = await pool.query(
 
       const [[row]] = await pool.query(
         `SELECT archivo_nombre, archivo_mime, archivo_blob 
-           FROM tareas_entregas 
-          WHERE tarea_id=? AND estudiante_id=? 
-          ORDER BY fecha_entrega DESC 
-          LIMIT 1`,
+         FROM tareas_entregas 
+         WHERE tarea_id=? AND estudiante_id=? 
+         ORDER BY fecha_entrega DESC 
+         LIMIT 1`,
         [tarea_id, estudiante_id]
       );
       if (!row) return res.status(404).json({ error: 'No hay entrega' });
 
       const nombreArchivo = row.archivo_nombre || 'entrega';
-    const encodedName = encodeURIComponent(nombreArchivo);
-    const asciiName = nombreArchivo.replace(/[^\x00-\x7F]/g, '_');
+      const encodedName = encodeURIComponent(nombreArchivo);
+      const asciiName = nombreArchivo.replace(/[^\x00-\x7F]/g, '_');
 
-    res.setHeader('Content-Type', row.archivo_mime || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="${asciiName}"; filename*=UTF-8''${encodedName}`);
+      res.setHeader('Content-Type', row.archivo_mime || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${asciiName}"; filename*=UTF-8''${encodedName}`);
 
       return res.status(200).send(row.archivo_blob);
+    }
+
+    /* ===== LISTAR ENTREGAS POR TAREA (profesor) ===== */
+    if (req.method === 'GET' && action === 'listar_por_tarea_profesor') {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: 'No autenticado' });
+
+      const tarea_id = Number(req.query?.tarea_id);
+      if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
+
+      // Verificar que el usuario es profesor del curso de la tarea
+      const [[verificacion]] = await pool.query(
+        `SELECT c.profesor_id 
+         FROM tareas t 
+         JOIN cursos c ON t.curso_id = c.id 
+         WHERE t.id = ?`,
+        [tarea_id]
+      );
+
+      if (!verificacion) return res.status(404).json({ error: 'Tarea no encontrada' });
+      
+      // Verificar rol del usuario
+      const [[user]] = await pool.query('SELECT rol FROM usuarios WHERE id = ?', [userId]);
+      if (verificacion.profesor_id !== userId && user.rol !== 'admin') {
+        return res.status(403).json({ error: 'No autorizado' });
+      }
+
+      // Obtener todas las entregas para esta tarea
+      const [entregas] = await pool.query(
+        `SELECT e.*, u.nombre as estudiante_nombre, u.email as estudiante_email
+         FROM tareas_entregas e
+         JOIN usuarios u ON e.estudiante_id = u.id
+         WHERE e.tarea_id = ?
+         ORDER BY e.fecha_entrega DESC`,
+        [tarea_id]
+      );
+
+      return res.status(200).json({ entregas });
+    }
+
+    /* ===== CALIFICAR ENTREGA (profesor) ===== */
+    if (req.method === 'POST' && action === 'calificar') {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: 'No autenticado' });
+
+      // Parsear el cuerpo de la solicitud
+      const { entrega_id, calificacion, observacion } = req.body;
+
+      if (!entrega_id) return res.status(400).json({ error: 'entrega_id requerido' });
+
+      // Verificar que el usuario es profesor del curso de la tarea
+      const [[verificacion]] = await pool.query(
+        `SELECT c.profesor_id 
+         FROM tareas_entregas e
+         JOIN tareas t ON e.tarea_id = t.id
+         JOIN cursos c ON t.curso_id = c.id
+         WHERE e.id = ?`,
+        [entrega_id]
+      );
+
+      if (!verificacion) return res.status(404).json({ error: 'Entrega no encontrada' });
+      
+      // Verificar rol del usuario
+      const [[user]] = await pool.query('SELECT rol FROM usuarios WHERE id = ?', [userId]);
+      if (verificacion.profesor_id !== userId && user.rol !== 'admin') {
+        return res.status(403).json({ error: 'No autorizado' });
+      }
+
+      // Actualizar la calificación y observación
+      await pool.query(
+        `UPDATE tareas_entregas 
+         SET calificacion = ?, observacion = ?, estado = 'revisado'
+         WHERE id = ?`,
+        [calificacion, observacion, entrega_id]
+      );
+
+      return res.status(200).json({ ok: true });
     }
 
     return res.status(400).json({ error: 'Acción inválida o método no soportado' });
@@ -197,82 +272,4 @@ const [[row]] = await pool.query(
     console.error('Error en entregas API:', err);
     return res.status(500).json({ error: 'Error interno del servidor', details: err.message });
   }
-
-  /* ===== LISTAR ENTREGAS POR TAREA (profesor) ===== */
-if (req.method === 'GET' && action === 'listar_por_tarea_profesor') {
-  const userId = getUserId(req);
-  if (!userId) return res.status(401).json({ error: 'No autenticado' });
-
-  const tarea_id = Number(req.query?.tarea_id);
-  if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
-
-  // Verificar que el usuario es profesor del curso de la tarea
-  const [[verificacion]] = await pool.query(
-    `SELECT c.profesor_id 
-     FROM tareas t 
-     JOIN cursos c ON t.curso_id = c.id 
-     WHERE t.id = ?`,
-    [tarea_id]
-  );
-
-  if (!verificacion) return res.status(404).json({ error: 'Tarea no encontrada' });
-  if (verificacion.profesor_id !== userId) {
-    // También permitir a los administradores
-    const [[user]] = await pool.query('SELECT rol FROM usuarios WHERE id = ?', [userId]);
-    if (user.rol !== 'admin') {
-      return res.status(403).json({ error: 'No autorizado' });
-    }
-  }
-
-  // Obtener todas las entregas para esta tarea
-  const [entregas] = await pool.query(
-    `SELECT e.*, u.nombre as estudiante_nombre, u.email as estudiante_email
-     FROM tareas_entregas e
-     JOIN usuarios u ON e.estudiante_id = u.id
-     WHERE e.tarea_id = ?
-     ORDER BY e.fecha_entrega DESC`,
-    [tarea_id]
-  );
-
-  return res.status(200).json({ entregas });
-}
-
-/* ===== CALIFICAR ENTREGA (profesor) ===== */
-if (req.method === 'POST' && action === 'calificar') {
-  const userId = getUserId(req);
-  if (!userId) return res.status(401).json({ error: 'No autenticado' });
-
-  const { entrega_id, calificacion, observacion } = req.body;
-
-  if (!entrega_id) return res.status(400).json({ error: 'entrega_id requerido' });
-
-  // Verificar que el usuario es profesor del curso de la tarea
-  const [[verificacion]] = await pool.query(
-    `SELECT c.profesor_id 
-     FROM tareas_entregas e
-     JOIN tareas t ON e.tarea_id = t.id
-     JOIN cursos c ON t.curso_id = c.id
-     WHERE e.id = ?`,
-    [entrega_id]
-  );
-
-  if (!verificacion) return res.status(404).json({ error: 'Entrega no encontrada' });
-  if (verificacion.profesor_id !== userId) {
-    // También permitir a los administradores
-    const [[user]] = await pool.query('SELECT rol FROM usuarios WHERE id = ?', [userId]);
-    if (user.rol !== 'admin') {
-      return res.status(403).json({ error: 'No autorizado' });
-    }
-  }
-
-  // Actualizar la calificación y observación
-  await pool.query(
-    `UPDATE tareas_entregas 
-     SET calificacion = ?, observacion = ?, estado = 'revisado'
-     WHERE id = ?`,
-    [calificacion, observacion, entrega_id]
-  );
-
-  return res.status(200).json({ ok: true });
-}
 }
