@@ -98,22 +98,6 @@
     </form>
   </dialog>
 
-  <!-- Modal de previsualización -->
-  <dialog id="modalPreview" class="rounded-2xl p-0 w-full max-w-3xl backdrop:bg-black/30">
-    <div class="p-4 space-y-2">
-      <div class="flex justify-between items-center mb-2">
-        <h4 class="text-lg font-semibold">Vista previa</h4>
-        <button id="btnCerrarPreview" class="px-3 py-1 rounded-xl border hover:bg-gray-50">Cerrar</button>
-      </div>
-      <div id="previewFileContent" class="w-full h-[600px] border border-gray-200 rounded overflow-auto flex justify-center items-center">
-        <!-- Contenido PDF o imagen -->
-      </div>
-      <div class="mt-2 text-right">
-        <a id="downloadPreview" href="#" download class="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700">Descargar</a>
-      </div>
-    </div>
-  </dialog>
-
 <script>
 fetch('/views/header.html')
   .then(res => res.text())
@@ -303,33 +287,15 @@ async function initActividad() {
       entregar.className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-green-700 transition";
       entregar.addEventListener('click',()=>openEntrega(tareaId));
 
-      const ver=document.createElement('button');
+      const ver=document.createElement('a');
       ver.textContent="Ver última entrega";
+      ver.href=`/api/entregas?action=descargar&tarea_id=${tareaId}`;
       ver.className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition";
-      ver.addEventListener('click', async ()=>{
-  const e = await getEntrega();
-  if(!e?.entrega?.archivo_url) return alert("No hay archivo para mostrar.");
-  const ext = e.entrega.archivo_nombre.split('.').pop().toLowerCase();
-  const container = document.getElementById('previewFileContent');
-  container.innerHTML = "";
-  if(ext === "pdf"){
-    container.innerHTML = `<iframe src="${e.entrega.archivo_url}" class="w-full h-full" style="border:none;"></iframe>`;
-  } else if(["png","jpg","jpeg","gif"].includes(ext)){
-    container.innerHTML = `<img src="${e.entrega.archivo_url}" class="max-w-full max-h-full object-contain mx-auto rounded">`;
-  } else {
-    container.innerHTML = `<p class="text-gray-600">No se puede previsualizar este tipo de archivo.</p>`;
-  }
-  const dl = document.getElementById('downloadPreview');
-  dl.href = e.entrega.archivo_url;
-  dl.download = e.entrega.archivo_nombre;
-  document.getElementById('modalPreview').showModal();
-});
-
 
       const eliminarEntrega=document.createElement('button');
       eliminarEntrega.textContent="Eliminar entrega";
       eliminarEntrega.className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition";
-      eliminarEntrega.addEventListener('click', async ()=>{ 
+      eliminarEntrega.addEventListener('click', async ()=>{
         if(!confirm("¿Seguro que quieres eliminar tu entrega?")) return;
         const res = await fetch(`/api/entregas?action=eliminar&tarea_id=${tareaId}`,{
           method:'DELETE',
@@ -363,17 +329,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('modalEntrega').close();
   });
 
-  // Cerrar modal preview
-  document.getElementById('btnCerrarPreview').addEventListener('click', ()=>{
-    document.getElementById('modalPreview').close();
-  });
-
-  // Previsualización de archivo al seleccionar
+  // Previsualización de archivo
   const inputArchivo = document.querySelector('input[name="archivo"]');
   inputArchivo.addEventListener('change', (e) => {
     const file = e.target.files[0];
     const preview = document.getElementById('previewContent');
     if (!file) return;
+
     const ext = file.name.split('.').pop().toLowerCase();
     if (["png","jpg","jpeg","gif"].includes(ext)) {
       preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-h-48 mx-auto rounded">`;
@@ -384,9 +346,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Inicializamos actividad
+  // Ahora sí inicializamos la actividad
   initActividad();
 });
+
 </script>
 </body>
 </html>
