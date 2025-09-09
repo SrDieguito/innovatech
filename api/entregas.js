@@ -1,12 +1,16 @@
-// api/entregas.js
 import multer from 'multer';
+import mysql from 'mysql2/promise'; // IMPORTANTE: faltaba esto
+
+// Crear pool de conexión
 export const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
+  port: Number(process.env.DB_PORT) || 3306,
+  waitForConnections: true,
   connectionLimit: 10,
+  queueLimit: 0,
 });
 
 /* ===== Helpers ===== */
