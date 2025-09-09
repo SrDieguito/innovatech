@@ -270,7 +270,7 @@ holder.ultimaEntrega.textContent = entrega?.entrega?.archivo_nombre || '—';
 holder.archivoActual.textContent = entrega?.entrega?.archivo_nombre || '—';
 
     holder.points.textContent=tarea.points??0;
-    holder.profesor.textContent=tarea.profesor_nombre||"—";
+    holder.profesor.textContent = tarea.profesor || "—";
     holder.calificacion.innerHTML=tarea.calificacion?`<span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10`:`<span class="text-gray-500">Aún no calificado</span>`;
 
     holder.botones.innerHTML='';
