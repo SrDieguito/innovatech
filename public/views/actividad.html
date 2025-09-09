@@ -295,6 +295,32 @@ async function initActividad(){
   }
 }
 
+// ----------------------------
+// Auto actualizar estado al subir entrega
+// ----------------------------
+let ultimaEntregaAnterior = holder.ultimaEntrega.textContent;
+
+setInterval(async () => {
+  const actual = holder.ultimaEntrega.textContent;
+  if (actual && actual !== ultimaEntregaAnterior) {
+    ultimaEntregaAnterior = actual;
+
+    try {
+      // Llamada a tu API para actualizar estado
+      await fetch('/api/actualizar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tarea_id: tareaId })
+      });
+
+      // Actualizar visualmente el estado
+      holder.status.textContent = 'entregada';
+    } catch (err) {
+      console.error('Error al actualizar estado:', err);
+    }
+  }
+}, 1000);
+
 document.addEventListener("DOMContentLoaded",initActividad);
 </script>
 
