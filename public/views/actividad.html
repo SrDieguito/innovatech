@@ -322,7 +322,34 @@ async function initActividad() {
   }
 }
 
-document.addEventListener("DOMContentLoaded",initActividad);
+document.addEventListener("DOMContentLoaded", () => {
+  // Botón Cancelar
+  const btnCancelar = document.getElementById('btnCancelarEntrega');
+  btnCancelar.addEventListener('click', () => {
+    document.getElementById('modalEntrega').close();
+  });
+
+  // Previsualización de archivo
+  const inputArchivo = document.querySelector('input[name="archivo"]');
+  inputArchivo.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    const preview = document.getElementById('previewContent');
+    if (!file) return;
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (["png","jpg","jpeg","gif"].includes(ext)) {
+      preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-h-48 mx-auto rounded">`;
+    } else if (ext === "pdf") {
+      preview.innerHTML = `<iframe src="${URL.createObjectURL(file)}" class="w-full h-48"></iframe>`;
+    } else {
+      preview.innerHTML = `<span class="text-gray-600">${file.name}</span>`;
+    }
+  });
+
+  // Ahora sí inicializamos la actividad
+  initActividad();
+});
+
 </script>
 </body>
 </html>
