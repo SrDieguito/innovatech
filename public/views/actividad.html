@@ -14,27 +14,28 @@
   <main class="flex-grow px-4 py-8">
     <div class="max-w-5xl mx-auto space-y-6">
 
-      <!-- Título y botones principales -->
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 id="actividad-title" class="text-3xl font-bold text-emerald-700">Cargando...</h1>
-          <p id="actividad-description" class="text-gray-600 mt-1"></p>
-        </div>
-        <div id="actividad-buttons" class="flex flex-wrap gap-3"></div>
-      </div>
+<!-- Título -->
+<div>
+  <h1 id="actividad-title" class="text-3xl font-bold text-emerald-700">Cargando...</h1>
+  <p id="actividad-description" class="text-gray-600 mt-1"></p>
+</div>
 
-      <!-- Detalles de la tarea -->
-      <div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
-        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2">Detalles de la tarea</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-          <p><span class="font-medium text-gray-700">Fecha de creación:</span> <span id="actividad-created_at" class="text-gray-600">—</span></p>
-          <p><span class="font-medium text-gray-700">Fecha límite:</span> <span id="actividad-due_at" class="text-gray-600">—</span></p>
-          <p><span class="font-medium text-gray-700">Estado:</span> <span id="actividad-status" class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">—</span></p>
-          <p><span class="font-medium text-gray-700">Puntos:</span> <span id="actividad-points" class="text-gray-600">0</span></p>
-          <p><span class="font-medium text-gray-700">Profesor:</span> <span id="actividad-profesor" class="text-gray-600">—</span></p>
-          <p><span class="font-medium text-gray-700">Última entrega:</span> <span id="actividad-ultima-entrega" class="text-gray-600">—</span></p>
-        </div>
-      </div>
+<!-- Detalles de la tarea -->
+<div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
+  <h2 class="text-lg font-semibold text-gray-800 border-b pb-2">Detalles de la tarea</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+    <p><span class="font-medium text-gray-700">Fecha de creación:</span> <span id="actividad-created_at" class="text-gray-600">—</span></p>
+    <p><span class="font-medium text-gray-700">Fecha límite:</span> <span id="actividad-due_at" class="text-gray-600">—</span></p>
+    <p><span class="font-medium text-gray-700">Estado:</span> <span id="actividad-status" class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">—</span></p>
+    <p><span class="font-medium text-gray-700">Puntos:</span> <span id="actividad-points" class="text-gray-600">0</span></p>
+    <p><span class="font-medium text-gray-700">Profesor:</span> <span id="actividad-profesor" class="text-gray-600">—</span></p>
+    <p><span class="font-medium text-gray-700">Última entrega:</span> <span id="actividad-ultima-entrega" class="text-gray-600">—</span></p>
+  </div>
+
+  <!-- Contenedor de botones, debajo de los detalles -->
+  <div id="actividad-buttons" class="flex flex-wrap gap-3 mt-4 justify-end"></div>
+</div>
+
 
       <!-- Calificación -->
       <div class="bg-white rounded-2xl shadow-md p-6">
