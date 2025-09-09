@@ -189,43 +189,49 @@ export default async function handler(req, res) {
       return res.status(200).send(row.archivo_blob);
     }
 
-    /* ===== LISTAR ENTREGAS POR TAREA (profesor) ===== */
-    if (req.method === 'GET' && action === 'listar_por_tarea_profesor') {
-      const userId = getUserId(req);
-      if (!userId) return res.status(401).json({ error: 'No autenticado' });
+/* ===== LISTAR ENTREGAS POR TAREA (profesor) ===== */
+if (req.method === 'GET' && action === 'listar_por_tarea_profesor') {
+  const userId = getUserId(req);
+  if (!userId) return res.status(401).json({ error: 'No autenticado' });
 
-      const tarea_id = Number(req.query?.tarea_id);
-      if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
+  const tarea_id = Number(req.query?.tarea_id);
+  if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
 
-      // Verificar que el usuario es profesor del curso de la tarea
-      const [[verificacion]] = await pool.query(
-        `SELECT c.profesor_id 
-         FROM tareas t 
-         JOIN cursos c ON t.curso_id = c.id 
-         WHERE t.id = ?`,
-        [tarea_id]
-      );
+  // Verificar que el usuario es profesor del curso de la tarea
+  const [[verificacion]] = await pool.query(
+    `SELECT c.profesor_id 
+     FROM tareas t 
+     JOIN cursos c ON t.curso_id = c.id 
+     WHERE t.id = ?`,
+    [tarea_id]
+  );
 
-      if (!verificacion) return res.status(404).json({ error: 'Tarea no encontrada' });
-      
-      // Verificar rol del usuario
-      const [[user]] = await pool.query('SELECT rol FROM usuarios WHERE id = ?', [userId]);
-      if (verificacion.profesor_id !== userId && user.rol !== 'admin') {
-        return res.status(403).json({ error: 'No autorizado' });
-      }
+  if (!verificacion) return res.status(404).json({ error: 'Tarea no encontrada' });
+  
+  // Verificar rol del usuario
+  const [[user]] = await pool.query('SELECT rol FROM usuarios WHERE id = ?', [userId]);
+  if (!user) return res.status(403).json({ error: 'Usuario no encontrado' });
 
-      // Obtener todas las entregas para esta tarea
-      const [entregas] = await pool.query(
-        `SELECT e.*, u.nombre as estudiante_nombre, u.email as estudiante_email
-         FROM tareas_entregas e
-         JOIN usuarios u ON e.estudiante_id = u.id
-         WHERE e.tarea_id = ?
-         ORDER BY e.fecha_entrega DESC`,
-        [tarea_id]
-      );
+  // Convertir userId a número para comparar
+  const userIdNum = Number(userId);
+  const profesorIdNum = Number(verificacion.profesor_id);
 
-      return res.status(200).json({ entregas });
-    }
+  if (profesorIdNum !== userIdNum && user.rol !== 'admin') {
+    return res.status(403).json({ error: 'No autorizado' });
+  }
+
+  // Obtener todas las entregas para esta tarea
+  const [entregas] = await pool.query(
+    `SELECT e.*, u.nombre as estudiante_nombre, u.email as estudiante_email
+     FROM tareas_entregas e
+     JOIN usuarios u ON e.estudiante_id = u.id
+     WHERE e.tarea_id = ?
+     ORDER BY e.fecha_entrega DESC`,
+    [tarea_id]
+  );
+
+  return res.status(200).json({ entregas });
+}
 
     /* ===== CALIFICAR ENTREGA (profesor) ===== */
     if (req.method === 'POST' && action === 'calificar') {
