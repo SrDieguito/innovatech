@@ -105,15 +105,11 @@ fetch('/views/header.html')
     const container = document.getElementById('header-container');
     container.innerHTML = html;
 
-    // Ejecutar scripts del header
     const scripts = container.querySelectorAll('script');
     scripts.forEach(oldScript => {
       const newScript = document.createElement('script');
-      if (oldScript.src) {
-        newScript.src = oldScript.src;
-      } else {
-        newScript.textContent = oldScript.textContent;
-      }
+      if (oldScript.src) newScript.src = oldScript.src;
+      else newScript.textContent = oldScript.textContent;
       document.body.appendChild(newScript);
       oldScript.remove();
     });
@@ -185,7 +181,7 @@ async function renderComentarios(){
   });
 }
 
-function actualizarEstado(estado) {
+function actualizarEstado(estado){
   holder.status.textContent = estado || "pendiente";
   holder.status.className = 'px-2 py-0.5 rounded-full text-xs ';
   switch ((estado || '').toLowerCase()) {
@@ -219,7 +215,6 @@ function openEntrega(tareaId){
     if(!e) return;
     if(e.archivo_nombre) holder.archivoActual.textContent=e.archivo_nombre;
     holder.ultimaEntrega.textContent=e.archivo_nombre||'—';
-    actualizarEstado(e.estado);
     if(e.archivo_url){
       const ext=e.archivo_nombre.split('.').pop().toLowerCase();
       if(["png","jpg","jpeg","gif"].includes(ext)){
@@ -230,6 +225,7 @@ function openEntrega(tareaId){
         holder.preview.innerHTML=`<a href="${e.archivo_url}" target="_blank" class="text-blue-600 underline">Abrir archivo</a>`;
       }
     }
+    actualizarEstado(e.estado); // <-- Aquí actualizamos el estado con el que venga de la DB
   });
   dlg.showModal();
 }
@@ -237,12 +233,11 @@ function openEntrega(tareaId){
 async function initActividad(){
   if(!cursoId||!tareaId){alert('Falta cursoId o tareaId');return;}
   try{
-    const [perfil,tarea,entrega]=await Promise.all([getPerfil(),getTarea(),getEntrega()]);
+    const [perfil,tarea]=await Promise.all([getPerfil(),getTarea()]);
     if(!tarea) throw new Error("Tarea no encontrada");
 
     const esProfesor=perfil?.rol==='profesor'||perfil?.rol==='admin'||Number(perfil?.id)===Number(tarea.profesor_id);
 
-    // Renderizar datos
     holder.title.textContent=tarea.title||"(Sin título)";
     holder.desc.textContent=tarea.description||"";
     holder.createdAt.textContent=fmtDate(tarea.created_at);
@@ -250,14 +245,6 @@ async function initActividad(){
     holder.points.textContent=tarea.points??0;
     holder.profesor.textContent=tarea.profesor_nombre||"—";
     holder.calificacion.innerHTML=tarea.calificacion?`<span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10`:`<span class="text-gray-500">Aún no calificado</span>`;
-
-    // Estado según la entrega o tarea
-    actualizarEstado(entrega?.estado || tarea.status);
-
-    if(entrega?.archivo_nombre){
-      holder.ultimaEntrega.textContent = entrega.archivo_nombre;
-      holder.archivoActual.textContent = entrega.archivo_nombre;
-    }
 
     // Botones
     holder.botones.innerHTML='';
@@ -275,23 +262,22 @@ async function initActividad(){
       holder.botones.appendChild(editar);
       holder.botones.appendChild(eliminar);
     }else{
-      const entregarBtn=document.createElement('button');
-      entregarBtn.textContent="Entregar";
-      entregarBtn.className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-green-700 transition";
-      entregarBtn.addEventListener('click',()=>openEntrega(tareaId));
+      const entregar=document.createElement('button');
+      entregar.textContent="Entregar";
+      entregar.className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-green-700 transition";
+      entregar.addEventListener('click',()=>openEntrega(tareaId));
 
       const ver=document.createElement('a');
       ver.textContent="Ver última entrega";
       ver.href=`/api/entregas?action=descargar&tarea_id=${tareaId}`;
       ver.className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition";
 
-      holder.botones.appendChild(entregarBtn);
+      holder.botones.appendChild(entregar);
       holder.botones.appendChild(ver);
     }
 
     await renderComentarios();
 
-    // Formulario de comentario
     document.getElementById('formComentario').addEventListener('submit',async e=>{
       e.preventDefault();
       const texto=e.target.comentario.value.trim();
@@ -303,26 +289,6 @@ async function initActividad(){
       });
       e.target.comentario.value='';
       await renderComentarios();
-    });
-
-    // Subir entrega
-    document.getElementById('formEntrega').addEventListener('submit', async e => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const url = '/api/entregas?action=subir';
-      const res = await fetch(url, { method: 'POST', body: formData, credentials: 'include' });
-
-      if (res.ok) {
-        const data = await res.json();
-        alert('Archivo subido correctamente. Espera que se actualice el estado.');
-        e.target.reset();
-        holder.archivoActual.textContent = formData.get('archivo')?.name || '—';
-        holder.ultimaEntrega.textContent = formData.get('archivo')?.name || '—';
-        actualizarEstado('entregado');
-      } else {
-        const data = await res.json().catch(() => ({ error: 'Error desconocido' }));
-        alert('Error al subir el archivo: ' + (data.error || 'Desconocido'));
-      }
     });
 
   }catch(err){
