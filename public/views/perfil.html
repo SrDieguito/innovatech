@@ -34,7 +34,6 @@
 <div id="header-container"></div>
 
 <div class="container mx-auto px-6 py-8">
-  <!-- Top Action Bar -->
   <div class="flex justify-end mb-6">
     <button class="flex items-center text-gray-600 hover:text-gray-800 border border-gray-300 hover:border-gray-400 transition-colors px-4 py-2 rounded-md bg-white">
       <i class="fas fa-redo mr-2"></i>
@@ -222,31 +221,37 @@
       const iniciales = usuario.nombre?.split(' ').map(n => n[0]).join('').toUpperCase() || '';
       document.getElementById('iniciales-usuario').textContent = iniciales;
 
-// Cargar cursos
-const cursosRes = await fetch(`/api/cursos?action=obtener`, { credentials: 'include' });
-const todosCursos = await cursosRes.json();
-// Filtrar solo los cursos del usuario de forma segura
-const cursos = todosCursos.filter(c => Array.isArray(c.estudiantes) && c.estudiantes.some(e => e.id === usuario.id));
+      // -------------------- CARGAR CURSOS --------------------
+      const cursosContainer = document.getElementById('cursos-usuario');
+      try {
+        const cursosRes = await fetch('/api/miscursos', { credentials: 'include' });
+        const data = await cursosRes.json();
+        const cursos = Array.isArray(data.data) ? data.data : [];
 
-// Renderizar cursos en el contenedor
-const cursosContainer = document.getElementById('cursos-usuario');
-cursosContainer.innerHTML = '';
-if (cursos.length) {
-  cursos.forEach(curso => {
-    const div = document.createElement('div');
-    div.className = 'bg-green-50 rounded-lg p-4 shadow hover:bg-green-100 transition';
-    div.innerHTML = `
-      <h4 class="font-semibold text-gray-800">${curso.nombre}</h4>
-      <p class="text-sm text-gray-600">Profesor: ${curso.profesor || 'No asignado'}</p>
-    `;
-    cursosContainer.appendChild(div);
-  });
-} else {
-  cursosContainer.innerHTML = '<p class="text-gray-500 col-span-full">No estás inscrito en ningún curso.</p>';
-}
+        cursosContainer.innerHTML = '';
+        if (cursos.length) {
+          cursos.forEach(curso => {
+            const div = document.createElement('div');
+            div.className = 'bg-green-50 rounded-lg p-4 shadow hover:bg-green-100 transition';
+            div.innerHTML = `
+              <h4 class="font-semibold text-gray-800">${curso.nombre}</h4>
+              <p class="text-sm text-gray-600">Profesor: ${curso.profesor || 'No asignado'}</p>
+              <a href="/views/curso.html?id=${curso.id}" 
+                 class="inline-block mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+                Ir al curso
+              </a>
+            `;
+            cursosContainer.appendChild(div);
+          });
+        } else {
+          cursosContainer.innerHTML = '<p class="text-gray-500 col-span-full">No estás inscrito en ningún curso.</p>';
+        }
+      } catch(e) {
+        console.error(e);
+        cursosContainer.innerHTML = '<p class="text-red-500 col-span-full">Error al cargar los cursos.</p>';
+      }
 
-
-      // Cargar actividad de accesos
+      // -------------------- ACTIVIDAD DE ACCESOS --------------------
       const accesos = usuario.accesos || [];
       const accContainer = document.getElementById('actividad-accesos');
       accContainer.innerHTML = '';
