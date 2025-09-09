@@ -222,20 +222,11 @@
       const iniciales = usuario.nombre?.split(' ').map(n => n[0]).join('').toUpperCase() || '';
       document.getElementById('iniciales-usuario').textContent = iniciales;
 
-      // Cargar cursos
-      const cursosRes = await fetch(`/api/cursos/usuario?id=${usuario.id}`, { credentials: 'include' });
-      const cursos = await cursosRes.json();
-      const contenedor = document.getElementById('cursos-usuario');
-      contenedor.innerHTML = '';
-      cursos.forEach(c => {
-        const div = document.createElement('div');
-        div.className = 'bg-white/80 p-4 rounded-lg shadow-sm';
-        div.innerHTML = `
-          <h4 class="font-semibold text-gray-800">${c.nombre}</h4>
-          <p class="text-gray-600 text-sm">${c.descripcion || ''}</p>
-        `;
-        contenedor.appendChild(div);
-      });
+// Cargar cursos
+const cursosRes = await fetch(`/api/cursos?action=obtener`, { credentials: 'include' });
+const todosCursos = await cursosRes.json();
+const cursos = todosCursos.filter(c => c.estudiantes.some(e => e.id === usuario.id)); // solo los cursos del usuario
+
 
       // Cargar actividad de accesos
       const accesos = usuario.accesos || [];
