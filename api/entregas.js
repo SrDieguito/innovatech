@@ -170,10 +170,12 @@ export default async function handler(req, res) {
       if (!row) return res.status(404).json({ error: 'No hay entrega' });
 
       const nombreArchivo = row.archivo_nombre || 'entrega';
-      const encodedName = encodeURIComponent(nombreArchivo);
+    const encodedName = encodeURIComponent(nombreArchivo);
+    const asciiName = nombreArchivo.replace(/[^\x00-\x7F]/g, '_');
 
-      res.setHeader('Content-Type', row.archivo_mime || 'application/octet-stream');
-      res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodedName}`);
+    res.setHeader('Content-Type', row.archivo_mime || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${asciiName}"; filename*=UTF-8''${encodedName}`);
+
       return res.status(200).send(row.archivo_blob);
     }
 
