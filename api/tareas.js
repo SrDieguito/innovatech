@@ -80,7 +80,7 @@ export default async function handler(req, res) {
           ${f_points}  AS points,
           ${f_status}  AS status,
           ${f_created} AS created_at,
-          ${f_updated} AS updated_at,
+          ${f_updated} AS updated_at
         FROM tareas
         WHERE curso_id = ?
         ORDER BY ${cols.has('fecha_limite') ? 'fecha_limite' : 'id'} DESC
