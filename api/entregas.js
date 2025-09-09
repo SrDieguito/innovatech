@@ -1,7 +1,6 @@
+import mysql from 'mysql2/promise';
 import multer from 'multer';
-import mysql from 'mysql2/promise'; // IMPORTANTE: faltaba esto
 
-// Crear pool de conexión
 export const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -12,6 +11,7 @@ export const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 });
+
 
 /* ===== Helpers ===== */
 function getUserId(req) {

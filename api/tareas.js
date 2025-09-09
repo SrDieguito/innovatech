@@ -1,16 +1,15 @@
-import mysql from 'mysql2/promise'; // IMPORTANTE: faltaba esto
+import mysql from "mysql2/promise";
 
-// Crear pool de conexión
-export const pool = mysql.createPool({
+// Crear el pool (puedes mover esto a un archivo separado si prefieres reutilizarlo)
+const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  port: Number(process.env.DB_PORT) || 3306,
-  waitForConnections: true,
+  port: process.env.DB_PORT,
   connectionLimit: 10,
-  queueLimit: 0,
 });
+
 /* ===== Helpers ===== */
 function getUserId(req) {
   return req.cookies?.user_id || null; // ajusta si tu cookie se llama distinto
