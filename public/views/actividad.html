@@ -342,19 +342,46 @@ function updateStatusVisual(statusEl, estado) {
 // ---- Funciones de profesor ----
 async function getEntregasProfesor() {
   updateDebugInfo("Solicitando entregas para profesor...");
-  const res = await fetch(`/api/entregas?action=listar_por_tarea_profesor&tarea_id=${tareaId}`, {
-    credentials: 'include'
-  });
-  
-  if (!res.ok) {
-    const errorText = await res.text();
-    updateDebugInfo(`Error en la respuesta: ${res.status} - ${errorText}`);
-    throw new Error(`Error ${res.status}: ${errorText}`);
+  try {
+    const res = await fetch(`/api/entregas?action=listar_por_tarea_profesor&tarea_id=${tareaId}`, {
+      credentials: 'include'
+    });
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({ error: 'Error desconocido' }));
+      updateDebugInfo(`Error en la respuesta: ${res.status} - ${JSON.stringify(errorData)}`);
+      
+      // Si es error 403, verificar si es profesor de este curso
+      if (res.status === 403) {
+        updateDebugInfo("Error 403: Verificando si el usuario es profesor de este curso...");
+        
+        // Verificar directamente si el usuario es profesor de este curso
+        const tarea = await getTarea();
+        const perfil = await getPerfil();
+        
+        if (tarea && perfil) {
+          const esProfesorDelCurso = Number(perfil.id) === Number(tarea.profesor_id);
+          updateDebugInfo(`Usuario es profesor de este curso: ${esProfesorDelCurso}`);
+          
+          if (!esProfesorDelCurso) {
+            throw new Error("No eres el profesor asignado a este curso");
+          } else {
+            throw new Error("Error de permisos inesperado. Contacta al administrador.");
+          }
+        }
+      }
+      
+      throw new Error(`Error ${res.status}: ${errorData.error || 'Error desconocido'}`);
+    }
+    
+    const data = await res.json();
+    updateDebugInfo(`Entregas recibidas: ${data.entregas ? data.entregas.length : 0}`);
+    return data.entregas || [];
+  } catch (error) {
+    console.error("Error en getEntregasProfesor:", error);
+    updateDebugInfo(`Error: ${error.message}`);
+    throw error;
   }
-  
-  const data = await res.json();
-  updateDebugInfo(`Entregas recibidas: ${data.entregas ? data.entregas.length : 0}`);
-  return data.entregas || [];
 }
 
 async function renderEntregasProfesor() {
@@ -469,7 +496,7 @@ async function renderEntregasProfesor() {
     lista.innerHTML = `
       <div class="text-center py-4 text-red-600">
         <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
-        <p>Error al cargar las entregas</p>
+        <p>${error.message}</p>
         <button onclick="renderEntregasProfesor()" class="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-md text-sm">
           Reintentar
         </button>
@@ -550,8 +577,12 @@ async function initActividad() {
     const [perfil, tarea] = await Promise.all([getPerfil(), getTarea()]);
     if(!tarea) throw new Error("Tarea no encontrada");
 
-    const esProfesor = perfil?.rol === 'profesor' || perfil?.rol === 'admin' || Number(perfil?.id) === Number(tarea.profesor_id);
-    updateDebugInfo(`Rol de usuario: ${perfil?.rol}, Es profesor: ${esProfesor}`);
+    // Verificación mejorada de si es profesor
+    const esProfesor = perfil?.rol === 'profesor' || perfil?.rol === 'admin';
+    const esProfesorDelCurso = esProfesor && Number(perfil.id) === Number(tarea.profesor_id);
+    
+    updateDebugInfo(`Rol de usuario: ${perfil?.rol}, Es profesor: ${esProfesor}, Es profesor de este curso: ${esProfesorDelCurso}`);
+    updateDebugInfo(`ID Usuario: ${perfil?.id}, ID Profesor del curso: ${tarea.profesor_id}`);
 
     holder.title.textContent = tarea.titulo || "(Sin título)";
     holder.desc.textContent = tarea.descripcion || "";
@@ -587,7 +618,19 @@ async function initActividad() {
       holder.botones.appendChild(editar);
       holder.botones.appendChild(eliminar);
 
-      await renderEntregasProfesor(); // Llamar a la vista del profesor
+      // Solo cargar entregas si es profesor de este curso
+      if (esProfesorDelCurso) {
+        await renderEntregasProfesor();
+      } else {
+        document.getElementById('profesor-entregas').classList.remove('hidden');
+        document.getElementById('entregas-list').innerHTML = `
+          <div class="text-center py-4 text-orange-600">
+            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+            <p>No eres el profesor asignado a este curso</p>
+            <p class="text-sm text-gray-600">Solo el profesor asignado puede ver las entregas</p>
+          </div>
+        `;
+      }
     } else {
       const entregar = document.createElement('button');
       entregar.textContent = "Entregar";
