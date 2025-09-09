@@ -273,7 +273,7 @@ holder.archivoActual.textContent = entrega?.entrega?.archivo_nombre || '—';
     holder.profesor.textContent = tarea.profesor || "—";
     holder.calificacion.innerHTML=tarea.calificacion?`<span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10`:`<span class="text-gray-500">Aún no calificado</span>`;
 
-    holder.botones.innerHTML='';
+holder.botones.innerHTML='';
 
 if(esProfesor){
   const editar=document.createElement('button');
@@ -327,7 +327,6 @@ if(esProfesor){
   holder.botones.appendChild(ver);
   holder.botones.appendChild(eliminarEntrega);
 }
-
 
 // ----------------------------
 // Auto actualizar estado al subir entrega
