@@ -114,13 +114,14 @@ export default async function handler(req, res) {
       const curso_id = Number(req.query?.curso_id);
       if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
       const [rows] = await pool.query(
-        `SELECT e.tarea_id, e.archivo_nombre, e.tamano_bytes, e.fecha_entrega
-           FROM tareas_entregas e
-           JOIN tareas t ON t.id = e.tarea_id
-          WHERE e.estudiante_id = ? AND t.curso_id = ?
-          ORDER BY e.fecha_entrega DESC`,
-        [userId, curso_id]
-      );
+  `SELECT e.tarea_id, e.archivo_nombre, e.tamano_bytes, e.fecha_entrega, e.estado
+     FROM tareas_entregas e
+     JOIN tareas t ON t.id = e.tarea_id
+    WHERE e.estudiante_id = ? AND t.curso_id = ?
+    ORDER BY e.fecha_entrega DESC`,
+  [userId, curso_id]
+);
+
       return res.status(200).json({ entregas: rows });
     }
 
