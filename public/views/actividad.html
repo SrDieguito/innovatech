@@ -307,23 +307,24 @@ async function initActividad() {
       ver.textContent="Ver última entrega";
       ver.className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition";
       ver.addEventListener('click', async ()=>{
-        const e = await getEntrega();
-        if(!e?.archivo_url) return alert("No hay archivo para mostrar.");
-        const ext = e.archivo_nombre.split('.').pop().toLowerCase();
-        const container = document.getElementById('previewFileContent');
-        container.innerHTML = "";
-        if(ext === "pdf"){
-          container.innerHTML = `<iframe src="${e.archivo_url}" class="w-full h-full"></iframe>`;
-        } else if(["png","jpg","jpeg","gif"].includes(ext)){
-          container.innerHTML = `<img src="${e.archivo_url}" class="max-h-full mx-auto rounded">`;
-        } else {
-          container.innerHTML = `<p class="text-gray-600">No se puede previsualizar este tipo de archivo.</p>`;
-        }
-        const dl = document.getElementById('downloadPreview');
-        dl.href = e.archivo_url;
-        dl.download = e.archivo_nombre;
-        document.getElementById('modalPreview').showModal();
-      });
+  const e = await getEntrega();
+  if(!e?.entrega?.archivo_url) return alert("No hay archivo para mostrar.");
+  const ext = e.entrega.archivo_nombre.split('.').pop().toLowerCase();
+  const container = document.getElementById('previewFileContent');
+  container.innerHTML = "";
+  if(ext === "pdf"){
+    container.innerHTML = `<iframe src="${e.entrega.archivo_url}" class="w-full h-full" style="border:none;"></iframe>`;
+  } else if(["png","jpg","jpeg","gif"].includes(ext)){
+    container.innerHTML = `<img src="${e.entrega.archivo_url}" class="max-w-full max-h-full object-contain mx-auto rounded">`;
+  } else {
+    container.innerHTML = `<p class="text-gray-600">No se puede previsualizar este tipo de archivo.</p>`;
+  }
+  const dl = document.getElementById('downloadPreview');
+  dl.href = e.entrega.archivo_url;
+  dl.download = e.entrega.archivo_nombre;
+  document.getElementById('modalPreview').showModal();
+});
+
 
       const eliminarEntrega=document.createElement('button');
       eliminarEntrega.textContent="Eliminar entrega";
