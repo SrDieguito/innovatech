@@ -225,7 +225,25 @@
 // Cargar cursos
 const cursosRes = await fetch(`/api/cursos?action=obtener`, { credentials: 'include' });
 const todosCursos = await cursosRes.json();
-const cursos = todosCursos.filter(c => c.estudiantes.some(e => e.id === usuario.id)); // solo los cursos del usuario
+// Filtrar solo los cursos del usuario de forma segura
+const cursos = todosCursos.filter(c => Array.isArray(c.estudiantes) && c.estudiantes.some(e => e.id === usuario.id));
+
+// Renderizar cursos en el contenedor
+const cursosContainer = document.getElementById('cursos-usuario');
+cursosContainer.innerHTML = '';
+if (cursos.length) {
+  cursos.forEach(curso => {
+    const div = document.createElement('div');
+    div.className = 'bg-green-50 rounded-lg p-4 shadow hover:bg-green-100 transition';
+    div.innerHTML = `
+      <h4 class="font-semibold text-gray-800">${curso.nombre}</h4>
+      <p class="text-sm text-gray-600">Profesor: ${curso.profesor || 'No asignado'}</p>
+    `;
+    cursosContainer.appendChild(div);
+  });
+} else {
+  cursosContainer.innerHTML = '<p class="text-gray-500 col-span-full">No estás inscrito en ningún curso.</p>';
+}
 
 
       // Cargar actividad de accesos
