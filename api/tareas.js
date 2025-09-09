@@ -1,5 +1,5 @@
 // api/tareas.js
-import { pool } from './db.js';
+import { pool } from '/api/db.js';
 
 /* ===== Helpers ===== */
 function getUserId(req) {
