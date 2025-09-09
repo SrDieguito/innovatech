@@ -62,28 +62,33 @@ export default async function handler(req, res) {
       if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
 
       const cols = await getColumns('tareas');
-      const f_titulo   = cols.has('titulo')       ? "COALESCE(titulo,'(Sin título)')" : "'(Sin título)'";
-      const f_desc     = cols.has('descripcion')  ? "COALESCE(descripcion,'')"        : "''";
-      const f_due      = cols.has('fecha_limite') ? 'fecha_limite'                    : 'NULL';
-      const f_points   = cols.has('puntos')       ? 'COALESCE(puntos,0)'              : '0';
-      const f_status   = cols.has('estado')       ? "COALESCE(estado,'pendiente')"    : "'pendiente'";
-      const f_created  = cols.has('fecha_creacion')      ? 'fecha_creacion'           : 'NULL';
-      const f_updated  = cols.has('fecha_actualizacion') ? 'fecha_actualizacion'      : 'NULL';
+     const f_titulo   = cols.has('titulo') ? "COALESCE(titulo,'(Sin título)')" : "'(Sin título)'";
+const f_desc     = cols.has('descripcion') ? "COALESCE(descripcion,'')" : "''";
+const f_due      = cols.has('fecha_limite') ? 'fecha_limite' : 'NULL';
+const f_points   = cols.has('puntos') ? 'COALESCE(puntos,0)' : '0';
+const f_status   = cols.has('completada') ? 'completada' : '0'; // ✅ usar completada en vez de estado
+const f_created  = cols.has('fecha_creacion') ? 'fecha_creacion' : 'NULL';
+const f_updated  = 'fecha_completacion'; // o NULL si quieres
+
 
       const [rows] = await pool.query(`
-        SELECT
-          id,
-          curso_id,
-          ${f_titulo}  AS title,
-          ${f_desc}    AS description,
-          ${f_due}     AS due_at,
-          ${f_points}  AS points,
-          ${f_status}  AS status,
-          ${f_created} AS created_at,
-          ${f_updated} AS updated_at
-        FROM tareas
-        WHERE curso_id = ?
-        ORDER BY ${cols.has('fecha_limite') ? 'fecha_limite' : 'id'} DESC
+ SELECT
+  t.id,
+  t.curso_id,
+  ${f_titulo} AS title,
+  ${f_desc} AS description,
+  ${f_due} AS due_at,
+  ${f_points} AS points,
+  ${f_status} AS status,
+  ${f_created} AS created_at,
+  ${f_updated} AS updated_at,
+  u.nombre AS profesor
+FROM tareas t
+LEFT JOIN cursos c ON t.curso_id = c.id
+LEFT JOIN usuarios u ON c.profesor_id = u.id
+WHERE t.curso_id = ?
+ORDER BY t.fecha_limite DESC
+
       `, [curso_id]);
 
       return res.status(200).json(rows);
