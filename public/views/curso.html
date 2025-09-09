@@ -19,7 +19,9 @@
   <!-- Encabezado del curso -->
   <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 text-center">
     <h1 id="nombre-curso" class="text-4xl font-extrabold text-green-700 mb-2">Nombre del Curso</h1>
-    <p id="nombre-tutor" class="text-gray-600 text-lg flex items-center justify-center gap-2"><i class="fas fa-chalkboard-teacher"></i> Tutor: Nombre del Tutor</p>
+    <p id="nombre-tutor" class="text-gray-600 text-lg flex items-center justify-center gap-2">
+      <i class="fas fa-chalkboard-teacher"></i> Tutor: Nombre del Tutor
+    </p>
   </div>
 
   <!-- Pestañas principales -->
@@ -43,7 +45,6 @@
     <div x-show="subTab==='presentacion'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
       <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-book-open mr-2"></i> Presentación</h2>
       <p id="presentacion-texto" class="text-gray-700 mb-4">Cargando descripción...</p>
-      <!-- Editor solo se mantiene si quieres que el profesor pueda actualizar descripción -->
       <div id="presentacion-editor" class="hidden flex flex-col items-center gap-3">
         <textarea id="descripcion-input" class="w-full border border-gray-300 rounded p-2 resize-none" rows="4"></textarea>
         <button id="guardar-descripcion" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow">Guardar descripción</button>
@@ -62,6 +63,7 @@
 
     <div x-show="subTab==='actividades'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
       <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-tasks mr-2"></i> Actividades de aprendizaje</h2>
+      <!-- Contenedor de actividades limpio, los botones ya se manejan en task.js -->
       <div id="actividades-holder" class="mt-2 text-left"></div>
     </div>
 
@@ -78,14 +80,12 @@
   </div>
 
   <!-- Participantes -->
-<div x-show="tab==='participantes'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-  <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-users mr-2"></i> Participantes</h2>
-  <div id="participantes-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-    <p id="cargando-participantes" class="text-gray-500 col-span-full">Cargando participantes...</p>
+  <div x-show="tab==='participantes'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+    <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-users mr-2"></i> Participantes</h2>
+    <div id="participantes-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <p id="cargando-participantes" class="text-gray-500 col-span-full">Cargando participantes...</p>
+    </div>
   </div>
-</div>
-
-
 
   <!-- Calificaciones -->
   <div x-show="tab==='calificaciones'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
@@ -98,28 +98,22 @@
 <script src="/js/task.js"></script>
 <script>
   // Cargar header
-fetch('/views/header.html')
-  .then(res => res.text())
-  .then(html => {
-    const container = document.getElementById('header-container');
-    container.innerHTML = html;
+  fetch('/views/header.html')
+    .then(res => res.text())
+    .then(html => {
+      const container = document.getElementById('header-container');
+      container.innerHTML = html;
 
-    // Ejecutar scripts del header
-    const scripts = container.querySelectorAll('script');
-    scripts.forEach(oldScript => {
-      const newScript = document.createElement('script');
-      if (oldScript.src) {
-        newScript.src = oldScript.src;
-      } else {
-        newScript.textContent = oldScript.textContent;
-      }
-      document.body.appendChild(newScript);
-      oldScript.remove();
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        if (oldScript.src) newScript.src = oldScript.src;
+        else newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+        oldScript.remove();
+      });
     });
-  });
 
-
-  // Obtener ID de curso de la URL
   const params = new URLSearchParams(window.location.search);
   const cursoId = params.get("id") || params.get("curso_id") || params.get("courseId");
 
@@ -127,152 +121,87 @@ fetch('/views/header.html')
     alert("No se proporcionó ID de curso");
     location.href = "/mis-cursos.html";
   }
-// === CARGAR ACTIVIDADES (fragmento + init) ===
-async function cargarActividades(esProfesor) {
-    const holder = document.getElementById('actividades-holder');
-    if (!holder || holder.dataset.loaded) return; // evita doble carga
 
-    // Trae el fragmento /partials/tasks.html
+  async function cargarActividades(esProfesor) {
+    const holder = document.getElementById('actividades-holder');
+    if (!holder || holder.dataset.loaded) return;
+
     const res = await fetch('/partials/task.html');
     holder.innerHTML = await res.text();
 
-    // Configura dataset para rol y curso
     const root = holder.querySelector('#tasks-root');
     root.dataset.role = esProfesor ? 'profesor' : 'estudiante';
     root.dataset.courseId = cursoId;
 
-    // Inicializa la página de tareas
     window.TasksPage?.init();
     holder.dataset.loaded = "1";
   }
-  // Cargar datos del curso
+
+  // Cargar datos del curso y participantes
   fetch(`/api/cursos?action=obtener-detalle&id=${cursoId}`)
-    .then(res => {
-      if (!res.ok) {
-        throw new Error(`Error al cargar el curso: ${res.status} ${res.statusText}`);
-      }
-      return res.json();
-    })
+    .then(res => res.ok ? res.json() : Promise.reject(res))
     .then(curso => {
-      if (!curso) {
-        throw new Error('No se pudo cargar la información del curso');
-      }
       document.getElementById('nombre-curso').textContent = curso.nombre || 'Curso sin nombre';
       document.getElementById('nombre-tutor').textContent = `Tutor: ${curso.profesor || 'No asignado'}`;
       document.getElementById('presentacion-texto').textContent = curso.descripcion || 'Sin descripción';
 
-      // Obtener usuario actual
-      return fetch('/api/perfil')
-        .then(res => {
-          if (!res.ok) {
-            throw new Error(`Error al cargar el perfil de usuario: ${res.status} ${res.statusText}`);
-          }
-          return res.json();
-        })
-        .then(usuario => {
-          if (!usuario || !usuario.id) {
-            throw new Error('No se pudo cargar la información del usuario');
-          }
-          const esProfesor = usuario.id === curso.profesor_id || usuario.rol === 'profesor' || usuario.rol === 'admin';
-          
-          if (esProfesor) {
-            // Mostrar editor solo para profesores
-            const editor = document.getElementById('presentacion-editor');
-            if (editor) {
-              editor.classList.remove('hidden');
-              const descInput = document.getElementById('descripcion-input');
-              if (descInput) {
-                descInput.value = curso.descripcion || '';
-              }
-            }
-          }
-          
-          // Cargar actividades con el ID del curso
-          cargarActividades(esProfesor);
-
-          // Cargar participantes
-          cargarParticipantes(cursoId);
-        });
+      return fetch('/api/perfil').then(r => r.ok ? r.json() : Promise.reject(r));
     })
-    .catch(error => {
-      console.error('Error:', error);
-      alert(error.message || 'Ocurrió un error al cargar el curso');
-      // Redirigir a la página de cursos si hay un error
+    .then(usuario => {
+      const esProfesor = usuario.id === curso.profesor_id || usuario.rol === 'profesor' || usuario.rol === 'admin';
+      if (esProfesor) document.getElementById('presentacion-editor')?.classList.remove('hidden');
+
+      cargarActividades(esProfesor);
+      cargarParticipantes(cursoId);
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Ocurrió un error al cargar el curso');
       window.location.href = '/mis-cursos.html';
     });
 
-// Función para cargar participantes
-async function cargarParticipantes(cursoId){
-  const listContainer = document.getElementById('participantes-list');
-  const cargando = document.getElementById('cargando-participantes');
-  try {
-    const res = await fetch(`/api/participantes?id=${cursoId}`, { credentials:'include' });
-    if(!res.ok) throw new Error('Error al cargar participantes');
-    const data = await res.json();
-    cargando.remove();
-    if(Array.isArray(data) && data.length>0){
-      data.forEach(usuario=>{
-        const div = document.createElement('div');
-        div.className='bg-green-50 rounded-lg p-3 flex items-center gap-3 hover:bg-green-100 transition';
-        div.innerHTML=`
-          <div class="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center text-green-700 font-semibold">${(usuario.nombre[0]||'U').toUpperCase()}</div>
-          <div>
-            <p class="font-medium text-gray-700">${usuario.nombre}</p>
-            <p class="text-gray-500 text-sm">${usuario.email||''}</p>
-          </div>
-        `;
-        listContainer.appendChild(div);
-      });
-    } else {
-      listContainer.innerHTML='<p class="text-gray-500 col-span-full">No hay participantes inscritos.</p>';
+  async function cargarParticipantes(cursoId) {
+    const listContainer = document.getElementById('participantes-list');
+    const cargando = document.getElementById('cargando-participantes');
+    try {
+      const res = await fetch(`/api/participantes?id=${cursoId}`, { credentials:'include' });
+      const data = await res.ok ? await res.json() : [];
+      cargando.remove();
+
+      if(data.length){
+        data.forEach(usuario => {
+          const div = document.createElement('div');
+          div.className='bg-green-50 rounded-lg p-3 flex items-center gap-3 hover:bg-green-100 transition';
+          div.innerHTML=`
+            <div class="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center text-green-700 font-semibold">${(usuario.nombre[0]||'U').toUpperCase()}</div>
+            <div>
+              <p class="font-medium text-gray-700">${usuario.nombre}</p>
+              <p class="text-gray-500 text-sm">${usuario.email||''}</p>
+            </div>`;
+          listContainer.appendChild(div);
+        });
+      } else {
+        listContainer.innerHTML='<p class="text-gray-500 col-span-full">No hay participantes inscritos.</p>';
+      }
+    } catch(err){ 
+      console.error(err); 
+      listContainer.innerHTML='<p class="text-red-500 col-span-full">Error al cargar los participantes.</p>'; 
     }
-  } catch(err){ 
-    console.error(err); 
-    listContainer.innerHTML='<p class="text-red-500 col-span-full">Error al cargar los participantes.</p>'; 
   }
-}
 
-
-  // Navegación entre pestañas
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', e => {
-      e.preventDefault();
-      const selected = tab.dataset.tab;
-
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('text-green-600', 'font-medium'));
-      tab.classList.add('text-green-600', 'font-medium');
-
-      document.querySelectorAll('.tab-content').forEach(section => {
-        section.classList.add('hidden');
-      });
-
-      document.getElementById(selected).classList.remove('hidden');
-    });
-  });
-
-  document.getElementById('guardar-descripcion').addEventListener('click', () => {
-  const nuevaDescripcion = document.getElementById('descripcion-input').value;
-
-  fetch(`/api/cursos`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'actualizar-descripcion',
-      curso_id: cursoId,
-      descripcion: nuevaDescripcion
-    })
-  })
-    .then(res => res.json())
-    .then(res => {
-      if (res.success) {
+  document.getElementById('guardar-descripcion')?.addEventListener('click', () => {
+    const nuevaDescripcion = document.getElementById('descripcion-input').value;
+    fetch(`/api/cursos`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'actualizar-descripcion', curso_id: cursoId, descripcion: nuevaDescripcion })
+    }).then(res => res.json()).then(res => {
+      if(res.success){
         document.getElementById('presentacion-texto').textContent = nuevaDescripcion;
         alert('Descripción actualizada');
-      } else {
-        alert('Error al actualizar');
-      }
+      } else alert('Error al actualizar');
     });
-});
-
+  });
 </script>
 </body>
 </html>
