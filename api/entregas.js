@@ -189,6 +189,34 @@ export default async function handler(req, res) {
       return res.status(200).send(row.archivo_blob);
     }
 
+    /* ===== OBTENER CALIFICACIÓN (estudiante) ===== */
+if (req.method === 'GET' && action === 'obtener_calificacion') {
+  const userId = getUserId(req);
+  if (!userId) return res.status(401).json({ error: 'No autenticado' });
+
+  const tarea_id = Number(req.query?.tarea_id);
+  if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
+
+  // Verificar que el estudiante puede acceder a esta calificación
+  if (!await canSubmit(userId, tarea_id)) {
+    return res.status(403).json({ error: 'No autorizado' });
+  }
+
+  const [[calificacion]] = await pool.query(
+    `SELECT calificacion, observacion, estado 
+     FROM tareas_entregas 
+     WHERE tarea_id = ? AND estudiante_id = ? 
+     ORDER BY fecha_entrega DESC 
+     LIMIT 1`,
+    [tarea_id, userId]
+  );
+
+  if (!calificacion) {
+    return res.status(404).json({ error: 'No hay calificación disponible' });
+  }
+
+  return res.status(200).json({ calificacion });
+}
 /* ===== LISTAR ENTREGAS POR TAREA (profesor) ===== */
 if (req.method === 'GET' && action === 'listar_por_tarea_profesor') {
   const userId = getUserId(req);
@@ -282,4 +310,6 @@ const puedeCalificar = user.rol === 'admin' ||
     console.error('Error en entregas API:', err);
     return res.status(500).json({ error: 'Error interno del servidor', details: err.message });
   }
+
+  
 }

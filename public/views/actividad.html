@@ -112,6 +112,13 @@
         <span class="text-sm text-gray-600">Mostrando <span id="entregas-count">0</span> entregas</span>
         <button id="btn-exportar" class="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Exportar calificaciones</button>
       </div>
+      <!-- En la sección de calificación, añade: -->
+<div id="actividad-calificacion" class="text-center text-gray-600">
+  <span>Aún no calificado</span>
+  <button onclick="actualizarVistaCalificacion()" class="ml-2 text-blue-600 text-sm">
+    <i class="fas fa-sync-alt"></i> Actualizar
+  </button>
+</div>
       <div id="entregas-list" class="space-y-4">
         <p class="text-gray-500 text-center">Cargando entregas...</p>
       </div>
@@ -616,7 +623,23 @@ async function guardarCalificacion() {
         calificacion: parseFloat(calificacion),
         observacion: comentario
       })
+      
     });
+
+    // En la función guardarCalificacion(), después de guardar:
+if (res.ok) {
+  alert(`Calificación de ${calificacion}/10 guardada para ${studentName}`);
+  cerrarModalCalificacion();
+  
+  // Recargar las entregas para el profesor
+  renderEntregasProfesor();
+  
+  // Si el usuario actual es el estudiante calificado, actualizar su vista
+  const perfil = await getPerfil();
+  if (perfil && perfil.rol === 'usuario') {
+    await actualizarVistaCalificacion();
+  }
+}
     
     // Debug: mostrar respuesta completa
     updateDebugInfo(`Respuesta del servidor: ${res.status} ${res.statusText}`);
@@ -795,8 +818,88 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // ---- Función para obtener la calificación del estudiante ----
+async function getCalificacionEstudiante() {
+  try {
+    const res = await fetch(`/api/entregas?action=obtener_calificacion&tarea_id=${tareaId}`, {
+      credentials: 'include'
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      return data.calificacion;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error obteniendo calificación:", error);
+    return null;
+  }
+}
+
+// ---- Función para actualizar la visualización de calificación ----
+async function actualizarVistaCalificacion() {
+  try {
+    const calificacionData = await getCalificacionEstudiante();
+    
+    if (calificacionData && calificacionData.calificacion !== null) {
+      // Mostrar calificación
+      holder.calificacion.innerHTML = `
+        <div class="text-center">
+          <span class="text-2xl font-bold text-emerald-600">${calificacionData.calificacion}</span> / 10
+          ${calificacionData.observacion ? `
+            <div class="mt-2 p-3 bg-gray-50 rounded-lg">
+              <p class="text-sm font-medium text-gray-700">Comentarios del profesor:</p>
+              <p class="text-gray-600 mt-1">${calificacionData.observacion}</p>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      
+      // Actualizar estado
+      updateStatusVisual(holder.status, calificacionData.estado || 'calificado');
+    } else {
+      // No hay calificación aún
+      holder.calificacion.innerHTML = '<span class="text-gray-500">Aún no calificado</span>';
+    }
+  } catch (error) {
+    console.error("Error actualizando vista de calificación:", error);
+  }
+}
+
+// ---- Modificar la inicialización principal ----
+async function initActividad() {
+  updateDebugInfo("Inicializando actividad...");
+  
+  if(!cursoId || !tareaId) {
+    alert('Falta cursoId o tareaId');
+    updateDebugInfo("Error: Falta cursoId o tareaId");
+    return;
+  }
+  
+  try {
+    const [perfil, tarea] = await Promise.all([getPerfil(), getTarea()]);
+    if(!tarea) throw new Error("Tarea no encontrada");
+
+    // ... (código existente de inicialización) ...
+
+    // ACTUALIZAR: En lugar de la calificación estática, usar la función nueva
+    await actualizarVistaCalificacion();
+
+    // ... (resto del código existente) ...
+
+    updateDebugInfo("Actividad inicializada correctamente");
+    
+  } catch(err) {
+    console.error(err);
+    updateDebugInfo(`Error: ${err.message}`);
+    alert("Error cargando la actividad");
+  }
+}
+
   // Inicializar la actividad
   initActividad();
+
+  
 });
 </script>
 
