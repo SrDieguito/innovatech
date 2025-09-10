@@ -235,10 +235,26 @@ async function getPerfil(){
 }
 
 async function getTarea(){
-  const res = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`,{credentials:'include'});
-  if(!res.ok) return null;
-  const tareas = await res.json();
-  return tareas.find(t=>t.id==tareaId);
+  const res = await fetch(`/api/tareas?action=detalle&id=${tareaId}`,{credentials:'include'});
+  if(!res.ok) {
+    // Si falla, intentar con el endpoint antiguo
+    const res2 = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`,{credentials:'include'});
+    if(!res2.ok) return null;
+    const tareas = await res2.json();
+    const tarea = tareas.find(t=>t.id==tareaId);
+    
+    // Si la tarea no tiene profesor_id, obtenerlo del curso
+    if (tarea && !tarea.profesor_id) {
+      const cursoRes = await fetch(`/api/cursos?action=detalle&id=${tarea.curso_id}`,{credentials:'include'});
+      if (cursoRes.ok) {
+        const curso = await cursoRes.json();
+        tarea.profesor_id = curso.profesor_id;
+      }
+    }
+    return tarea;
+  }
+  const tarea = await res.json();
+  return tarea;
 }
 
 async function getEntrega(){
@@ -579,10 +595,11 @@ async function initActividad() {
 
     // Verificación mejorada de si es profesor
     const esProfesor = perfil?.rol === 'profesor' || perfil?.rol === 'admin';
-    const esProfesorDelCurso = esProfesor && Number(perfil.id) === Number(tarea.profesor_id);
+    const esProfesorDelCurso = esProfesor && tarea.profesor_id && Number(perfil.id) === Number(tarea.profesor_id);
     
     updateDebugInfo(`Rol de usuario: ${perfil?.rol}, Es profesor: ${esProfesor}, Es profesor de este curso: ${esProfesorDelCurso}`);
     updateDebugInfo(`ID Usuario: ${perfil?.id}, ID Profesor del curso: ${tarea.profesor_id}`);
+    updateDebugInfo(`Datos de la tarea: ${JSON.stringify(tarea)}`);
 
     holder.title.textContent = tarea.titulo || "(Sin título)";
     holder.desc.textContent = tarea.descripcion || "";
@@ -628,6 +645,7 @@ async function initActividad() {
             <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
             <p>No eres el profesor asignado a este curso</p>
             <p class="text-sm text-gray-600">Solo el profesor asignado puede ver las entregas</p>
+            <p class="text-xs text-gray-500">Tu ID: ${perfil?.id}, Profesor del curso: ${tarea.profesor_id || 'No disponible'}</p>
           </div>
         `;
       }
