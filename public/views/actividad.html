@@ -235,18 +235,34 @@ async function getPerfil(){
 }
 
 async function getTarea(){
-  // Primero intentar con el nuevo endpoint de detalle
-  const res = await fetch(`/api/tareas?action=detalle&id=${tareaId}`,{credentials:'include'});
-  if(res.ok) return await res.json();
+  // Primero intentar con el endpoint de detalle
+  try {
+    const res = await fetch(`/api/tareas?action=detalle&id=${tareaId}`,{credentials:'include'});
+    if(res.ok) {
+      const tarea = await res.json();
+      // Si la tarea no tiene profesor_id, intentar obtenerlo del curso
+      if (tarea && !tarea.profesor_id && tarea.curso_id) {
+        const cursoRes = await fetch(`/api/cursos?action=detalle&id=${tarea.curso_id}`,{credentials:'include'});
+        if (cursoRes.ok) {
+          const curso = await cursoRes.json();
+          tarea.profesor_id = curso.profesor_id;
+        }
+      }
+      return tarea;
+    }
+  } catch (error) {
+    console.error("Error obteniendo detalle de tarea:", error);
+  }
   
-  // Si falla, intentar con el endpoint de listado (para backwards compatibility)
-  const res2 = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`,{credentials:'include'});
-  if(!res2.ok) return null;
-  const tareas = await res2.json();
-  return tareas.find(t=>t.id==tareaId);
+  // Si falla, intentar con el endpoint de listado
+  try {
+    const res = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`,{credentials:'include'});
+    if(!res.ok) return null;
+    const tareas = await res.json();
+    const tarea = tareas.find(t => t.id == tareaId);
     
-    // Si la tarea no tiene profesor_id, obtenerlo del curso
-    if (tarea && !tarea.profesor_id) {
+    // Si la tarea no tiene profesor_id, intentar obtenerlo del curso
+    if (tarea && !tarea.profesor_id && tarea.curso_id) {
       const cursoRes = await fetch(`/api/cursos?action=detalle&id=${tarea.curso_id}`,{credentials:'include'});
       if (cursoRes.ok) {
         const curso = await cursoRes.json();
@@ -254,10 +270,11 @@ async function getTarea(){
       }
     }
     return tarea;
+  } catch (error) {
+    console.error("Error obteniendo listado de tareas:", error);
+    return null;
   }
-  const tarea = await res.json();
-  return tarea;
-
+}
 
 async function getEntrega(){
   const res = await fetch(`/api/entregas?action=detalle&tarea_id=${tareaId}`,{credentials:'include'});
@@ -603,16 +620,16 @@ async function initActividad() {
     updateDebugInfo(`ID Usuario: ${perfil?.id}, ID Profesor del curso: ${tarea.profesor_id}`);
     updateDebugInfo(`Datos de la tarea: ${JSON.stringify(tarea)}`);
 
-    holder.title.textContent = tarea.titulo || "(Sin título)";
-    holder.desc.textContent = tarea.descripcion || "";
-    holder.createdAt.textContent = fmtDate(tarea.fecha_creacion);
-    holder.dueAt.textContent = fmtDate(tarea.fecha_limite);
+    holder.title.textContent = tarea.titulo || tarea.title || "(Sin título)";
+    holder.desc.textContent = tarea.descripcion || tarea.description || "";
+    holder.createdAt.textContent = fmtDate(tarea.fecha_creacion || tarea.created_at);
+    holder.dueAt.textContent = fmtDate(tarea.fecha_limite || tarea.due_at);
     
     const entrega = await getEntrega();
     updateStatusVisual(holder.status, entrega?.entrega?.estado || 'pendiente');
     holder.ultimaEntrega.textContent = entrega?.entrega?.archivo_nombre || '—';
     holder.archivoActual.textContent = entrega?.entrega?.archivo_nombre || '—';
-    holder.points.textContent = tarea.puntos ?? 0;
+    holder.points.textContent = tarea.puntos || tarea.points || 0;
     holder.profesor.textContent = tarea.profesor || "—";
     
     holder.calificacion.innerHTML = tarea.calificacion ? 
