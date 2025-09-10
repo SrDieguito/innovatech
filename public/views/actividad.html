@@ -1,4 +1,4 @@
-el frontend asi esta bien? <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -74,9 +74,11 @@ el frontend asi esta bien? <!DOCTYPE html>
       <div id="actividad-buttons" class="flex flex-wrap gap-3 mt-4 justify-center"></div>
 
       <!-- Calificación -->
-      <div class="bg-white rounded-2xl shadow-md p-6">
-        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Calificación</h2>
-        <div id="actividad-calificacion" class="text-center text-gray-600">Aún no calificado</div>
+      <div id="actividad-calificacion" class="bg-white rounded-2xl shadow-md p-6 text-center text-gray-600">
+        <span>Aún no calificado</span>
+        <button onclick="actualizarVistaCalificacion()" class="ml-2 text-blue-600 text-sm">
+          <i class="fas fa-sync-alt"></i> Actualizar
+        </button>
       </div>
 
       <!-- Sección de comentarios -->
@@ -543,14 +545,6 @@ async function renderEntregasProfesor() {
 // Funciones para el modal de calificación
 let entregaActualId = null;
 
-function abrirModalCalificacion(studentName, entregaId, calificacionActual, observacionActual) {
-  document.getElementById('student-name').textContent = studentName;
-  document.getElementById('calificacion-input').value = calificacionActual || '';
-  document.getElementById('comentario-calificacion').value = observacionActual || '';
-  entregaActualId = entregaId;
-  
-  document.getElementById('modalCalificacion').classList.remove('hidden');
-}
 async function abrirModalCalificacion(studentName, entregaId, calificacionActual, observacionActual) {
   // Verificar permisos primero
   try {
@@ -586,6 +580,7 @@ async function abrirModalCalificacion(studentName, entregaId, calificacionActual
     alert('Error verificando permisos: ' + error.message);
   }
 }
+
 function cerrarModalCalificacion() {
   document.getElementById('modalCalificacion').classList.add('hidden');
   document.getElementById('calificacion-input').value = '';
@@ -617,7 +612,7 @@ async function guardarCalificacion() {
         observacion: comentario
       })
     });
-    
+
     // Debug: mostrar respuesta completa
     updateDebugInfo(`Respuesta del servidor: ${res.status} ${res.statusText}`);
     
@@ -626,8 +621,15 @@ async function guardarCalificacion() {
       updateDebugInfo(`Respuesta JSON: ${JSON.stringify(result)}`);
       alert(`Calificación de ${calificacion}/10 guardada para ${studentName}`);
       cerrarModalCalificacion();
-      // Recargar las entregas para reflejar los cambios
+      
+      // Recargar las entregas para el profesor
       renderEntregasProfesor();
+      
+      // Si el usuario actual es el estudiante calificado, actualizar su vista
+      const perfil = await getPerfil();
+      if (perfil && perfil.rol === 'usuario') {
+        await actualizarVistaCalificacion();
+      }
     } else {
       const errorText = await res.text();
       updateDebugInfo(`Error completo: ${errorText}`);
@@ -642,6 +644,62 @@ async function guardarCalificacion() {
     console.error("Error al guardar calificación:", error);
     updateDebugInfo(`Error completo: ${error.message}`);
     alert("Error al guardar la calificación: " + error.message);
+  }
+}
+
+// ---- Función para obtener la calificación del estudiante ----
+async function getCalificacionEstudiante() {
+  try {
+    const res = await fetch(`/api/entregas?action=obtener_calificacion&tarea_id=${tareaId}`, {
+      credentials: 'include'
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      return data;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error obteniendo calificación:", error);
+    return null;
+  }
+}
+
+// ---- Función para actualizar la visualización de calificación ----
+async function actualizarVistaCalificacion() {
+  try {
+    const calificacionData = await getCalificacionEstudiante();
+    
+    if (calificacionData && calificacionData.calificacion !== null) {
+      // Mostrar calificación
+      holder.calificacion.innerHTML = `
+        <div class="text-center">
+          <span class="text-2xl font-bold text-emerald-600">${calificacionData.calificacion}</span> / 10
+          ${calificacionData.observacion ? `
+            <div class="mt-2 p-3 bg-gray-50 rounded-lg">
+              <p class="text-sm font-medium text-gray-700">Comentarios del profesor:</p>
+              <p class="text-gray-600 mt-1">${calificacionData.observacion}</p>
+            </div>
+          ` : ''}
+          <button onclick="actualizarVistaCalificacion()" class="ml-2 text-blue-600 text-sm mt-2">
+            <i class="fas fa-sync-alt"></i> Actualizar
+          </button>
+        </div>
+      `;
+      
+      // Actualizar estado
+      updateStatusVisual(holder.status, calificacionData.estado || 'calificado');
+    } else {
+      // No hay calificación aún
+      holder.calificacion.innerHTML = `
+        <span class="text-gray-500">Aún no calificado</span>
+        <button onclick="actualizarVistaCalificacion()" class="ml-2 text-blue-600 text-sm">
+          <i class="fas fa-sync-alt"></i> Actualizar
+        </button>
+      `;
+    }
+  } catch (error) {
+    console.error("Error actualizando vista de calificación:", error);
   }
 }
 
@@ -676,129 +734,105 @@ async function initActividad() {
     updateStatusVisual(holder.status, entrega?.entrega?.estado || 'pendiente');
     holder.ultimaEntrega.textContent = entrega?.entrega?.archivo_nombre || '—';
     holder.archivoActual.textContent = entrega?.entrega?.archivo_nombre || '—';
+    
     holder.points.textContent = tarea.puntos || tarea.points || 0;
-    holder.profesor.textContent = tarea.profesor || "—";
-    
-    holder.calificacion.innerHTML = tarea.calificacion ? 
-      `<span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10` : 
-      `<span class="text-gray-500">Aún no calificado</span>`;
-    
+    holder.profesor.textContent = tarea.profesor_nombre || "—";
+
+    // Renderizar botones según rol
     holder.botones.innerHTML = '';
-
-    if(esProfesor){
-      const editar = document.createElement('button');
-      editar.textContent = "Editar tarea";
-      editar.className = "px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition";
-      editar.addEventListener('click', () => alert("Abrir modal de edición"));
-
-      const eliminar = document.createElement('button');
-      eliminar.textContent = "Eliminar tarea";
-      eliminar.className = "px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition";
-      eliminar.addEventListener('click', () => {
-        if(confirm("¿Seguro que quieres eliminar esta tarea?")) alert("Tarea eliminada (demo)");
-      });
-
-      holder.botones.appendChild(editar);
-      holder.botones.appendChild(eliminar);
-
-      // Solo cargar entregas si es profesor de este curso
-      if (esProfesorDelCurso) {
-        await renderEntregasProfesor();
-      } else {
-        document.getElementById('profesor-entregas').classList.remove('hidden');
-        document.getElementById('entregas-list').innerHTML = `
-          <div class="text-center py-4 text-orange-600">
-            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
-            <p>No eres el profesor asignado a este curso</p>
-            <p class="text-sm text-gray-600">Solo el profesor asignado puede ver las entregas</p>
-            <p class="text-xs text-gray-500">Tu ID: ${perfil?.id}, Profesor del curso: ${tarea.profesor_id || 'No disponible'}</p>
-          </div>
-        `;
-      }
-    } else {
-      const entregar = document.createElement('button');
-      entregar.textContent = "Entregar";
-      entregar.className = "px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-green-700 transition";
-      entregar.addEventListener('click', () => openEntrega(tareaId));
-
-      const ver = document.createElement('a');
-      ver.textContent = "Ver última entrega";
-      ver.href = `/api/entregas?action=descargar&tarea_id=${tareaId}`;
-      ver.className = "px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition";
-
-      const eliminarEntrega = document.createElement('button');
-      eliminarEntrega.textContent = "Eliminar entrega";
-      eliminarEntrega.className = "px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition";
-      eliminarEntrega.addEventListener('click', async () => {
-        if(!confirm("¿Seguro que quieres eliminar tu entrega?")) return;
-        const res = await fetch(`/api/entregas?action=eliminar&tarea_id=${tareaId}`, {
-          method: 'DELETE',
-          credentials: 'include'
-        });
-        if(res.ok){
-          alert("Entrega eliminada");
-          holder.ultimaEntrega.textContent = '—';
-          updateStatusVisual(holder.status, 'pendiente');
-          holder.archivoActual.textContent = '—';
-        } else {
-          const data = await res.json().catch(() => ({error: 'Error desconocido'}));
-          alert('Error al eliminar entrega: ' + (data.error || 'Desconocido'));
-        }
-      });
-
-      holder.botones.appendChild(entregar);
-      holder.botones.appendChild(ver);
-      holder.botones.appendChild(eliminarEntrega);
+    if (perfil?.rol === 'usuario') {
+      // Botones para estudiantes
+      holder.botones.innerHTML = `
+        <button onclick="openEntrega(${tareaId})" class="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition">
+          <i class="fas fa-upload mr-2"></i> Entregar tarea
+        </button>
+      `;
+    } else if (esProfesorDelCurso || perfil?.rol === 'admin') {
+      // Botones para profesores
+      holder.botones.innerHTML = `
+        <button onclick="renderEntregasProfesor()" class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
+          <i class="fas fa-list mr-2"></i> Ver entregas
+        </button>
+      `;
     }
+
+    // Renderizar comentarios
+    renderComentarios();
     
-    await renderComentarios();
+    // Actualizar calificación si es estudiante
+    if (perfil?.rol === 'usuario') {
+      await actualizarVistaCalificacion();
+    }
+
     updateDebugInfo("Actividad inicializada correctamente");
     
-  } catch(err) {
-    console.error(err);
-    updateDebugInfo(`Error: ${err.message}`);
-    alert("Error cargando la actividad");
+  } catch (error) {
+    console.error("Error en initActividad:", error);
+    updateDebugInfo(`Error: ${error.message}`);
+    holder.title.textContent = "Error al cargar la tarea";
+    holder.desc.textContent = error.message;
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Configurar event listeners para el modal de entrega
-  const btnCancelar = document.getElementById('btnCancelarEntrega');
-  btnCancelar.addEventListener('click', () => {
+// Event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  initActividad();
+  
+  // Formulario de comentarios
+  document.getElementById('formComentario').addEventListener('submit', async e => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    formData.append('tarea_id', tareaId);
+    
+    const res = await fetch('/api/comentarios', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    });
+    
+    if (res.ok) {
+      e.target.reset();
+      renderComentarios();
+    } else {
+      alert('Error al enviar comentario');
+    }
+  });
+
+  // Event listeners para el modal de entrega
+  document.getElementById('btnCancelarEntrega').addEventListener('click', () => {
     document.getElementById('modalEntrega').close();
   });
 
-  const inputArchivo = document.querySelector('input[name="archivo"]');
-  inputArchivo.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    const preview = document.getElementById('previewContent');
-    if (!file) return;
-
-    const ext = file.name.split('.').pop().toLowerCase();
-    if (["png","jpg","jpeg","gif"].includes(ext)) {
-      preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-h-48 mx-auto rounded">`;
-    } else if (ext === "pdf") {
-      preview.innerHTML = `<iframe src="${URL.createObjectURL(file)}" class="w-full h-48"></iframe>`;
-    } else {
-      preview.innerHTML = `<span class="text-gray-600">${file.name}</span>`;
-    }
-  });
-
-  // Configurar event listeners para el modal de calificación
+  // Event listeners para el modal de calificación
   document.getElementById('btn-cancelar-calificacion').addEventListener('click', cerrarModalCalificacion);
   document.getElementById('btn-guardar-calificacion').addEventListener('click', guardarCalificacion);
   
-  // Cerrar modal al hacer clic fuera de él
-  document.getElementById('modalCalificacion').addEventListener('click', function(e) {
-    if (e.target === this) {
-      cerrarModalCalificacion();
+  // Botón de exportar (para profesores)
+  document.getElementById('btn-exportar').addEventListener('click', async () => {
+    try {
+      const res = await fetch(`/api/entregas?action=exportar_calificaciones&tarea_id=${tareaId}`, {
+        credentials: 'include'
+      });
+      
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `calificaciones_tarea_${tareaId}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Error al exportar calificaciones');
+      }
+    } catch (error) {
+      console.error("Error exportando calificaciones:", error);
+      alert("Error al exportar calificaciones: " + error.message);
     }
   });
-
-  // Inicializar la actividad
-  initActividad();
 });
 </script>
-
 </body>
 </html>
