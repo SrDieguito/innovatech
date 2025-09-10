@@ -551,7 +551,41 @@ function abrirModalCalificacion(studentName, entregaId, calificacionActual, obse
   
   document.getElementById('modalCalificacion').classList.remove('hidden');
 }
-
+async function abrirModalCalificacion(studentName, entregaId, calificacionActual, observacionActual) {
+  // Verificar permisos primero
+  try {
+    const perfil = await getPerfil();
+    const tarea = await getTarea();
+    
+    if (!perfil || !tarea) {
+      alert('Error: No se pudo verificar permisos');
+      return;
+    }
+    
+    const esProfesorDelCurso = perfil.rol === 'profesor' && 
+                              tarea.profesor_id && 
+                              Number(perfil.id) === Number(tarea.profesor_id);
+    
+    const esAdmin = perfil.rol === 'admin';
+    
+    if (!esProfesorDelCurso && !esAdmin) {
+      alert('No tienes permisos para calificar esta entrega');
+      return;
+    }
+    
+    // Si tiene permisos, abrir el modal
+    document.getElementById('student-name').textContent = studentName;
+    document.getElementById('calificacion-input').value = calificacionActual || '';
+    document.getElementById('comentario-calificacion').value = observacionActual || '';
+    entregaActualId = entregaId;
+    
+    document.getElementById('modalCalificacion').classList.remove('hidden');
+    
+  } catch (error) {
+    console.error('Error verificando permisos:', error);
+    alert('Error verificando permisos: ' + error.message);
+  }
+}
 function cerrarModalCalificacion() {
   document.getElementById('modalCalificacion').classList.add('hidden');
   document.getElementById('calificacion-input').value = '';
@@ -571,6 +605,7 @@ async function guardarCalificacion() {
   
   try {
     updateDebugInfo(`Guardando calificación para entrega ID: ${entregaActualId}`);
+    updateDebugInfo(`Calificación: ${calificacion}, Observación: ${comentario}`);
     
     const res = await fetch('/api/entregas?action=calificar', {
       method: 'POST',
@@ -583,17 +618,29 @@ async function guardarCalificacion() {
       })
     });
     
+    // Debug: mostrar respuesta completa
+    updateDebugInfo(`Respuesta del servidor: ${res.status} ${res.statusText}`);
+    
     if (res.ok) {
+      const result = await res.json();
+      updateDebugInfo(`Respuesta JSON: ${JSON.stringify(result)}`);
       alert(`Calificación de ${calificacion}/10 guardada para ${studentName}`);
       cerrarModalCalificacion();
       // Recargar las entregas para reflejar los cambios
       renderEntregasProfesor();
     } else {
-      const errorData = await res.json();
-      throw new Error(errorData.error || 'Error al guardar la calificación');
+      const errorText = await res.text();
+      updateDebugInfo(`Error completo: ${errorText}`);
+      try {
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.error || 'Error al guardar la calificación');
+      } catch {
+        throw new Error(`Error ${res.status}: ${errorText}`);
+      }
     }
   } catch (error) {
     console.error("Error al guardar calificación:", error);
+    updateDebugInfo(`Error completo: ${error.message}`);
     alert("Error al guardar la calificación: " + error.message);
   }
 }

@@ -234,44 +234,48 @@ if (req.method === 'GET' && action === 'listar_por_tarea_profesor') {
 }
 
     /* ===== CALIFICAR ENTREGA (profesor) ===== */
-    if (req.method === 'POST' && action === 'calificar') {
-      const userId = getUserId(req);
-      if (!userId) return res.status(401).json({ error: 'No autenticado' });
+   if (req.method === 'POST' && action === 'calificar') {
+  const userId = getUserId(req);
+  if (!userId) return res.status(401).json({ error: 'No autenticado' });
 
-      // Parsear el cuerpo de la solicitud
-      const { entrega_id, calificacion, observacion } = req.body;
+  const { entrega_id, calificacion, observacion } = req.body;
 
-      if (!entrega_id) return res.status(400).json({ error: 'entrega_id requerido' });
+  if (!entrega_id) return res.status(400).json({ error: 'entrega_id requerido' });
 
-      // Verificar que el usuario es profesor del curso de la tarea
-      const [[verificacion]] = await pool.query(
-        `SELECT c.profesor_id 
-         FROM tareas_entregas e
-         JOIN tareas t ON e.tarea_id = t.id
-         JOIN cursos c ON t.curso_id = c.id
-         WHERE e.id = ?`,
-        [entrega_id]
-      );
+  // Verificar que el usuario es profesor del curso de la tarea
+  const [[verificacion]] = await pool.query(
+    `SELECT c.profesor_id, t.curso_id
+     FROM tareas_entregas e
+     JOIN tareas t ON e.tarea_id = t.id
+     JOIN cursos c ON t.curso_id = c.id
+     WHERE e.id = ?`,
+    [entrega_id]
+  );
 
-      if (!verificacion) return res.status(404).json({ error: 'Entrega no encontrada' });
-      
-      // Verificar rol del usuario
-      const [[user]] = await pool.query('SELECT rol FROM usuarios WHERE id = ?', [userId]);
-      if (verificacion.profesor_id !== userId && user.rol !== 'admin') {
-        return res.status(403).json({ error: 'No autorizado' });
-      }
+  if (!verificacion) return res.status(404).json({ error: 'Entrega no encontrada' });
+  
+// Verificar rol del usuario
+const [[user]] = await pool.query('SELECT rol FROM usuarios WHERE id = ?', [userId]);
+if (!user) return res.status(403).json({ error: 'Usuario no encontrado' });
 
-      // Actualizar la calificación y observación
-      await pool.query(
-        `UPDATE tareas_entregas 
-         SET calificacion = ?, observacion = ?, estado = 'revisado'
-         WHERE id = ?`,
-        [calificacion, observacion, entrega_id]
-      );
+// Convertir a números para comparación adecuada
+const userIdNum = Number(userId);
+const profesorIdNum = Number(verificacion.profesor_id);
 
-      return res.status(200).json({ ok: true });
-    }
+// Permitir si es admin O si es profesor Y es el profesor del curso
+const puedeCalificar = user.rol === 'admin' || 
+                      (user.rol === 'profesor' && profesorIdNum === userIdNum);
 
+  // Actualizar la calificación y observación
+  await pool.query(
+    `UPDATE tareas_entregas 
+     SET calificacion = ?, observacion = ?, estado = 'revisado'
+     WHERE id = ?`,
+    [calificacion, observacion, entrega_id]
+  );
+
+  return res.status(200).json({ ok: true });
+}
     return res.status(400).json({ error: 'Acción inválida o método no soportado' });
 
   } catch (err) {
