@@ -12,10 +12,9 @@ const pool = mysql.createPool({
 
 /* ===== Helpers ===== */
 function getUserId(req) {
-  return req.cookies?.user_id || null; // ajusta si tu cookie se llama distinto
+  return req.cookies?.user_id || null;
 }
 
-// --- NUEVO: normaliza la lectura del id de curso ---
 function resolveCursoId(req, { allowBody = true } = {}) {
   const q = req.query || {};
   const b = allowBody ? (req.body || {}) : {};
@@ -61,35 +60,61 @@ export default async function handler(req, res) {
       const curso_id = resolveCursoId(req, { allowBody: false });
       if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
 
-      const cols = await getColumns('tareas');
-      const f_titulo   = cols.has('titulo')       ? "COALESCE(titulo,'(Sin título)')" : "'(Sin título)'";
-      const f_desc     = cols.has('descripcion')  ? "COALESCE(descripcion,'')"        : "''";
-      const f_due      = cols.has('fecha_limite') ? 'fecha_limite'                    : 'NULL';
-      const f_points   = cols.has('puntos')       ? 'COALESCE(puntos,0)'              : '0';
-      const f_status   = cols.has('estado')       ? "COALESCE(estado,'pendiente')"    : "'pendiente'";
-      const f_created  = cols.has('fecha_creacion')      ? 'fecha_creacion'           : 'NULL';
-      const f_updated  = cols.has('fecha_actualizacion') ? 'fecha_actualizacion'      : 'NULL';
-
-  const [rows] = await pool.query(`
-    SELECT
-      t.id,
-      t.curso_id,
-      COALESCE(t.titulo,'(Sin título)') AS title,
-      COALESCE(t.descripcion,'') AS description,
-      t.fecha_limite AS due_at,
-      COALESCE(t.puntos,0) AS points,
-      t.completada AS status,
-      t.fecha_creacion AS created_at,
-      t.fecha_completacion AS updated_at,
-      u.nombre AS profesor
-    FROM tareas t
-    LEFT JOIN cursos c ON t.curso_id = c.id
-    LEFT JOIN usuarios u ON c.profesor_id = u.id
-    WHERE t.curso_id = ?
-    ORDER BY t.fecha_limite DESC
-  `, [curso_id]);
+      // Consulta mejorada para incluir profesor_id
+      const [rows] = await pool.query(`
+        SELECT
+          t.id,
+          t.curso_id,
+          COALESCE(t.titulo,'(Sin título)') AS title,
+          COALESCE(t.descripcion,'') AS description,
+          t.fecha_limite AS due_at,
+          COALESCE(t.puntos,0) AS points,
+          t.completada AS status,
+          t.fecha_creacion AS created_at,
+          t.fecha_completacion AS updated_at,
+          u.nombre AS profesor,
+          c.profesor_id  -- ¡IMPORTANTE! Incluir el ID del profesor
+        FROM tareas t
+        LEFT JOIN cursos c ON t.curso_id = c.id
+        LEFT JOIN usuarios u ON c.profesor_id = u.id
+        WHERE t.curso_id = ?
+        ORDER BY t.fecha_limite DESC
+      `, [curso_id]);
 
       return res.status(200).json(rows);
+    }
+
+    // ---------- DETALLE (nuevo endpoint) ----------
+    if (req.method === 'GET' && action === 'detalle') {
+      const tarea_id = req.query.id || req.query.tarea_id;
+      if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
+
+      // Consulta para obtener detalles completos de una tarea
+      const [rows] = await pool.query(`
+        SELECT
+          t.id,
+          t.curso_id,
+          COALESCE(t.titulo,'(Sin título)') AS title,
+          COALESCE(t.descripcion,'') AS description,
+          t.fecha_limite AS due_at,
+          COALESCE(t.puntos,0) AS points,
+          t.completada AS status,
+          t.fecha_creacion AS created_at,
+          t.fecha_completacion AS updated_at,
+          u.nombre AS profesor,
+          c.profesor_id,
+          c.nombre AS curso_nombre
+        FROM tareas t
+        LEFT JOIN cursos c ON t.curso_id = c.id
+        LEFT JOIN usuarios u ON c.profesor_id = u.id
+        WHERE t.id = ?
+      `, [tarea_id]);
+
+      if (rows.length === 0) {
+        return res.status(404).json({ error: 'Tarea no encontrada' });
+      }
+
+      return res.status(200).json(rows[0]);
     }
 
     // ---------- CREAR (profesor/admin del curso) ----------
@@ -97,7 +122,7 @@ export default async function handler(req, res) {
       const userId = getUserId(req);
       if (!userId) return res.status(401).json({ error: 'No autenticado' });
 
-      const curso_id = resolveCursoId(req); // 👈 acepta alias
+      const curso_id = resolveCursoId(req);
       const { titulo, descripcion=null, fecha_limite=null, puntos=0 } = req.body || {};
 
       if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
