@@ -89,7 +89,10 @@ export default async function handler(req, res) {
       const tarea_id = req.query.id || req.query.tarea_id;
       if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
 
-      // Consulta para obtener detalles completos de una tarea
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: 'No autenticado' });
+
+      // Consulta actualizada para incluir la calificación del estudiante desde tareas_entregadas
       const [rows] = await pool.query(`
         SELECT
           t.id,
@@ -103,12 +106,14 @@ export default async function handler(req, res) {
           t.fecha_completacion AS updated_at,
           u.nombre AS profesor,
           c.profesor_id,
-          c.nombre AS curso_nombre
+          c.nombre AS curso_nombre,
+          te.calificacion  -- Nueva columna: calificación del estudiante desde tareas_entregadas
         FROM tareas t
         LEFT JOIN cursos c ON t.curso_id = c.id
         LEFT JOIN usuarios u ON c.profesor_id = u.id
+        LEFT JOIN tareas_entregadas te ON t.id = te.tarea_id AND te.estudiante_id = ?
         WHERE t.id = ?
-      `, [tarea_id]);
+      `, [userId, tarea_id]);
 
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Tarea no encontrada' });
