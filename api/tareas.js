@@ -111,8 +111,7 @@ export default async function handler(req, res) {
         FROM tareas t
         LEFT JOIN cursos c ON t.curso_id = c.id
         LEFT JOIN usuarios u ON c.profesor_id = u.id
-        LEFT JOIN tareas_entregadas te ON t.id = te.tarea_id AND te.estudiante_id = ?
-        WHERE t.id = ?
+        LEFT JOIN tareas_entregas te ON t.id = te.tarea_id AND te.estudiante_id = ?        WHERE t.id = ?
       `, [userId, tarea_id]);
 
       if (rows.length === 0) {
