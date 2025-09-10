@@ -235,13 +235,15 @@ async function getPerfil(){
 }
 
 async function getTarea(){
+  // Primero intentar con el nuevo endpoint de detalle
   const res = await fetch(`/api/tareas?action=detalle&id=${tareaId}`,{credentials:'include'});
-  if(!res.ok) {
-    // Si falla, intentar con el endpoint antiguo
-    const res2 = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`,{credentials:'include'});
-    if(!res2.ok) return null;
-    const tareas = await res2.json();
-    const tarea = tareas.find(t=>t.id==tareaId);
+  if(res.ok) return await res.json();
+  
+  // Si falla, intentar con el endpoint de listado (para backwards compatibility)
+  const res2 = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`,{credentials:'include'});
+  if(!res2.ok) return null;
+  const tareas = await res2.json();
+  return tareas.find(t=>t.id==tareaId);
     
     // Si la tarea no tiene profesor_id, obtenerlo del curso
     if (tarea && !tarea.profesor_id) {
@@ -255,7 +257,7 @@ async function getTarea(){
   }
   const tarea = await res.json();
   return tarea;
-}
+
 
 async function getEntrega(){
   const res = await fetch(`/api/entregas?action=detalle&tarea_id=${tareaId}`,{credentials:'include'});
