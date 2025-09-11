@@ -746,37 +746,6 @@ async function renderEntregasProfesor() {
     `;
   }
 
-  document.getElementById('btn-exportar').addEventListener('click', async () => {
-  try {
-    // Llamar al endpoint de exportación
-    const response = await fetch(`/api/entregas?action=exportar_calificaciones&tarea_id=${tareaId}`, {
-      credentials: 'include'
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText);
-    }
-
-    // Convertir la respuesta a blob
-    const blob = await response.blob();
-    
-    // Crear un enlace para descargar el archivo
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = `calificaciones_tarea_${tareaId}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-  } catch (error) {
-    console.error('Error al exportar calificaciones:', error);
-    alert('Error al exportar calificaciones: ' + error.message);
-  }
-});
-
 }
 
 // Funciones para el modal de calificación
@@ -1051,6 +1020,56 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('modalCalificacion').addEventListener('click', function(e) {
     if (e.target === this) {
       cerrarModalCalificacion();
+    }
+  });
+
+    // Agregar event listener para el botón de exportar
+  document.getElementById('btn-exportar').addEventListener('click', async () => {
+    try {
+      // Mostrar indicador de carga
+      showToast('Generando archivo de calificaciones...');
+      
+      // Llamar al endpoint de exportación
+      const response = await fetch(`/api/entregas?action=exportar_calificaciones&tarea_id=${tareaId}`, {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+
+      // Convertir la respuesta a blob
+      const blob = await response.blob();
+      
+      // Crear un enlace para descargar el archivo
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      
+      // Obtener el nombre del archivo del header Content-Disposition
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let fileName = 'calificaciones.xlsx';
+      
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (fileNameMatch && fileNameMatch.length === 2) {
+          fileName = fileNameMatch[1];
+        }
+      }
+      
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      // Mostrar mensaje de éxito
+      showToast('Archivo exportado correctamente');
+    } catch (error) {
+      console.error('Error al exportar calificaciones:', error);
+      showToast('Error al exportar calificaciones: ' + error.message, false);
     }
   });
 
