@@ -33,11 +33,47 @@
       background-color: #9CA3AF;
       color: white;
     }
+    
+    /* Animación de éxito */
+    @keyframes successPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .success-animation {
+      animation: successPulse 0.6s ease-in-out;
+    }
+    
+    /* Toast de notificación */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      background-color: #10B981;
+      color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
   <div id="header-container"></div>
+  
+  <!-- Toast de notificación -->
+  <div id="toast" class="toast hidden">
+    <i class="fas fa-check-circle mr-2"></i>
+    <span id="toast-message"></span>
+  </div>
 
   <main class="flex-grow px-4 py-8">
     <div class="max-w-5xl mx-auto space-y-6">
@@ -132,8 +168,11 @@
       <div class="pt-2 flex items-center justify-end gap-2">
         <button type="button" id="btnCancelarEntrega"
           class="px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50">Cancelar</button>
-        <button type="submit"
-          class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">Subir</button>
+        <button type="submit" id="btnSubmitEntrega"
+          class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 flex items-center justify-center">
+          <span id="btnSubmitText">Subir</span>
+          <i id="btnSubmitSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+        </button>
       </div>
     </form>
   </dialog>
@@ -204,6 +243,33 @@ const holder = {
   archivoActual: document.getElementById('archivoActual'),
   entregasCount: document.getElementById('entregas-count')
 };
+
+// Función para mostrar notificación toast
+function showToast(message, isSuccess = true) {
+  const toast = document.getElementById('toast');
+  const toastMessage = document.getElementById('toast-message');
+  
+  toastMessage.textContent = message;
+  
+  // Cambiar color según el tipo de mensaje
+  if (isSuccess) {
+    toast.classList.remove('bg-red-500');
+    toast.classList.add('bg-emerald-500');
+  } else {
+    toast.classList.remove('bg-emerald-500');
+    toast.classList.add('bg-red-500');
+  }
+  
+  // Mostrar el toast
+  toast.classList.remove('hidden');
+  toast.classList.add('show');
+  
+  // Ocultar después de 3 segundos
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.classList.add('hidden'), 300);
+  }, 3000);
+}
 
 function fmtDate(v){ return v ? new Date(v).toLocaleString() : "—"; }
 
@@ -333,20 +399,58 @@ function openEntrega(tareaId){
 
 document.getElementById('formEntrega').addEventListener('submit', async e => {
   e.preventDefault();
+  
+  const submitBtn = document.getElementById('btnSubmitEntrega');
+  const submitText = document.getElementById('btnSubmitText');
+  const submitSpinner = document.getElementById('btnSubmitSpinner');
+  
+  // Mostrar spinner de carga
+  submitText.textContent = 'Subiendo...';
+  submitSpinner.classList.remove('hidden');
+  submitBtn.disabled = true;
+  
   const formData = new FormData(e.target);
-  const res = await fetch('/api/entregas?action=subir', {
-    method: 'POST',
-    body: formData,
-    credentials: 'include'
-  });
-  if (res.ok) {
-    const data = await res.json();
-    holder.archivoActual.textContent = data?.entrega?.archivo_nombre || formData.get('archivo')?.name || '—';
-    holder.ultimaEntrega.textContent = data?.entrega?.archivo_nombre || formData.get('archivo')?.name || '—';
-    updateStatusVisual(holder.status, data?.entrega?.estado || 'entregado');
-  } else {
-    const data = await res.json().catch(() => ({ error: 'Error desconocido' }));
-    alert('Error al subir el archivo: ' + (data.error || 'Desconocido'));
+  try {
+    const res = await fetch('/api/entregas?action=subir', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      holder.archivoActual.textContent = data?.entrega?.archivo_nombre || formData.get('archivo')?.name || '—';
+      holder.ultimaEntrega.textContent = data?.entrega?.archivo_nombre || formData.get('archivo')?.name || '—';
+      updateStatusVisual(holder.status, data?.entrega?.estado || 'entregado');
+      
+      // Cerrar el modal
+      document.getElementById('modalEntrega').close();
+      
+      // Mostrar mensaje de éxito con animación
+      showToast('¡Tarea entregada correctamente!');
+      
+      // Añadir animación al botón de entrega
+      const entregarBtn = document.querySelector('[onclick="openEntrega(tareaId)"]');
+      if (entregarBtn) {
+        entregarBtn.textContent = '✓ Entregado';
+        entregarBtn.classList.add('success-animation', 'bg-green-600');
+        setTimeout(() => {
+          entregarBtn.classList.remove('success-animation');
+        }, 600);
+      }
+      
+    } else {
+      const data = await res.json().catch(() => ({ error: 'Error desconocido' }));
+      throw new Error(data.error || 'Error al subir el archivo');
+    }
+  } catch (error) {
+    showToast(error.message, false);
+    console.error('Error al subir el archivo:', error);
+  } finally {
+    // Restaurar estado del botón
+    submitText.textContent = 'Subir';
+    submitSpinner.classList.add('hidden');
+    submitBtn.disabled = false;
   }
 });
 
@@ -642,14 +746,14 @@ async function initActividad() {
     holder.points.textContent = tarea.puntos || tarea.points || 0;
     holder.profesor.textContent = tarea.profesor || "—";
     
-    if (tarea.calificacion) {
-      holder.calificacion.innerHTML = `
-        <span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10
-        ${tarea.observacion ? `<p class="text-sm text-gray-600 mt-2">${tarea.observacion}</p>` : ''}
-      `;
-    } else {
-      holder.calificacion.innerHTML = `<span class="text-gray-500">Aún no calificado</span>`;
-    }
+if (tarea.calificacion) {
+  holder.calificacion.innerHTML = `
+    <span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10
+    ${tarea.observacion ? `<p class="text-sm text-gray-600 mt-2">${tarea.observacion}</p>` : ''}
+  `;
+} else {
+  holder.calificacion.innerHTML = `<span class="text-gray-500">Aún no calificado</span>`;
+}
     
     holder.botones.innerHTML = '';
 
@@ -659,7 +763,7 @@ async function initActividad() {
       document.getElementById('profesor-container').classList.add('hidden');
       document.getElementById('entrega-container').classList.add('hidden');
       document.getElementById('calificacion-container').classList.add('hidden');
-      document.getElementById('comentarios-container').classList.add('hidden'); // Ocultar comentarios
+      document.getElementById('comentarios-container').classList.add('hidden');
 
       const editar = document.createElement('button');
       editar.textContent = "Editar tarea";
@@ -725,7 +829,7 @@ async function initActividad() {
       holder.botones.appendChild(eliminarEntrega);
     }
     
-    // Solo renderizar comentarios si no es profesor
+    // Solo cargar comentarios si no es profesor
     if (!esProfesor) {
       await renderComentarios();
     }
