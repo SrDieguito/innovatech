@@ -1012,7 +1012,7 @@ async function initActividad() {
                 showToast('Tarea eliminada correctamente');
                 // Redirigir a la página del curso después de eliminar
                 setTimeout(() => {
-                  window.location.href = `views/curso.html?id=${cursoId}`;
+                window.location.href = `/views/curso.html?id=${cursoId}`;
                 }, 1500);
               } else {
                 const data = await res.json().catch(() => ({error: 'Error desconocido'}));
@@ -1208,7 +1208,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Configurar event listener para el botón de regresar
   document.getElementById('btn-regresar').addEventListener('click', () => {
-    window.location.href = `views/curso.html?id=${cursoId}`;
+  window.location.href = `/views/curso.html?id=${cursoId}`;
   });
 
   // Inicializar la actividad
