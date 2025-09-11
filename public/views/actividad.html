@@ -63,6 +63,26 @@
       opacity: 1;
       transform: translateY(0);
     }
+    
+    /* Animación de bounce personalizada */
+    @keyframes bounce {
+      0%, 20%, 53%, 80%, 100% {
+        transform: translate3d(0, 0, 0);
+      }
+      40%, 43% {
+        transform: translate3d(0, -8px, 0);
+      }
+      70% {
+        transform: translate3d(0, -4px, 0);
+      }
+      90% {
+        transform: translate3d(0, -2px, 0);
+      }
+    }
+
+    .animate-bounce {
+      animation: bounce 1s infinite;
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
@@ -430,6 +450,7 @@ async function renderComentarios(){
     holder.comentarios.appendChild(div);
   });
 }
+
 function openEntrega(tareaId){
   const dlg=document.getElementById('modalEntrega');
   const f=document.getElementById('formEntrega');
@@ -454,6 +475,49 @@ function openEntrega(tareaId){
     }
   });
   dlg.showModal();
+}
+
+// Función para verificar y mostrar la última entrega
+async function verUltimaEntrega() {
+  try {
+    const entrega = await getEntrega();
+    
+    if (entrega && entrega.entrega && entrega.entrega.archivo_nombre) {
+      // Si existe entrega, abrir en nueva pestaña
+      window.open(`/api/entregas?action=descargar&tarea_id=${tareaId}`, '_blank');
+    } else {
+      // Mostrar mensaje con animación
+      showToast('No existen entregas', false);
+      
+      // Añadir animación adicional al botón
+      const botones = document.getElementById('actividad-buttons');
+      const mensaje = document.createElement('div');
+      mensaje.id = 'mensaje-sin-entregas';
+      mensaje.className = 'w-full mt-3 text-center';
+      mensaje.innerHTML = `
+        <div class="animate-bounce inline-flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-xl">
+          <i class="fas fa-exclamation-circle mr-2"></i>
+          No existen entregas para descargar
+        </div>
+      `;
+      
+      // Eliminar mensaje anterior si existe
+      const mensajeAnterior = document.getElementById('mensaje-sin-entregas');
+      if (mensajeAnterior) {
+        mensajeAnterior.remove();
+      }
+      
+      // Añadir mensaje y eliminarlo después de 5 segundos
+      botones.appendChild(mensaje);
+      setTimeout(() => {
+        const msg = document.getElementById('mensaje-sin-entregas');
+        if (msg) msg.remove();
+      }, 5000);
+    }
+  } catch (error) {
+    console.error('Error al verificar entrega:', error);
+    showToast('Error al verificar la entrega', false);
+  }
 }
 
 // Función para abrir modal de edición de tarea
@@ -745,7 +809,6 @@ async function renderEntregasProfesor() {
       </div>
     `;
   }
-
 }
 
 // Funciones para el modal de calificación
@@ -786,6 +849,7 @@ async function abrirModalCalificacion(studentName, entregaId, calificacionActual
     alert('Error verificando permisos: ' + error.message);
   }
 }
+
 function cerrarModalCalificacion() {
   document.getElementById('modalCalificacion').classList.add('hidden');
   document.getElementById('calificacion-input').value = '';
@@ -863,14 +927,14 @@ async function initActividad() {
     holder.points.textContent = tarea.puntos || tarea.points || 0;
     holder.profesor.textContent = tarea.profesor || "—";
     
-if (tarea.calificacion) {
-  holder.calificacion.innerHTML = `
-    <span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10
-    ${tarea.observacion ? `<p class="text-sm text-gray-600 mt-2">${tarea.observacion}</p>` : ''}
-  `;
-} else {
-  holder.calificacion.innerHTML = `<span class="text-gray-500">Aún no calificado</span>`;
-}
+    if (tarea.calificacion) {
+      holder.calificacion.innerHTML = `
+        <span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10
+        ${tarea.observacion ? `<p class="text-sm text-gray-600 mt-2">${tarea.observacion}</p>` : ''}
+      `;
+    } else {
+      holder.calificacion.innerHTML = `<span class="text-gray-500">Aún no calificado</span>`;
+    }
     
     holder.botones.innerHTML = '';
 
@@ -937,10 +1001,11 @@ if (tarea.calificacion) {
       entregar.className = "px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-green-700 transition";
       entregar.addEventListener('click', () => openEntrega(tareaId));
 
-      const ver = document.createElement('a');
+      // Botón para ver última entrega (convertido de enlace a botón)
+      const ver = document.createElement('button');
       ver.textContent = "Ver última entrega";
-      ver.href = `/api/entregas?action=descargar&tarea_id=${tareaId}`;
       ver.className = "px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition";
+      ver.addEventListener('click', verUltimaEntrega);
 
       const eliminarEntrega = document.createElement('button');
       eliminarEntrega.textContent = "Eliminar entrega";
@@ -1023,7 +1088,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-    // Agregar event listener para el botón de exportar
+  // Agregar event listener para el botón de exportar
   document.getElementById('btn-exportar').addEventListener('click', async () => {
     try {
       // Mostrar indicador de carga
