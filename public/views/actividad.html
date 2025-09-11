@@ -33,15 +33,6 @@
       background-color: #9CA3AF;
       color: white;
     }
-    .debug-info {
-      background-color: #f3f4f6;
-      border-left: 4px solid #EF4444;
-      padding: 1rem;
-      margin-top: 1rem;
-      font-family: monospace;
-      font-size: 0.875rem;
-      border-radius: 0.5rem;
-    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
@@ -63,18 +54,18 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <p><span class="font-medium text-gray-700">Fecha de creación:</span> <span id="actividad-created_at" class="text-gray-600">—</span></p>
           <p><span class="font-medium text-gray-700">Fecha límite:</span> <span id="actividad-due_at" class="text-gray-600">—</span></p>
-          <p><span class="font-medium text-gray-700">Estado:</span> <span id="actividad-status" class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">—</span></p>
+          <p id="estado-container"><span class="font-medium text-gray-700">Estado:</span> <span id="actividad-status" class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">—</span></p>
           <p><span class="font-medium text-gray-700">Puntos:</span> <span id="actividad-points" class="text-gray-600">0</span></p>
-          <p><span class="font-medium text-gray-700">Profesor:</span> <span id="actividad-profesor" class="text-gray-600">—</span></p>
-          <p><span class="font-medium text-gray-700">Última entrega:</span> <span id="actividad-ultima-entrega" class="text-gray-600">—</span></p>
+          <p id="profesor-container"><span class="font-medium text-gray-700">Profesor:</span> <span id="actividad-profesor" class="text-gray-600">—</span></p>
+          <p id="entrega-container"><span class="font-medium text-gray-700">Última entrega:</span> <span id="actividad-ultima-entrega" class="text-gray-600">—</span></p>
         </div>
       </div>
 
       <!-- Contenedor de botones independiente, centrado -->
       <div id="actividad-buttons" class="flex flex-wrap gap-3 mt-4 justify-center"></div>
 
-      <!-- Calificación -->
-      <div class="bg-white rounded-2xl shadow-md p-6">
+      <!-- Calificación (solo para estudiantes) -->
+      <div id="calificacion-container" class="bg-white rounded-2xl shadow-md p-6">
         <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Calificación</h2>
         <div id="actividad-calificacion" class="text-center text-gray-600">Aún no calificado</div>
       </div>
@@ -114,14 +105,6 @@
       </div>
       <div id="entregas-list" class="space-y-4">
         <p class="text-gray-500 text-center">Cargando entregas...</p>
-      </div>
-    </div>
-
-    <!-- Panel de depuración -->
-    <div class="debug-info mt-6">
-      <h3 class="font-bold text-gray-800">Información de Depuración:</h3>
-      <div id="debug-info-content" class="mt-2">
-        <p>Esperando datos...</p>
       </div>
     </div>
   </main>
@@ -219,15 +202,10 @@ const holder = {
   ultimaEntrega: document.getElementById('actividad-ultima-entrega'),
   preview: document.getElementById('previewContent'),
   archivoActual: document.getElementById('archivoActual'),
-  entregasCount: document.getElementById('entregas-count'),
-  debugInfo: document.getElementById('debug-info-content')
+  entregasCount: document.getElementById('entregas-count')
 };
 
 function fmtDate(v){ return v ? new Date(v).toLocaleString() : "—"; }
-
-function updateDebugInfo(message) {
-  holder.debugInfo.innerHTML += `<p>${new Date().toLocaleTimeString()}: ${message}</p>`;
-}
 
 async function getPerfil(){
   const res = await fetch('/api/perfil',{credentials:'include'});
@@ -376,7 +354,6 @@ function updateStatusVisual(statusEl, estado) {
 
 // ---- Funciones de profesor ----
 async function getEntregasProfesor() {
-  updateDebugInfo("Solicitando entregas para profesor...");
   try {
     const res = await fetch(`/api/entregas?action=listar_por_tarea_profesor&tarea_id=${tareaId}`, {
       credentials: 'include'
@@ -384,19 +361,15 @@ async function getEntregasProfesor() {
     
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({ error: 'Error desconocido' }));
-      updateDebugInfo(`Error en la respuesta: ${res.status} - ${JSON.stringify(errorData)}`);
       
       // Si es error 403, verificar si es profesor de este curso
       if (res.status === 403) {
-        updateDebugInfo("Error 403: Verificando si el usuario es profesor de este curso...");
-        
         // Verificar directamente si el usuario es profesor de este curso
         const tarea = await getTarea();
         const perfil = await getPerfil();
         
         if (tarea && perfil) {
           const esProfesorDelCurso = Number(perfil.id) === Number(tarea.profesor_id);
-          updateDebugInfo(`Usuario es profesor de este curso: ${esProfesorDelCurso}`);
           
           if (!esProfesorDelCurso) {
             throw new Error("No eres el profesor asignado a este curso");
@@ -410,11 +383,9 @@ async function getEntregasProfesor() {
     }
     
     const data = await res.json();
-    updateDebugInfo(`Entregas recibidas: ${data.entregas ? data.entregas.length : 0}`);
     return data.entregas || [];
   } catch (error) {
     console.error("Error en getEntregasProfesor:", error);
-    updateDebugInfo(`Error: ${error.message}`);
     throw error;
   }
 }
@@ -522,12 +493,9 @@ async function renderEntregasProfesor() {
       
       lista.appendChild(div);
     });
-
-    updateDebugInfo("Entregas renderizadas correctamente");
     
   } catch (error) {
     console.error("Error al cargar entregas:", error);
-    updateDebugInfo(`Error: ${error.message}`);
     lista.innerHTML = `
       <div class="text-center py-4 text-red-600">
         <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
@@ -543,14 +511,6 @@ async function renderEntregasProfesor() {
 // Funciones para el modal de calificación
 let entregaActualId = null;
 
-function abrirModalCalificacion(studentName, entregaId, calificacionActual, observacionActual) {
-  document.getElementById('student-name').textContent = studentName;
-  document.getElementById('calificacion-input').value = calificacionActual || '';
-  document.getElementById('comentario-calificacion').value = observacionActual || '';
-  entregaActualId = entregaId;
-  
-  document.getElementById('modalCalificacion').classList.remove('hidden');
-}
 async function abrirModalCalificacion(studentName, entregaId, calificacionActual, observacionActual) {
   // Verificar permisos primero
   try {
@@ -604,9 +564,6 @@ async function guardarCalificacion() {
   }
   
   try {
-    updateDebugInfo(`Guardando calificación para entrega ID: ${entregaActualId}`);
-    updateDebugInfo(`Calificación: ${calificacion}, Observación: ${comentario}`);
-    
     const res = await fetch('/api/entregas?action=calificar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -618,19 +575,14 @@ async function guardarCalificacion() {
       })
     });
     
-    // Debug: mostrar respuesta completa
-    updateDebugInfo(`Respuesta del servidor: ${res.status} ${res.statusText}`);
-    
     if (res.ok) {
       const result = await res.json();
-      updateDebugInfo(`Respuesta JSON: ${JSON.stringify(result)}`);
       alert(`Calificación de ${calificacion}/10 guardada para ${studentName}`);
       cerrarModalCalificacion();
       // Recargar las entregas para reflejar los cambios
       renderEntregasProfesor();
     } else {
       const errorText = await res.text();
-      updateDebugInfo(`Error completo: ${errorText}`);
       try {
         const errorData = JSON.parse(errorText);
         throw new Error(errorData.error || 'Error al guardar la calificación');
@@ -640,18 +592,14 @@ async function guardarCalificacion() {
     }
   } catch (error) {
     console.error("Error al guardar calificación:", error);
-    updateDebugInfo(`Error completo: ${error.message}`);
     alert("Error al guardar la calificación: " + error.message);
   }
 }
 
 // ---- Inicialización principal ----
 async function initActividad() {
-  updateDebugInfo("Inicializando actividad...");
-  
   if(!cursoId || !tareaId) {
     alert('Falta cursoId o tareaId');
-    updateDebugInfo("Error: Falta cursoId o tareaId");
     return;
   }
   
@@ -662,10 +610,6 @@ async function initActividad() {
     // Verificación mejorada de si es profesor
     const esProfesor = perfil?.rol === 'profesor' || perfil?.rol === 'admin';
     const esProfesorDelCurso = esProfesor && tarea.profesor_id && Number(perfil.id) === Number(tarea.profesor_id);
-    
-    updateDebugInfo(`Rol de usuario: ${perfil?.rol}, Es profesor: ${esProfesor}, Es profesor de este curso: ${esProfesorDelCurso}`);
-    updateDebugInfo(`ID Usuario: ${perfil?.id}, ID Profesor del curso: ${tarea.profesor_id}`);
-    updateDebugInfo(`Datos de la tarea: ${JSON.stringify(tarea)}`);
 
     holder.title.textContent = tarea.titulo || tarea.title || "(Sin título)";
     holder.desc.textContent = tarea.descripcion || tarea.description || "";
@@ -685,7 +629,13 @@ async function initActividad() {
     
     holder.botones.innerHTML = '';
 
+    // Ocultar elementos específicos para profesores
     if(esProfesor){
+      document.getElementById('estado-container').classList.add('hidden');
+      document.getElementById('profesor-container').classList.add('hidden');
+      document.getElementById('entrega-container').classList.add('hidden');
+      document.getElementById('calificacion-container').classList.add('hidden');
+
       const editar = document.createElement('button');
       editar.textContent = "Editar tarea";
       editar.className = "px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition";
@@ -711,7 +661,6 @@ async function initActividad() {
             <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
             <p>No eres el profesor asignado a este curso</p>
             <p class="text-sm text-gray-600">Solo el profesor asignado puede ver las entregas</p>
-            <p class="text-xs text-gray-500">Tu ID: ${perfil?.id}, Profesor del curso: ${tarea.profesor_id || 'No disponible'}</p>
           </div>
         `;
       }
@@ -752,11 +701,9 @@ async function initActividad() {
     }
     
     await renderComentarios();
-    updateDebugInfo("Actividad inicializada correctamente");
     
   } catch(err) {
     console.error(err);
-    updateDebugInfo(`Error: ${err.message}`);
     alert("Error cargando la actividad");
   }
 }
