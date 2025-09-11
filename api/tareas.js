@@ -84,42 +84,44 @@ export default async function handler(req, res) {
       return res.status(200).json(rows);
     }
 
-    // ---------- DETALLE (nuevo endpoint) ----------
-    if (req.method === 'GET' && action === 'detalle') {
-      const tarea_id = req.query.id || req.query.tarea_id;
-      if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
+// ---------- DETALLE (nuevo endpoint) ----------
+if (req.method === 'GET' && action === 'detalle') {
+  const tarea_id = req.query.id || req.query.tarea_id;
+  if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
 
-      const userId = getUserId(req);
-      if (!userId) return res.status(401).json({ error: 'No autenticado' });
+  const userId = getUserId(req);
+  if (!userId) return res.status(401).json({ error: 'No autenticado' });
 
-      // Consulta actualizada para incluir la calificación del estudiante desde tareas_entregadas
-      const [rows] = await pool.query(`
-        SELECT
-          t.id,
-          t.curso_id,
-          COALESCE(t.titulo,'(Sin título)') AS title,
-          COALESCE(t.descripcion,'') AS description,
-          t.fecha_limite AS due_at,
-          COALESCE(t.puntos,0) AS points,
-          t.completada AS status,
-          t.fecha_creacion AS created_at,
-          t.fecha_completacion AS updated_at,
-          u.nombre AS profesor,
-          c.profesor_id,
-          c.nombre AS curso_nombre,
-          te.calificacion  -- Nueva columna: calificación del estudiante desde tareas_entregadas
-        FROM tareas t
-        LEFT JOIN cursos c ON t.curso_id = c.id
-        LEFT JOIN usuarios u ON c.profesor_id = u.id
-        LEFT JOIN tareas_entregas te ON t.id = te.tarea_id AND te.estudiante_id = ?        WHERE t.id = ?
-      `, [userId, tarea_id]);
+  // Consulta actualizada para incluir la calificación y observación del estudiante desde tareas_entregas
+  const [rows] = await pool.query(`
+    SELECT
+      t.id,
+      t.curso_id,
+      COALESCE(t.titulo,'(Sin título)') AS title,
+      COALESCE(t.descripcion,'') AS description,
+      t.fecha_limite AS due_at,
+      COALESCE(t.puntos,0) AS points,
+      t.completada AS status,
+      t.fecha_creacion AS created_at,
+      t.fecha_completacion AS updated_at,
+      u.nombre AS profesor,
+      c.profesor_id,
+      c.nombre AS curso_nombre,
+      te.calificacion,  -- Calificación del estudiante
+      te.observacion    -- Observación (comentario) del profesor
+    FROM tareas t
+    LEFT JOIN cursos c ON t.curso_id = c.id
+    LEFT JOIN usuarios u ON c.profesor_id = u.id
+    LEFT JOIN tareas_entregas te ON t.id = te.tarea_id AND te.estudiante_id = ?
+    WHERE t.id = ?
+  `, [userId, tarea_id]);
 
-      if (rows.length === 0) {
-        return res.status(404).json({ error: 'Tarea no encontrada' });
-      }
+  if (rows.length === 0) {
+    return res.status(404).json({ error: 'Tarea no encontrada' });
+  }
 
-      return res.status(200).json(rows[0]);
-    }
+  return res.status(200).json(rows[0]);
+}
 
     // ---------- CREAR (profesor/admin del curso) ----------
     if (req.method === 'POST' && action === 'crear') {
