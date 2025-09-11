@@ -7,62 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
   <style>
-    :root {
-      --primary: #10B981;
-      --primary-dark: #059669;
-      --secondary: #3B82F6;
-      --danger: #EF4444;
-      --warning: #F59E0B;
-      --gray: #6B7280;
-      --light-bg: #F9FAFB;
-    }
-    
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--light-bg);
-    }
-    
-    .card {
-      border-radius: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-      transition: all 0.3s ease;
-    }
-    
-    .card:hover {
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      transform: translateY(-2px);
-    }
-    
-    .btn-primary {
-      background-color: var(--primary);
-      transition: all 0.2s ease;
-    }
-    
-    .btn-primary:hover {
-      background-color: var(--primary-dark);
-      transform: translateY(-1px);
-    }
-    
-    .btn-secondary {
-      background-color: var(--secondary);
-      transition: all 0.2s ease;
-    }
-    
-    .btn-secondary:hover {
-      background-color: #2563EB;
-      transform: translateY(-1px);
-    }
-    
-    .btn-danger {
-      background-color: var(--danger);
-      transition: all 0.2s ease;
-    }
-    
-    .btn-danger:hover {
-      background-color: #DC2626;
-      transform: translateY(-1px);
-    }
-    
     .calification-badge {
       display: inline-flex;
       align-items: center;
@@ -114,15 +58,10 @@
       opacity: 0;
       transform: translateY(-20px);
       transition: opacity 0.3s, transform 0.3s;
-      display: flex;
-      align-items: center;
     }
     .toast.show {
       opacity: 1;
       transform: translateY(0);
-    }
-    .toast.error {
-      background-color: #EF4444;
     }
     
     /* Animación de bounce personalizada */
@@ -144,86 +83,6 @@
     .animate-bounce {
       animation: bounce 1s infinite;
     }
-    
-    /* Estilos para la barra de progreso */
-    .progress-bar {
-      height: 6px;
-      border-radius: 3px;
-      background-color: #E5E7EB;
-      overflow: hidden;
-      margin-top: 8px;
-    }
-    
-    .progress-fill {
-      height: 100%;
-      border-radius: 3px;
-      background-color: var(--primary);
-      transition: width 0.5s ease;
-    }
-    
-    /* Mejoras para móviles */
-    @media (max-width: 640px) {
-      .card {
-        border-radius: 12px;
-      }
-      
-      .btn-mobile {
-        width: 100%;
-        justify-content: center;
-      }
-    }
-    
-    /* Efecto de carga esqueleto */
-    .skeleton {
-      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-      border-radius: 4px;
-    }
-    
-    @keyframes loading {
-      0% {
-        background-position: 200% 0;
-      }
-      100% {
-        background-position: -200% 0;
-      }
-    }
-    
-    /* Mejora para los modales */
-    dialog::backdrop {
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(2px);
-    }
-    
-    /* Estilos para el estado de la tarea */
-    .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    
-    .status-pendiente {
-      background-color: #FEF3C7;
-      color: #92400E;
-    }
-    
-    .status-entregado {
-      background-color: #DBEAFE;
-      color: #1E40AF;
-    }
-    
-    .status-calificado {
-      background-color: #D1FAE5;
-      color: #065F46;
-    }
-    
-    .status-expirado {
-      background-color: #FEE2E2;
-      color: #B91C1C;
-    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
@@ -239,221 +98,126 @@
   <main class="flex-grow px-4 py-8">
     <div class="max-w-5xl mx-auto space-y-6">
 
-      <!-- Título con esqueleto de carga -->
-      <div class="card bg-white p-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div class="flex-1">
-            <h1 id="actividad-title" class="text-2xl md:text-3xl font-bold text-emerald-700">Cargando...</h1>
-            <p id="actividad-description" class="text-gray-600 mt-2"></p>
-          </div>
-          <div id="actividad-buttons" class="flex flex-wrap gap-3 justify-start md:justify-end"></div>
-        </div>
+      <!-- Título -->
+      <div>
+        <h1 id="actividad-title" class="text-3xl font-bold text-emerald-700 text-center sm:text-left">Cargando...</h1>
+        <p id="actividad-description" class="text-gray-600 mt-1 text-center sm:text-left"></p>
       </div>
 
       <!-- Detalles de la tarea -->
-      <div class="card bg-white p-6">
-        <h2 class="text-lg font-semibold text-gray-800 border-b pb-3 mb-4 flex items-center">
-          <i class="fas fa-info-circle mr-2 text-emerald-600"></i>Detalles de la tarea
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div class="flex items-start">
-            <i class="fas fa-calendar-plus mt-1 mr-3 text-gray-400"></i>
-            <div>
-              <p class="font-medium text-gray-700">Fecha de creación</p>
-              <p id="actividad-created_at" class="text-gray-600 mt-1">—</p>
-            </div>
-          </div>
-          <div class="flex items-start">
-            <i class="fas fa-hourglass-end mt-1 mr-3 text-gray-400"></i>
-            <div>
-              <p class="font-medium text-gray-700">Fecha límite</p>
-              <p id="actividad-due_at" class="text-gray-600 mt-1">—</p>
-            </div>
-          </div>
-          <div class="flex items-start" id="estado-container">
-            <i class="fas fa-tasks mt-1 mr-3 text-gray-400"></i>
-            <div>
-              <p class="font-medium text-gray-700">Estado</p>
-              <p class="mt-1"><span id="actividad-status" class="status-badge">—</span></p>
-            </div>
-          </div>
-          <div class="flex items-start">
-            <i class="fas fa-star mt-1 mr-3 text-gray-400"></i>
-            <div>
-              <p class="font-medium text-gray-700">Puntos</p>
-              <p id="actividad-points" class="text-gray-600 mt-1">0</p>
-            </div>
-          </div>
-          <div class="flex items-start" id="profesor-container">
-            <i class="fas fa-chalkboard-teacher mt-1 mr-3 text-gray-400"></i>
-            <div>
-              <p class="font-medium text-gray-700">Profesor</p>
-              <p id="actividad-profesor" class="text-gray-600 mt-1">—</p>
-            </div>
-          </div>
-          <div class="flex items-start" id="entrega-container">
-            <i class="fas fa-file-upload mt-1 mr-3 text-gray-400"></i>
-            <div>
-              <p class="font-medium text-gray-700">Última entrega</p>
-              <p id="actividad-ultima-entrega" class="text-gray-600 mt-1">—</p>
-            </div>
-          </div>
+      <div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2">Detalles de la tarea</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <p><span class="font-medium text-gray-700">Fecha de creación:</span> <span id="actividad-created_at" class="text-gray-600">—</span></p>
+          <p><span class="font-medium text-gray-700">Fecha límite:</span> <span id="actividad-due_at" class="text-gray-600">—</span></p>
+          <p id="estado-container"><span class="font-medium text-gray-700">Estado:</span> <span id="actividad-status" class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">—</span></p>
+          <p><span class="font-medium text-gray-700">Puntos:</span> <span id="actividad-points" class="text-gray-600">0</span></p>
+          <p id="profesor-container"><span class="font-medium text-gray-700">Profesor:</span> <span id="actividad-profesor" class="text-gray-600">—</span></p>
+          <p id="entrega-container"><span class="font-medium text-gray-700">Última entrega:</span> <span id="actividad-ultima-entrega" class="text-gray-600">—</span></p>
         </div>
       </div>
 
+      <!-- Contenedor de botones independiente, centrado -->
+      <div id="actividad-buttons" class="flex flex-wrap gap-3 mt-4 justify-center"></div>
+
       <!-- Calificación (solo para estudiantes) -->
-      <div id="calificacion-container" class="card bg-white p-6">
-        <h2 class="text-lg font-semibold text-gray-800 border-b pb-3 mb-4 flex items-center">
-          <i class="fas fa-star-half-alt mr-2 text-emerald-600"></i>Calificación
-        </h2>
-        <div id="actividad-calificacion" class="text-center py-4">
-          <div class="inline-flex items-center justify-center bg-gray-100 rounded-full w-24 h-24">
-            <span class="text-gray-400 text-lg">—</span>
-          </div>
-          <p class="text-gray-500 mt-3">Aún no calificado</p>
-        </div>
+      <div id="calificacion-container" class="bg-white rounded-2xl shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Calificación</h2>
+        <div id="actividad-calificacion" class="text-center text-gray-600">Aún no calificado</div>
       </div>
 
       <!-- Sección de comentarios -->
-      <div id="comentarios-container" class="card bg-white p-6">
-        <h2 class="text-lg font-semibold text-gray-800 border-b pb-3 mb-4 flex items-center">
-          <i class="fas fa-comments mr-2 text-emerald-600"></i>Comentarios
-        </h2>
-        <div id="comentarios-list" class="space-y-4 min-h-[100px]">
-          <div class="flex flex-col items-center justify-center py-6 text-gray-400">
-            <i class="fas fa-comment-slash text-3xl mb-2"></i>
-            <p>Sin comentarios aún</p>
-          </div>
+      <div id="comentarios-container" class="bg-white rounded-2xl shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Comentarios</h2>
+        <div id="comentarios-list" class="space-y-4">
+          <p class="text-gray-500 text-center">Sin comentarios aún</p>
         </div>
 
         <!-- Formulario de comentario -->
-        <form id="formComentario" class="mt-6 flex gap-2">
-          <div class="flex-1 relative">
-            <input 
-              type="text" 
-              name="comentario" 
-              placeholder="Escribe un comentario..." 
-              required
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none transition"
-            >
-          </div>
+        <form id="formComentario" class="mt-4 flex gap-2">
+          <input 
+            type="text" 
+            name="comentario" 
+            placeholder="Escribe un comentario..." 
+            required
+            class="flex-1 px-3 py-2 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          >
           <button 
             type="submit" 
-            class="px-5 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition flex items-center"
+            class="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition"
           >
-            <i class="fas fa-paper-plane mr-2"></i>Enviar
+            Enviar
           </button>
         </form>
       </div>
     </div>
 
     <!-- CONTENEDOR DE ENTREGAS DEL PROFESOR -->
-    <div id="profesor-entregas" class="card bg-white p-6 mt-6 hidden">
-      <h2 class="text-lg font-semibold text-gray-800 border-b pb-3 mb-4 flex items-center">
-        <i class="fas fa-file-download mr-2 text-emerald-600"></i>Entregas de estudiantes
-      </h2>
-      <div class="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div class="flex items-center">
-          <span class="text-sm text-gray-600">Mostrando </span>
-          <span id="entregas-count" class="mx-1 font-semibold">0</span>
-          <span class="text-sm text-gray-600">entregas</span>
-        </div>
-        <button id="btn-exportar" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition flex items-center">
-          <i class="fas fa-file-export mr-2"></i>Exportar calificaciones
-        </button>
+    <div id="profesor-entregas" class="bg-white rounded-2xl shadow-md p-6 mt-6 hidden">
+      <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Entregas de estudiantes</h2>
+      <div class="mb-4 flex items-center justify-between">
+        <span class="text-sm text-gray-600">Mostrando <span id="entregas-count">0</span> entregas</span>
+        <button id="btn-exportar" class="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Exportar calificaciones</button>
       </div>
       <div id="entregas-list" class="space-y-4">
-        <div class="flex flex-col items-center justify-center py-10">
-          <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-600 mb-3"></div>
-          <p class="text-gray-500">Cargando entregas...</p>
-        </div>
+        <p class="text-gray-500 text-center">Cargando entregas...</p>
       </div>
     </div>
   </main>
 
   <!-- Modal de entrega -->
   <dialog id="modalEntrega" class="rounded-2xl p-0 w-full max-w-md backdrop:bg-black/30">
-    <div class="bg-white rounded-2xl overflow-hidden">
-      <form id="formEntrega" class="p-6 space-y-4" method="post" enctype="multipart/form-data">
-        <div class="flex items-center justify-between mb-4">
-          <h4 class="text-lg font-semibold text-gray-800">Entregar archivo</h4>
-          <button type="button" id="btnCancelarEntrega" class="text-gray-400 hover:text-gray-600">
-            <i class="fas fa-times text-xl"></i>
-          </button>
-        </div>
-        
-        <input type="hidden" name="tarea_id">
-        <input type="hidden" name="curso_id">
-        
-        <div class="bg-gray-50 p-4 rounded-lg mb-4">
-          <p class="text-sm font-medium text-gray-700 mb-1">Archivo actual</p>
-          <p id="archivoActual" class="text-sm text-gray-600 truncate">—</p>
-        </div>
-        
-        <label class="block">
-          <span class="text-sm font-medium text-gray-700 mb-2 block">Seleccionar archivo (máx 2 MB)</span>
-          <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl">
-            <div class="space-y-1 text-center">
-              <div class="flex text-sm text-gray-600 justify-center">
-                <label class="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-emerald-500">
-                  <span>Subir un archivo</span>
-                  <input type="file" name="archivo" required class="sr-only">
-                </label>
-              </div>
-              <p class="text-xs text-gray-500">PNG, JPG, PDF hasta 2MB</p>
-            </div>
-          </div>
-          <p id="pesoArchivo" class="text-xs text-gray-500 mt-2">—</p>
-        </label>
+    <form id="formEntrega" class="p-6 space-y-4" method="post" enctype="multipart/form-data">
+      <h4 class="text-lg font-semibold">Entregar archivo</h4>
+      <input type="hidden" name="tarea_id">
+      <input type="hidden" name="curso_id">
+      <div class="text-xs text-gray-600">Archivo actual: <span id="archivoActual">—</span></div>
+      <label class="grid gap-1">
+        <span class="text-sm text-gray-700">Archivo (máx 2 MB)</span>
+        <input type="file" name="archivo" required
+          class="px-3 py-2 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        <span id="pesoArchivo" class="text-xs text-gray-500">—</span>
+      </label>
 
-        <!-- Previsualización de archivo -->
-        <div id="previewContainer" class="mt-4">
-          <p class="text-xs font-medium text-gray-700 mb-2">Vista previa:</p>
-          <div id="previewContent" class="border border-gray-200 rounded-lg p-3 max-h-48 overflow-auto bg-gray-50 text-center text-gray-500 text-sm">
-            <i class="fas fa-file-upload text-2xl mb-2 block"></i>
-            <p>No hay archivo seleccionado</p>
-          </div>
-        </div>
+      <!-- Previsualización de archivo -->
+      <div id="previewContainer" class="mt-2">
+        <p class="text-xs text-gray-500">Vista previa:</p>
+        <div id="previewContent" class="border border-gray-200 rounded p-2 max-h-48 overflow-auto">—</div>
+      </div>
 
-        <div class="pt-4 flex items-center justify-end gap-3">
-          <button type="button" id="btnCancelarEntrega2"
-            class="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition">Cancelar</button>
-          <button type="submit" id="btnSubmitEntrega"
-            class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition flex items-center justify-center">
-            <span id="btnSubmitText">Subir archivo</span>
-            <i id="btnSubmitSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-          </button>
-        </div>
-      </form>
-    </div>
+      <div class="pt-2 flex items-center justify-end gap-2">
+        <button type="button" id="btnCancelarEntrega"
+          class="px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50">Cancelar</button>
+        <button type="submit" id="btnSubmitEntrega"
+          class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 flex items-center justify-center">
+          <span id="btnSubmitText">Subir</span>
+          <i id="btnSubmitSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+        </button>
+      </div>
+    </form>
   </dialog>
 
   <!-- Modal de calificación -->
-  <div id="modalCalificacion" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div id="modalCalificacion" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4">
       <div class="p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Calificar entrega de <span id="student-name" class="font-semibold">estudiante</span></h3>
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Calificar entrega de <span id="student-name">estudiante</span></h3>
         
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">Calificación (0-10)</label>
-          <input type="number" id="calificacion-input" min="0" max="10" step="0.1" 
-                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <input type="number" id="calificacion-input" min="0" max="10" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
         </div>
         
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">Comentario para el estudiante</label>
-          <textarea id="comentario-calificacion" rows="3" 
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" 
-                    placeholder="Escribe tus comentarios sobre la entrega..."></textarea>
+          <textarea id="comentario-calificacion" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Escribe tus comentarios sobre la entrega..."></textarea>
         </div>
         
         <div class="flex justify-end space-x-3">
-          <button id="btn-cancelar-calificacion" 
-                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition">
+          <button id="btn-cancelar-calificacion" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
             Cancelar
           </button>
-          <button id="btn-guardar-calificacion" 
-                  class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
+          <button id="btn-guardar-calificacion" class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
             Guardar calificación
           </button>
         </div>
@@ -462,7 +226,7 @@
   </div>
 
   <!-- Modal de edición de tarea -->
-  <div id="modalEditarTarea" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div id="modalEditarTarea" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
       <div class="p-6">
         <h3 class="text-lg font-medium text-gray-900 mb-4">Editar Tarea</h3>
@@ -498,11 +262,11 @@
           
           <div class="flex justify-end space-x-3 pt-4">
             <button type="button" id="btn-cancelar-editar"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition">
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
               Cancelar
             </button>
             <button type="submit"
-              class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
+              class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
               Guardar cambios
             </button>
           </div>
@@ -559,13 +323,11 @@ function showToast(message, isSuccess = true) {
   
   // Cambiar color según el tipo de mensaje
   if (isSuccess) {
-    toast.classList.remove('bg-red-500', 'error');
+    toast.classList.remove('bg-red-500');
     toast.classList.add('bg-emerald-500');
-    toast.innerHTML = '<i class="fas fa-check-circle mr-2"></i>' + toast.innerHTML;
   } else {
     toast.classList.remove('bg-emerald-500');
-    toast.classList.add('bg-red-500', 'error');
-    toast.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>' + toast.innerHTML;
+    toast.classList.add('bg-red-500');
   }
   
   // Mostrar el toast
@@ -575,10 +337,7 @@ function showToast(message, isSuccess = true) {
   // Ocultar después de 3 segundos
   setTimeout(() => {
     toast.classList.remove('show');
-    setTimeout(() => {
-      toast.classList.add('hidden');
-      toast.innerHTML = '<span id="toast-message"></span>';
-    }, 300);
+    setTimeout(() => toast.classList.add('hidden'), 300);
   }, 3000);
 }
 
@@ -659,38 +418,34 @@ async function renderComentarios(){
   // Mostrar la observación del profesor si existe
   if (tarea && tarea.observacion) {
     const divObservacion = document.createElement('div');
-    divObservacion.className = "flex items-start gap-3 border-b pb-4 bg-blue-50 p-4 rounded-lg";
+    divObservacion.className = "flex items-start gap-3 border-b pb-2 bg-blue-50 p-3 rounded-lg";
     divObservacion.innerHTML = `
-      <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
+      <div class="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold">
         <i class="fas fa-chalkboard-teacher"></i>
       </div>
       <div class="flex-1">
         <p class="text-sm"><span class="font-medium text-blue-700">Profesor</span> <span class="text-gray-500 text-xs">(Comentario de calificación)</span></p>
-        <p class="text-gray-700 mt-1">${tarea.observacion}</p>
+        <p class="text-gray-700">${tarea.observacion}</p>
       </div>
     `;
     holder.comentarios.appendChild(divObservacion);
   }
   
   if(!comentarios.length && (!tarea || !tarea.observacion)){
-    holder.comentarios.innerHTML=`
-      <div class="flex flex-col items-center justify-center py-6 text-gray-400">
-        <i class="fas fa-comment-slash text-3xl mb-2"></i>
-        <p>Sin comentarios aún</p>
-      </div>`;
+    holder.comentarios.innerHTML=`<p class="text-gray-500 text-center">Sin comentarios aún</p>`;
     return;
   }
   
   comentarios.forEach(c=>{
     const div=document.createElement('div');
-    div.className="flex items-start gap-3 border-b pb-4 last:border-b-0";
+    div.className="flex items-start gap-3 border-b pb-2";
     div.innerHTML=`
       <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold">
         ${c.usuario[0].toUpperCase()}
       </div>
       <div class="flex-1">
         <p class="text-sm"><span class="font-medium">${c.usuario}</span> <span class="text-gray-500 text-xs">(${fmtDate(c.fecha)})</span></p>
-        <p class="text-gray-700 mt-1">${c.texto}</p>
+        <p class="text-gray-700">${c.texto}</p>
       </div>`;
     holder.comentarios.appendChild(div);
   });
@@ -702,7 +457,7 @@ function openEntrega(tareaId){
   f.reset();
   f.tarea_id.value=tareaId;
   if(f.curso_id) f.curso_id.value=cursoId;
-  holder.preview.innerHTML='<i class="fas fa-file-upload text-2xl mb-2 block"></i><p>No hay archivo seleccionado</p>';
+  holder.preview.innerHTML='—';
   holder.archivoActual.textContent='—';
   getEntrega().then(e=>{
     if(!e) return;
@@ -715,7 +470,7 @@ function openEntrega(tareaId){
       }else if(ext==="pdf"){
         holder.preview.innerHTML=`<iframe src="${e.archivo_url}" class="w-full h-48"></iframe>`;
       }else{
-        holder.preview.innerHTML=`<a href="${e.archivo_url}" target="_blank" class="text-blue-600 underline flex items-center justify-center py-4"><i class="fas fa-external-link-alt mr-2"></i>Abrir archivo</a>`;
+        holder.preview.innerHTML=`<a href="${e.archivo_url}" target="_blank" class="text-blue-600 underline">Abrir archivo</a>`;
       }
     }
   });
@@ -727,7 +482,7 @@ async function verUltimaEntrega() {
   try {
     const entrega = await getEntrega();
     
-    if (entrega && entrega.archivo_nombre) {
+    if (entrega && entrega.entrega && entrega.entrega.archivo_nombre) {
       // Si existe entrega, abrir en nueva pestaña
       window.open(`/api/entregas?action=descargar&tarea_id=${tareaId}`, '_blank');
     } else {
@@ -873,7 +628,7 @@ document.getElementById('formEntrega').addEventListener('submit', async e => {
     console.error('Error al subir el archivo:', error);
   } finally {
     // Restaurar estado del botón
-    submitText.textContent = 'Subir archivo';
+    submitText.textContent = 'Subir';
     submitSpinner.classList.add('hidden');
     submitBtn.disabled = false;
   }
@@ -881,22 +636,22 @@ document.getElementById('formEntrega').addEventListener('submit', async e => {
 
 function updateStatusVisual(statusEl, estado) {
   statusEl.textContent = estado || 'pendiente';
-  statusEl.className = "status-badge";
+  statusEl.className = "px-2 py-0.5 rounded-full text-xs";
   switch ((estado||'').toLowerCase()) {
     case 'pendiente':
-      statusEl.classList.add('status-pendiente');
+      statusEl.classList.add('bg-red-100','text-red-700');
       break;
     case 'entregado':
-      statusEl.classList.add('status-entregado');
+      statusEl.classList.add('bg-orange-100','text-orange-700');
       break;
     case 'calificado':
-      statusEl.classList.add('status-calificado');
+      statusEl.classList.add('bg-green-100','text-green-700');
       break;
     case 'expirado':
-      statusEl.classList.add('status-expirado');
+      statusEl.classList.add('bg-red-100','text-red-700');
       break;
     default:
-      statusEl.classList.add('status-pendiente');
+      statusEl.classList.add('bg-gray-100','text-gray-800');
   }
 }
 
@@ -944,9 +699,9 @@ async function renderEntregasProfesor() {
   
   // Mostrar estado de carga
   lista.innerHTML = `
-    <div class="text-center py-10">
-      <div class="inline-block animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-600 mb-3"></div>
-      <p class="text-gray-500">Cargando entregas...</p>
+    <div class="text-center py-4">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-600"></div>
+      <p class="text-gray-500 mt-2">Cargando entregas...</p>
     </div>
   `;
   contenedor.classList.remove('hidden');
@@ -959,17 +714,13 @@ async function renderEntregasProfesor() {
     
     lista.innerHTML = '';
     if (!entregas.length) {
-      lista.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-10 text-gray-400">
-          <i class="fas fa-inbox text-4xl mb-3"></i>
-          <p>Aún no hay entregas</p>
-        </div>`;
+      lista.innerHTML = '<p class="text-gray-500 text-center py-4">Aún no hay entregas</p>';
       return;
     }
 
     entregas.forEach(entrega => {
       const div = document.createElement('div');
-      div.className = "border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition";
+      div.className = "border rounded-xl p-4";
       
       // Determinar clase de badge según calificación
       let badgeClass = "pending";
@@ -1001,7 +752,9 @@ async function renderEntregasProfesor() {
             </div>
             <div class="mt-2">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                <i class="fas fa-file mr-1.5"></i>
+                <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-blue-400" fill="currentColor" viewBox="0 0 8 8">
+                  <circle cx="4" cy="4" r="3" />
+                </svg>
                 ${entrega.archivo_nombre}
               </span>
             </div>
@@ -1018,12 +771,12 @@ async function renderEntregasProfesor() {
             </div>
             <div class="flex space-x-2">
               <a href="/api/entregas?action=descargar&tarea_id=${tareaId}&estudiante_id=${entrega.estudiante_id}" 
-                 class="px-3 py-1 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-xs transition flex items-center">
-                <i class="fas fa-download mr-1"></i>Descargar
+                 class="px-3 py-1 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-xs transition">
+                Descargar
               </a>
-              <button class="btn-calificar px-3 py-1 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-xs transition flex items-center" 
+              <button class="btn-calificar px-3 py-1 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-xs transition" 
                 data-estudiante-id="${entrega.estudiante_id}" data-estudiante-nombre="${entrega.estudiante_nombre}" data-entrega-id="${entrega.id}">
-                <i class="fas fa-edit mr-1"></i>${entrega.calificacion !== null ? 'Revisar' : 'Calificar'}
+                ${entrega.calificacion !== null ? 'Revisar' : 'Calificar'}
               </button>
             </div>
           </div>
@@ -1128,7 +881,7 @@ async function guardarCalificacion() {
     
     if (res.ok) {
       const result = await res.json();
-      showToast(`Calificación de ${calificacion}/10 guardada para ${studentName}`);
+      alert(`Calificación de ${calificacion}/10 guardada para ${studentName}`);
       cerrarModalCalificacion();
       // Recargar las entregas para reflejar los cambios
       renderEntregasProfesor();
@@ -1143,14 +896,14 @@ async function guardarCalificacion() {
     }
   } catch (error) {
     console.error("Error al guardar calificación:", error);
-    showToast("Error al guardar la calificación: " + error.message, false);
+    alert("Error al guardar la calificación: " + error.message);
   }
 }
 
 // ---- Inicialización principal ----
 async function initActividad() {
   if(!cursoId || !tareaId) {
-    showToast('Falta cursoId o tareaId', false);
+    alert('Falta cursoId o tareaId');
     return;
   }
   
@@ -1168,27 +921,19 @@ async function initActividad() {
     holder.dueAt.textContent = fmtDate(tarea.fecha_limite || tarea.due_at);
     
     const entrega = await getEntrega();
-    updateStatusVisual(holder.status, entrega?.estado || 'pendiente');
-    holder.ultimaEntrega.textContent = entrega?.archivo_nombre || '—';
-    holder.archivoActual.textContent = entrega?.archivo_nombre || '—';
+    updateStatusVisual(holder.status, entrega?.entrega?.estado || 'pendiente');
+    holder.ultimaEntrega.textContent = entrega?.entrega?.archivo_nombre || '—';
+    holder.archivoActual.textContent = entrega?.entrega?.archivo_nombre || '—';
     holder.points.textContent = tarea.puntos || tarea.points || 0;
     holder.profesor.textContent = tarea.profesor || "—";
     
     if (tarea.calificacion) {
       holder.calificacion.innerHTML = `
-        <div class="inline-flex items-center justify-center bg-emerald-100 rounded-full w-24 h-24">
-          <span class="text-emerald-700 text-2xl font-bold">${tarea.calificacion}</span>
-          <span class="text-emerald-500">/10</span>
-        </div>
-        ${tarea.observacion ? `<p class="text-sm text-gray-600 mt-3 bg-gray-100 p-2 rounded-lg"><i class="fas fa-comment mr-1 text-emerald-600"></i>${tarea.observacion}</p>` : ''}
+        <span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10
+        ${tarea.observacion ? `<p class="text-sm text-gray-600 mt-2">${tarea.observacion}</p>` : ''}
       `;
     } else {
-      holder.calificacion.innerHTML = `
-        <div class="inline-flex items-center justify-center bg-gray-100 rounded-full w-24 h-24">
-          <span class="text-gray-400 text-lg">—</span>
-        </div>
-        <p class="text-gray-500 mt-3">Aún no calificado</p>
-      `;
+      holder.calificacion.innerHTML = `<span class="text-gray-500">Aún no calificado</span>`;
     }
     
     holder.botones.innerHTML = '';
@@ -1203,14 +948,12 @@ async function initActividad() {
 
       const editar = document.createElement('button');
       editar.textContent = "Editar tarea";
-      editar.className = "px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition flex items-center";
-      editar.innerHTML = '<i class="fas fa-edit mr-2"></i> Editar tarea';
+      editar.className = "px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition";
       editar.addEventListener('click', () => openEditarTarea(tarea));
 
       const eliminar = document.createElement('button');
       eliminar.textContent = "Eliminar tarea";
-      eliminar.className = "px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition flex items-center";
-      eliminar.innerHTML = '<i class="fas fa-trash-alt mr-2"></i> Eliminar tarea';
+      eliminar.className = "px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition";
       eliminar.addEventListener('click', async () => {
         if(!confirm("¿Seguro que quieres eliminar esta tarea? Esta acción no se puede deshacer.")) return;
         
@@ -1255,21 +998,18 @@ async function initActividad() {
     } else {
       const entregar = document.createElement('button');
       entregar.textContent = "Entregar";
-      entregar.className = "px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-green-700 transition flex items-center";
-      entregar.innerHTML = '<i class="fas fa-file-upload mr-2"></i> Entregar';
+      entregar.className = "px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-green-700 transition";
       entregar.addEventListener('click', () => openEntrega(tareaId));
 
       // Botón para ver última entrega (convertido de enlace a botón)
       const ver = document.createElement('button');
       ver.textContent = "Ver última entrega";
-      ver.className = "px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition flex items-center";
-      ver.innerHTML = '<i class="fas fa-eye mr-2"></i> Ver última entrega';
+      ver.className = "px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition";
       ver.addEventListener('click', verUltimaEntrega);
 
       const eliminarEntrega = document.createElement('button');
       eliminarEntrega.textContent = "Eliminar entrega";
-      eliminarEntrega.className = "px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition flex items-center";
-      eliminarEntrega.innerHTML = '<i class="fas fa-trash-alt mr-2"></i> Eliminar entrega';
+      eliminarEntrega.className = "px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition";
       eliminarEntrega.addEventListener('click', async () => {
         if(!confirm("¿Seguro que quieres eliminar tu entrega?")) return;
         const res = await fetch(`/api/entregas?action=eliminar&tarea_id=${tareaId}`, {
@@ -1277,13 +1017,13 @@ async function initActividad() {
           credentials: 'include'
         });
         if(res.ok){
-          showToast("Entrega eliminada correctamente");
+          alert("Entrega eliminada");
           holder.ultimaEntrega.textContent = '—';
           updateStatusVisual(holder.status, 'pendiente');
           holder.archivoActual.textContent = '—';
         } else {
           const data = await res.json().catch(() => ({error: 'Error desconocido'}));
-          showToast('Error al eliminar entrega: ' + (data.error || 'Desconocido'), false);
+          alert('Error al eliminar entrega: ' + (data.error || 'Desconocido'));
         }
       });
 
@@ -1299,18 +1039,14 @@ async function initActividad() {
     
   } catch(err) {
     console.error(err);
-    showToast("Error cargando la actividad", false);
+    alert("Error cargando la actividad");
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   // Configurar event listeners para el modal de entrega
   const btnCancelar = document.getElementById('btnCancelarEntrega');
-  const btnCancelar2 = document.getElementById('btnCancelarEntrega2');
   btnCancelar.addEventListener('click', () => {
-    document.getElementById('modalEntrega').close();
-  });
-  btnCancelar2.addEventListener('click', () => {
     document.getElementById('modalEntrega').close();
   });
 
@@ -1337,10 +1073,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (ext === "pdf") {
       preview.innerHTML = `<iframe src="${URL.createObjectURL(file)}" class="w-full h-48"></iframe>`;
     } else {
-      preview.innerHTML = `<div class="flex flex-col items-center justify-center py-4">
-        <i class="fas fa-file text-3xl text-gray-400 mb-2"></i>
-        <span class="text-gray-600 text-sm">${file.name}</span>
-      </div>`;
+      preview.innerHTML = `<span class="text-gray-600">${file.name}</span>`;
     }
   });
 
