@@ -70,30 +70,31 @@
         <div id="actividad-calificacion" class="text-center text-gray-600">Aún no calificado</div>
       </div>
 
-<!-- Sección de comentarios -->
-<div class="bg-white rounded-2xl shadow-md p-6">
-  <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Comentarios</h2>
-  <div id="comentarios-list" class="space-y-4">
-    <p class="text-gray-500 text-center">Sin comentarios aún</p>
-  </div>
+      <!-- Sección de comentarios -->
+      <div id="comentarios-container" class="bg-white rounded-2xl shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Comentarios</h2>
+        <div id="comentarios-list" class="space-y-4">
+          <p class="text-gray-500 text-center">Sin comentarios aún</p>
+        </div>
 
-  <!-- Formulario de comentario -->
-  <form id="formComentario" class="mt-4 flex gap-2">
-    <input 
-      type="text" 
-      name="comentario" 
-      placeholder="Escribe un comentario..." 
-      required
-      class="flex-1 px-3 py-2 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-    >
-    <button 
-      type="submit" 
-      class="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition"
-    >
-      Enviar
-    </button>
-  </form>
-</div>
+        <!-- Formulario de comentario -->
+        <form id="formComentario" class="mt-4 flex gap-2">
+          <input 
+            type="text" 
+            name="comentario" 
+            placeholder="Escribe un comentario..." 
+            required
+            class="flex-1 px-3 py-2 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          >
+          <button 
+            type="submit" 
+            class="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition"
+          >
+            Enviar
+          </button>
+        </form>
+      </div>
+    </div>
 
     <!-- CONTENEDOR DE ENTREGAS DEL PROFESOR -->
     <div id="profesor-entregas" class="bg-white rounded-2xl shadow-md p-6 mt-6 hidden">
@@ -641,14 +642,14 @@ async function initActividad() {
     holder.points.textContent = tarea.puntos || tarea.points || 0;
     holder.profesor.textContent = tarea.profesor || "—";
     
-if (tarea.calificacion) {
-  holder.calificacion.innerHTML = `
-    <span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10
-    ${tarea.observacion ? `<p class="text-sm text-gray-600 mt-2">${tarea.observacion}</p>` : ''}
-  `;
-} else {
-  holder.calificacion.innerHTML = `<span class="text-gray-500">Aún no calificado</span>`;
-}
+    if (tarea.calificacion) {
+      holder.calificacion.innerHTML = `
+        <span class="text-2xl font-bold text-emerald-600">${tarea.calificacion}</span> / 10
+        ${tarea.observacion ? `<p class="text-sm text-gray-600 mt-2">${tarea.observacion}</p>` : ''}
+      `;
+    } else {
+      holder.calificacion.innerHTML = `<span class="text-gray-500">Aún no calificado</span>`;
+    }
     
     holder.botones.innerHTML = '';
 
@@ -658,6 +659,7 @@ if (tarea.calificacion) {
       document.getElementById('profesor-container').classList.add('hidden');
       document.getElementById('entrega-container').classList.add('hidden');
       document.getElementById('calificacion-container').classList.add('hidden');
+      document.getElementById('comentarios-container').classList.add('hidden'); // Ocultar comentarios
 
       const editar = document.createElement('button');
       editar.textContent = "Editar tarea";
@@ -723,7 +725,10 @@ if (tarea.calificacion) {
       holder.botones.appendChild(eliminarEntrega);
     }
     
-    await renderComentarios();
+    // Solo renderizar comentarios si no es profesor
+    if (!esProfesor) {
+      await renderComentarios();
+    }
     
   } catch(err) {
     console.error(err);
@@ -765,7 +770,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Inicializar la actividadd
+  // Inicializar la actividad
   initActividad();
 });
 </script>
