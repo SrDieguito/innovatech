@@ -311,5 +311,87 @@ const puedeCalificar = user.rol === 'admin' ||
     return res.status(500).json({ error: 'Error interno del servidor', details: err.message });
   }
 
+      /* ===== EXPORTAR CALIFICACIONES (profesor) ===== */
+    if (req.method === 'GET' && action === 'exportar_calificaciones') {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: 'No autenticado' });
+
+      const tarea_id = Number(req.query?.tarea_id);
+      if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
+
+      // Verificar que el usuario es profesor del curso de la tarea
+      const [[verificacion]] = await pool.query(
+        `SELECT c.profesor_id 
+         FROM tareas t 
+         JOIN cursos c ON t.curso_id = c.id 
+         WHERE t.id = ?`,
+        [tarea_id]
+      );
+
+      if (!verificacion) return res.status(404).json({ error: 'Tarea no encontrada' });
+      
+      // Verificar rol del usuario
+      const [[user]] = await pool.query('SELECT rol FROM usuarios WHERE id = ?', [userId]);
+      if (!user) return res.status(403).json({ error: 'Usuario no encontrado' });
+
+      const userIdNum = Number(userId);
+      const profesorIdNum = Number(verificacion.profesor_id);
+
+      if (profesorIdNum !== userIdNum && user.rol !== 'admin') {
+        return res.status(403).json({ error: 'No autorizado' });
+      }
+
+      // Obtener todas las entregas para esta tarea
+      const [entregas] = await pool.query(
+        `SELECT 
+           u.nombre as estudiante_nombre, 
+           u.email as estudiante_email,
+           e.archivo_nombre,
+           e.fecha_entrega,
+           e.calificacion,
+           e.observacion
+         FROM tareas_entregas e
+         JOIN usuarios u ON e.estudiante_id = u.id
+         WHERE e.tarea_id = ?
+         ORDER BY e.fecha_entrega DESC`,
+        [tarea_id]
+      );
+
+      // Si no hay entregas, devolver error o un Excel vacío?
+      if (!entregas.length) {
+        return res.status(404).json({ error: 'No hay entregas para esta tarea' });
+      }
+
+      // Importar la librería xlsx (asegúrate de tenerla instalada)
+      const XLSX = require('xlsx');
+
+      // Preparar los datos para la hoja de cálculo
+      const datos = entregas.map(entrega => ({
+        'Estudiante': entrega.estudiante_nombre,
+        'Email': entrega.estudiante_email,
+        'Archivo': entrega.archivo_nombre,
+        'Fecha de entrega': entrega.fecha_entrega,
+        'Calificación': entrega.calificacion || 'No calificado',
+        'Observaciones': entrega.observacion || ''
+      }));
+
+      // Crear un nuevo libro y una hoja
+      const libro = XLSX.utils.book_new();
+      const hoja = XLSX.utils.json_to_sheet(datos);
+
+      // Añadir la hoja al libro
+      XLSX.utils.book_append_sheet(libro, hoja, 'Calificaciones');
+
+      // Escribir el libro a un buffer
+      const buffer = XLSX.write(libro, { type: 'buffer', bookType: 'xlsx' });
+
+      // Configurar los headers de la respuesta
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="calificaciones_tarea_${tarea_id}.xlsx"`);
+
+      // Enviar el buffer
+      return res.status(200).send(buffer);
+    }
+
   
 }

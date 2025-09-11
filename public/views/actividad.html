@@ -745,6 +745,38 @@ async function renderEntregasProfesor() {
       </div>
     `;
   }
+
+  document.getElementById('btn-exportar').addEventListener('click', async () => {
+  try {
+    // Llamar al endpoint de exportación
+    const response = await fetch(`/api/entregas?action=exportar_calificaciones&tarea_id=${tareaId}`, {
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText);
+    }
+
+    // Convertir la respuesta a blob
+    const blob = await response.blob();
+    
+    // Crear un enlace para descargar el archivo
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `calificaciones_tarea_${tareaId}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error('Error al exportar calificaciones:', error);
+    alert('Error al exportar calificaciones: ' + error.message);
+  }
+});
+
 }
 
 // Funciones para el modal de calificación
