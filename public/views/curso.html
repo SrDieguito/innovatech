@@ -135,45 +135,37 @@ async function cargarActividades(esProfesor) {
 
     // Trae el fragmento /partials/tasks.html
     const res = await fetch('/partials/task.html');
-    holder.innerHTML = await res.text();
-
-    // Configura dataset para rol y curso
-    const root = holder.querySelector('#tasks-root');
-    root.dataset.role = esProfesor ? 'profesor' : 'estudiante';
-    root.dataset.courseId = cursoId;
-
-    // Inicializa la página de tareas
-    window.TasksPage?.init();
-
-    // Eliminar todos los botones de acción
+    let htmlContent = await res.text();
+    
+    // Crear un elemento temporal para manipular el HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    
+    // Eliminar todos los botones de acción del template ANTES de insertarlo
     const botonesAEliminar = [
-      '.btn-entregar', 
-      '.btn-eliminar', 
-      '.btn-actualizar',
-      '.btn-editar',
-      '.btn-ver-entrega',
-      '.btn-calificar',
-      '.btn-ver-calificacion',
-      '[onclick*="entregar"]',
-      '[onclick*="eliminar"]',
-      '[onclick*="editar"]',
-      '[onclick*="actualizar"]',
-      '[onclick*="calificar"]'
+      '[data-field="actions"]', // Contenedor de acciones de profesor
+      '[data-field="student-actions"]', // Contenedor de acciones de estudiante
+      '#btnNuevaTarea' // Botón de nueva tarea
     ];
     
     botonesAEliminar.forEach(selector => {
-      holder.querySelectorAll(selector).forEach(boton => boton.remove());
+      tempDiv.querySelectorAll(selector).forEach(elemento => elemento.remove());
     });
+    
+    // Insertar el HTML modificado
+    holder.innerHTML = tempDiv.innerHTML;
 
-    // También eliminar cualquier botón que contenga texto relacionado con estas acciones
-    const textosABuscar = ['Entregar', 'Editar', 'Eliminar', 'Actualizar', 'Calificar', 'Ver entrega', 'Ver calificación'];
-    holder.querySelectorAll('button').forEach(boton => {
-      textosABuscar.forEach(texto => {
-        if (boton.textContent.includes(texto)) {
-          boton.remove();
-        }
-      });
-    });
+    // Configura dataset para rol y curso
+    const root = holder.querySelector('#tasks-root');
+    if (root) {
+      root.dataset.role = esProfesor ? 'profesor' : 'estudiante';
+      root.dataset.courseId = cursoId;
+    }
+
+    // Inicializa la página de tareas
+    if (window.TasksPage) {
+      window.TasksPage.init();
+    }
 
     holder.dataset.loaded = "1";
   }
