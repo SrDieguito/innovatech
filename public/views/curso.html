@@ -40,15 +40,8 @@
     </div>
 
     <!-- Subcontenido -->
-    <div x-show="subTab==='presentacion'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-book-open mr-2"></i> Presentación</h2>
-      <p id="presentacion-texto" class="text-gray-700 mb-4">Cargando descripción...</p>
-      <!-- Editor solo se mantiene si quieres que el profesor pueda actualizar descripción -->
-      <div id="presentacion-editor" class="hidden flex flex-col items-center gap-3">
-        <textarea id="descripcion-input" class="w-full border border-gray-300 rounded p-2 resize-none" rows="4"></textarea>
-        <button id="guardar-descripcion" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow">Guardar descripción</button>
-      </div>
-    </div>
+    <div id="presentacion-holder"></div>
+
 
     <div x-show="subTab==='cronograma'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
       <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-calendar-alt mr-2"></i> Cronograma</h2>
@@ -97,29 +90,28 @@
 
 <script src="/js/task.js"></script>
 <script>
-  // Cargar header
-fetch('/views/header.html')
-  .then(res => res.text())
-  .then(html => {
-    const container = document.getElementById('header-container');
-    container.innerHTML = html;
+  // === Cargar Header ===
+  fetch('/views/header.html')
+    .then(res => res.text())
+    .then(html => {
+      const container = document.getElementById('header-container');
+      container.innerHTML = html;
 
-    // Ejecutar scripts del header
-    const scripts = container.querySelectorAll('script');
-    scripts.forEach(oldScript => {
-      const newScript = document.createElement('script');
-      if (oldScript.src) {
-        newScript.src = oldScript.src;
-      } else {
-        newScript.textContent = oldScript.textContent;
-      }
-      document.body.appendChild(newScript);
-      oldScript.remove();
+      // Ejecutar scripts que vengan dentro del header
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(newScript);
+        oldScript.remove();
+      });
     });
-  });
 
-
-  // Obtener ID de curso de la URL
+  // === Obtener ID de curso desde la URL ===
   const params = new URLSearchParams(window.location.search);
   const cursoId = params.get("id") || params.get("curso_id") || params.get("courseId");
 
@@ -128,47 +120,51 @@ fetch('/views/header.html')
     location.href = "/mis-cursos.html";
   }
 
-// === CARGAR ACTIVIDADES (fragmento + init) ===
-async function cargarActividades(esProfesor) {
-    const holder = document.getElementById('actividades-holder');
-    if (!holder || holder.dataset.loaded) return; // evita doble carga
+  // === Función para cargar la pestaña Presentación dinámicamente ===
+  async function cargarPresentacion(curso, esProfesor, cursoId) {
+    const holder = document.getElementById('presentacion-holder');
+    if (!holder || holder.dataset.loaded) return; // evitar doble carga
 
-    // Trae el fragmento /partials/tasks.html
+    const res = await fetch('/partials/curso/presentacion.html');
+    holder.innerHTML = await res.text();
+
+    // Inicializar lógica propia de la pestaña Presentación
+    if (window.PresentacionPage) {
+      window.PresentacionPage.init(curso, esProfesor, cursoId);
+    }
+
+    holder.dataset.loaded = "1";
+  }
+
+  // === Cargar actividades (fragmento + inicialización) ===
+  async function cargarActividades(esProfesor) {
+    const holder = document.getElementById('actividades-holder');
+    if (!holder || holder.dataset.loaded) return;
+
     const res = await fetch('/partials/task.html');
     holder.innerHTML = await res.text();
 
-    // Configura dataset para rol y curso
     const root = holder.querySelector('#tasks-root');
     root.dataset.role = esProfesor ? 'profesor' : 'estudiante';
     root.dataset.courseId = cursoId;
 
-    // Inicializa la página de tareas
     if (window.TasksPage) {
       window.TasksPage.init();
     }
 
-    // Eliminar TODOS los botones de acción inmediatamente después de la inicialización
+    // Eliminar botones de acción
     setTimeout(() => {
-      // Eliminar botones de profesor
-      const accionesProfesor = holder.querySelectorAll('[data-field="actions"]');
-      accionesProfesor.forEach(accion => accion.remove());
-      
-      // Eliminar botones de estudiante
-      const accionesEstudiante = holder.querySelectorAll('[data-field="student-actions"]');
-      accionesEstudiante.forEach(accion => accion.remove());
-      
-      // Eliminar botón de nueva tarea
+      holder.querySelectorAll('[data-field="actions"], [data-field="student-actions"]').forEach(el => el.remove());
       const btnNuevaTarea = holder.querySelector('#btnNuevaTarea');
       if (btnNuevaTarea) btnNuevaTarea.remove();
-      
-      // Eliminar cualquier otro botón de acción que pueda existir
-      const botonesAccion = holder.querySelectorAll('button');
-      botonesAccion.forEach(boton => {
+
+      holder.querySelectorAll('button').forEach(boton => {
         const texto = boton.textContent.toLowerCase();
-        if (texto.includes('entregar') || texto.includes('editar') || 
-            texto.includes('eliminar') || texto.includes('actualizar') ||
-            texto.includes('calificar') || texto.includes('completar') ||
-            texto.includes('ver entrega')) {
+        if (
+          texto.includes('entregar') || texto.includes('editar') || texto.includes('eliminar') ||
+          texto.includes('actualizar') || texto.includes('calificar') || texto.includes('completar') ||
+          texto.includes('ver entrega')
+        ) {
           boton.remove();
         }
       });
@@ -177,7 +173,7 @@ async function cargarActividades(esProfesor) {
     holder.dataset.loaded = "1";
   }
 
-  // Cargar datos del curso
+  // === Cargar datos principales del curso ===
   fetch(`/api/cursos?action=obtener-detalle&id=${cursoId}`)
     .then(res => {
       if (!res.ok) {
@@ -186,14 +182,13 @@ async function cargarActividades(esProfesor) {
       return res.json();
     })
     .then(curso => {
-      if (!curso) {
-        throw new Error('No se pudo cargar la información del curso');
-      }
+      if (!curso) throw new Error('No se pudo cargar la información del curso');
+
+      // Asignar datos básicos
       document.getElementById('nombre-curso').textContent = curso.nombre || 'Curso sin nombre';
       document.getElementById('nombre-tutor').textContent = `Tutor: ${curso.profesor || 'No asignado'}`;
-      document.getElementById('presentacion-texto').textContent = curso.descripcion || 'Sin descripción';
 
-      // Obtener usuario actual
+      // === Cargar perfil de usuario actual ===
       return fetch('/api/perfil')
         .then(res => {
           if (!res.ok) {
@@ -202,70 +197,79 @@ async function cargarActividades(esProfesor) {
           return res.json();
         })
         .then(usuario => {
-          if (!usuario || !usuario.id) {
-            throw new Error('No se pudo cargar la información del usuario');
+          if (!usuario || !usuario.id) throw new Error('No se pudo cargar la información del usuario');
+
+          const esProfesor =
+            usuario.id === curso.profesor_id ||
+            usuario.rol === 'profesor' ||
+            usuario.rol === 'admin';
+
+          // === Verificar subpestaña actual de Alpine ===
+          const subTab = document.querySelector('main').__x.$data.subTab;
+
+          // Cargar presentación si es la pestaña activa por defecto
+          if (subTab === 'presentacion') {
+            cargarPresentacion(curso, esProfesor, cursoId);
           }
-          const esProfesor = usuario.id === curso.profesor_id || usuario.rol === 'profesor' || usuario.rol === 'admin';
-          
-          if (esProfesor) {
-            // Mostrar editor solo para profesores
-            const editor = document.getElementById('presentacion-editor');
-            if (editor) {
-              editor.classList.remove('hidden');
-              const descInput = document.getElementById('descripcion-input');
-              if (descInput) {
-                descInput.value = curso.descripcion || '';
+
+          // Detectar cambios entre subpestañas
+          document.addEventListener('click', (e) => {
+            const btn = e.target.closest('[x-text]');
+            if (btn) {
+              const sub = btn.textContent.trim().toLowerCase();
+              if (sub === 'presentacion') {
+                cargarPresentacion(curso, esProfesor, cursoId);
               }
             }
-          }
-          
-          // Cargar actividades con el ID del curso
-          cargarActividades(esProfesor);
+          });
 
-          // Cargar participantes
+          // === Cargar otras secciones ===
+          cargarActividades(esProfesor);
           cargarParticipantes(cursoId);
         });
     })
     .catch(error => {
       console.error('Error:', error);
       alert(error.message || 'Ocurrió un error al cargar el curso');
-      // Redirigir a la página de cursos si hay un error
       window.location.href = '/mis-cursos.html';
     });
 
-// Función para cargar participantes
-async function cargarParticipantes(cursoId){
-  const listContainer = document.getElementById('participantes-list');
-  const cargando = document.getElementById('cargando-participantes');
-  try {
-    const res = await fetch(`/api/participantes?id=${cursoId}`, { credentials:'include' });
-    if(!res.ok) throw new Error('Error al cargar participantes');
-    const data = await res.json();
-    cargando.remove();
-    if(Array.isArray(data) && data.length>0){
-      data.forEach(usuario=>{
-        const div = document.createElement('div');
-        div.className='bg-green-50 rounded-lg p-3 flex items-center gap-3 hover:bg-green-100 transition';
-        div.innerHTML=`
-          <div class="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center text-green-700 font-semibold">${(usuario.nombre[0]||'U').toUpperCase()}</div>
-          <div>
-            <p class="font-medium text-gray-700">${usuario.nombre}</p>
-            <p class="text-gray-500 text-sm">${usuario.email||''}</p>
-          </div>
-        `;
-        listContainer.appendChild(div);
-      });
-    } else {
-      listContainer.innerHTML='<p class="text-gray-500 col-span-full">No hay participantes inscritos.</p>';
+  // === Función para cargar participantes ===
+  async function cargarParticipantes(cursoId) {
+    const listContainer = document.getElementById('participantes-list');
+    const cargando = document.getElementById('cargando-participantes');
+    try {
+      const res = await fetch(`/api/participantes?id=${cursoId}`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Error al cargar participantes');
+
+      const data = await res.json();
+      cargando.remove();
+
+      if (Array.isArray(data) && data.length > 0) {
+        data.forEach(usuario => {
+          const div = document.createElement('div');
+          div.className = 'bg-green-50 rounded-lg p-3 flex items-center gap-3 hover:bg-green-100 transition';
+          div.innerHTML = `
+            <div class="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center text-green-700 font-semibold">
+              ${(usuario.nombre[0] || 'U').toUpperCase()}
+            </div>
+            <div>
+              <p class="font-medium text-gray-700">${usuario.nombre}</p>
+              <p class="text-gray-500 text-sm">${usuario.email || ''}</p>
+            </div>
+          `;
+          listContainer.appendChild(div);
+        });
+      } else {
+        listContainer.innerHTML = '<p class="text-gray-500 col-span-full">No hay participantes inscritos.</p>';
+      }
+    } catch (err) {
+      console.error(err);
+      listContainer.innerHTML = '<p class="text-red-500 col-span-full">Error al cargar los participantes.</p>';
     }
-  } catch(err){ 
-    console.error(err); 
-    listContainer.innerHTML='<p class="text-red-500 col-span-full">Error al cargar los participantes.</p>'; 
   }
-}
 
-
-  // Navegación entre pestañas
+  // === Navegación entre pestañas principales ===
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', e => {
       e.preventDefault();
@@ -281,30 +285,7 @@ async function cargarParticipantes(cursoId){
       document.getElementById(selected).classList.remove('hidden');
     });
   });
-
-  document.getElementById('guardar-descripcion').addEventListener('click', () => {
-  const nuevaDescripcion = document.getElementById('descripcion-input').value;
-
-  fetch(`/api/cursos`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'actualizar-descripcion',
-      curso_id: cursoId,
-      descripcion: nuevaDescripcion
-    })
-  })
-    .then(res => res.json())
-    .then(res => {
-      if (res.success) {
-        document.getElementById('presentacion-texto').textContent = nuevaDescripcion;
-        alert('Descripción actualizada');
-      } else {
-        alert('Error al actualizar');
-      }
-    });
-});
-
 </script>
+
 </body>
 </html>

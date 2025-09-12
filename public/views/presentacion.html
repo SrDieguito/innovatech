@@ -1,0 +1,57 @@
+<div x-show="subTab==='presentacion'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+  <h2 class="text-2xl font-semibold mb-3">
+    <i class="fas fa-book-open mr-2"></i> Presentación
+  </h2>
+
+  <!-- Texto de descripción -->
+  <p id="presentacion-texto" class="text-gray-700 mb-4">Cargando descripción...</p>
+
+  <!-- Editor (solo visible para profesores) -->
+  <div id="presentacion-editor" class="hidden flex flex-col items-center gap-3">
+    <textarea id="descripcion-input" class="w-full border border-gray-300 rounded p-2 resize-none" rows="4"></textarea>
+    <button id="guardar-descripcion" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded shadow">
+      Guardar descripción
+    </button>
+  </div>
+</div>
+
+<script>
+  window.PresentacionPage = {
+    init(curso, esProfesor, cursoId) {
+      // Llenar texto de presentación
+      const texto = document.getElementById('presentacion-texto');
+      texto.textContent = curso.descripcion || 'Sin descripción';
+
+      // Mostrar editor si es profesor
+      if (esProfesor) {
+        const editor = document.getElementById('presentacion-editor');
+        editor.classList.remove('hidden');
+        document.getElementById('descripcion-input').value = curso.descripcion || '';
+      }
+
+      // Guardar descripción
+      document.getElementById('guardar-descripcion').addEventListener('click', () => {
+        const nuevaDescripcion = document.getElementById('descripcion-input').value;
+
+        fetch(`/api/cursos`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'actualizar-descripcion',
+            curso_id: cursoId,
+            descripcion: nuevaDescripcion
+          })
+        })
+          .then(res => res.json())
+          .then(res => {
+            if (res.success) {
+              texto.textContent = nuevaDescripcion;
+              alert('Descripción actualizada');
+            } else {
+              alert('Error al actualizar la descripción');
+            }
+          });
+      });
+    }
+  };
+</script>
