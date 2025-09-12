@@ -127,6 +127,7 @@ fetch('/views/header.html')
     alert("No se proporcionó ID de curso");
     location.href = "/mis-cursos.html";
   }
+
 // === CARGAR ACTIVIDADES (fragmento + init) ===
 async function cargarActividades(esProfesor) {
     const holder = document.getElementById('actividades-holder');
@@ -142,15 +143,41 @@ async function cargarActividades(esProfesor) {
     root.dataset.courseId = cursoId;
 
     // Inicializa la página de tareas
-// Inicializa la página de tareas
-window.TasksPage?.init();
+    window.TasksPage?.init();
 
-// Quitar los botones de entregar, eliminar y actualizar
-holder.querySelectorAll('.btn-entregar, .btn-eliminar, .btn-actualizar').forEach(btn => btn.remove());
+    // Eliminar todos los botones de acción
+    const botonesAEliminar = [
+      '.btn-entregar', 
+      '.btn-eliminar', 
+      '.btn-actualizar',
+      '.btn-editar',
+      '.btn-ver-entrega',
+      '.btn-calificar',
+      '.btn-ver-calificacion',
+      '[onclick*="entregar"]',
+      '[onclick*="eliminar"]',
+      '[onclick*="editar"]',
+      '[onclick*="actualizar"]',
+      '[onclick*="calificar"]'
+    ];
+    
+    botonesAEliminar.forEach(selector => {
+      holder.querySelectorAll(selector).forEach(boton => boton.remove());
+    });
 
-holder.dataset.loaded = "1";
+    // También eliminar cualquier botón que contenga texto relacionado con estas acciones
+    const textosABuscar = ['Entregar', 'Editar', 'Eliminar', 'Actualizar', 'Calificar', 'Ver entrega', 'Ver calificación'];
+    holder.querySelectorAll('button').forEach(boton => {
+      textosABuscar.forEach(texto => {
+        if (boton.textContent.includes(texto)) {
+          boton.remove();
+        }
+      });
+    });
 
+    holder.dataset.loaded = "1";
   }
+
   // Cargar datos del curso
   fetch(`/api/cursos?action=obtener-detalle&id=${cursoId}`)
     .then(res => {
