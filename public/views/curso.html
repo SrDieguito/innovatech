@@ -125,7 +125,7 @@
     const holder = document.getElementById('presentacion-holder');
     if (!holder || holder.dataset.loaded) return; // evitar doble carga
 
-    const res = await fetch('/presentacion.html');
+    const res = await fetch('presentacion.html');
     holder.innerHTML = await res.text();
 
     // Inicializar lógica de presentación
