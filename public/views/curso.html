@@ -145,7 +145,7 @@ async function cargarSubPestaja(subPestaja) {
   
   try {
     // Cargar el partial correspondiente desde views/presentacion/
-    const respuesta = await fetch('/views/presentacion/presentacion.html');
+    const respuesta = await fetch('presentacion.html');
     if (!respuesta.ok) {
       throw new Error(`No se pudo cargar la sección: ${respuesta.status}`);
     }
