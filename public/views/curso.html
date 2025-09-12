@@ -125,8 +125,15 @@
     const holder = document.getElementById('presentacion-holder');
     if (!holder || holder.dataset.loaded) return; // evitar doble carga
 
-const res = await fetch('/views/presentacion.html');
+    // ✅ Ruta corregida porque está junto a curso.html
+    const res = await fetch('presentacion.html');
     holder.innerHTML = await res.text();
+
+    // Ahora que el fragmento está en el DOM podemos manipularlo
+    const texto = document.getElementById('presentacion-texto');
+    if (texto) {
+      texto.textContent = curso.descripcion || 'Sin descripción';
+    }
 
     // Inicializar lógica de presentación
     if (window.PresentacionPage) {
@@ -154,19 +161,15 @@ const res = await fetch('/views/presentacion.html');
 
     // Eliminar botones de acción
     setTimeout(() => {
-      // Eliminar botones de profesor
       const accionesProfesor = holder.querySelectorAll('[data-field="actions"]');
       accionesProfesor.forEach(accion => accion.remove());
 
-      // Eliminar botones de estudiante
       const accionesEstudiante = holder.querySelectorAll('[data-field="student-actions"]');
       accionesEstudiante.forEach(accion => accion.remove());
 
-      // Eliminar botón de nueva tarea
       const btnNuevaTarea = holder.querySelector('#btnNuevaTarea');
       if (btnNuevaTarea) btnNuevaTarea.remove();
 
-      // Eliminar cualquier otro botón de acción
       const botonesAccion = holder.querySelectorAll('button');
       botonesAccion.forEach(boton => {
         const texto = boton.textContent.toLowerCase();
@@ -196,10 +199,9 @@ const res = await fetch('/views/presentacion.html');
         throw new Error('No se pudo cargar la información del curso');
       }
 
-      // Datos básicos del curso
+      // Datos básicos
       document.getElementById('nombre-curso').textContent = curso.nombre || 'Curso sin nombre';
       document.getElementById('nombre-tutor').textContent = `Tutor: ${curso.profesor || 'No asignado'}`;
-      document.getElementById('presentacion-texto').textContent = curso.descripcion || 'Sin descripción';
 
       // === Obtener usuario actual ===
       return fetch('/api/perfil')
@@ -214,7 +216,10 @@ const res = await fetch('/views/presentacion.html');
             throw new Error('No se pudo cargar la información del usuario');
           }
 
-          const esProfesor = usuario.id === curso.profesor_id || usuario.rol === 'profesor' || usuario.rol === 'admin';
+          const esProfesor =
+            usuario.id === curso.profesor_id ||
+            usuario.rol === 'profesor' ||
+            usuario.rol === 'admin';
 
           if (esProfesor) {
             // Mostrar editor solo para profesores
@@ -228,11 +233,10 @@ const res = await fetch('/views/presentacion.html');
             }
           }
 
-          // === AQUÍ se mueve el bloque de cargarPresentacion ===
+          // === Cargar Presentación si la pestaña actual es "presentacion" ===
           const alpineRoot = document.querySelector('main');
           const subTab = alpineRoot ? alpineRoot.__x.$data.subTab : 'presentacion';
 
-          // Si la subpestaña activa es 'presentacion', cargarla inmediatamente
           if (subTab === 'presentacion') {
             cargarPresentacion(curso, esProfesor, cursoId);
           }
@@ -309,7 +313,7 @@ const res = await fetch('/views/presentacion.html');
     });
   });
 
-  // === Guardar descripción (solo para profesores) ===
+  // === Guardar descripción (solo profesores) ===
   document.getElementById('guardar-descripcion').addEventListener('click', () => {
     const nuevaDescripcion = document.getElementById('descripcion-input').value;
 
@@ -333,6 +337,7 @@ const res = await fetch('/views/presentacion.html');
       });
   });
 </script>
+
 
 </body>
 </html>
