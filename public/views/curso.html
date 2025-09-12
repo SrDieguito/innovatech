@@ -135,37 +135,44 @@ async function cargarActividades(esProfesor) {
 
     // Trae el fragmento /partials/tasks.html
     const res = await fetch('/partials/task.html');
-    let htmlContent = await res.text();
-    
-    // Crear un elemento temporal para manipular el HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-    
-    // Eliminar todos los botones de acción del template ANTES de insertarlo
-    const botonesAEliminar = [
-      '[data-field="actions"]', // Contenedor de acciones de profesor
-      '[data-field="student-actions"]', // Contenedor de acciones de estudiante
-      '#btnNuevaTarea' // Botón de nueva tarea
-    ];
-    
-    botonesAEliminar.forEach(selector => {
-      tempDiv.querySelectorAll(selector).forEach(elemento => elemento.remove());
-    });
-    
-    // Insertar el HTML modificado
-    holder.innerHTML = tempDiv.innerHTML;
+    holder.innerHTML = await res.text();
 
     // Configura dataset para rol y curso
     const root = holder.querySelector('#tasks-root');
-    if (root) {
-      root.dataset.role = esProfesor ? 'profesor' : 'estudiante';
-      root.dataset.courseId = cursoId;
-    }
+    root.dataset.role = esProfesor ? 'profesor' : 'estudiante';
+    root.dataset.courseId = cursoId;
 
     // Inicializa la página de tareas
     if (window.TasksPage) {
       window.TasksPage.init();
     }
+
+    // Eliminar TODOS los botones de acción inmediatamente después de la inicialización
+    setTimeout(() => {
+      // Eliminar botones de profesor
+      const accionesProfesor = holder.querySelectorAll('[data-field="actions"]');
+      accionesProfesor.forEach(accion => accion.remove());
+      
+      // Eliminar botones de estudiante
+      const accionesEstudiante = holder.querySelectorAll('[data-field="student-actions"]');
+      accionesEstudiante.forEach(accion => accion.remove());
+      
+      // Eliminar botón de nueva tarea
+      const btnNuevaTarea = holder.querySelector('#btnNuevaTarea');
+      if (btnNuevaTarea) btnNuevaTarea.remove();
+      
+      // Eliminar cualquier otro botón de acción que pueda existir
+      const botonesAccion = holder.querySelectorAll('button');
+      botonesAccion.forEach(boton => {
+        const texto = boton.textContent.toLowerCase();
+        if (texto.includes('entregar') || texto.includes('editar') || 
+            texto.includes('eliminar') || texto.includes('actualizar') ||
+            texto.includes('calificar') || texto.includes('completar') ||
+            texto.includes('ver entrega')) {
+          boton.remove();
+        }
+      });
+    }, 100);
 
     holder.dataset.loaded = "1";
   }
