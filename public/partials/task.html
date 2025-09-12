@@ -11,8 +11,9 @@
   <div class="flex items-center gap-3">
     <input id="buscarTarea" type="search" placeholder="Buscar..."
       class="w-full max-w-sm px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+    <!-- Filtro de estado solo visible para estudiantes -->
     <select id="filtroEstado"
-      class="px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+      class="estudiante-only px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
       <option value="">Todos</option>
       <option value="pendiente">Pendiente</option>
       <option value="completada">Completada</option>
@@ -32,7 +33,8 @@
         <div class="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
           <span>Vence: <span data-field="due_at"></span></span>
           <span>Pts: <span data-field="points"></span></span>
-          <span>Estado: 
+          <!-- Estado solo visible para estudiantes -->
+          <span class="estudiante-only">Estado: 
             <span data-field="status"
               class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700"></span>
           </span>
@@ -106,3 +108,28 @@
     </form>
   </dialog>
 </section>
+
+<script>
+// Función para verificar el rol y mostrar/ocultar elementos
+function configurarVistaPorRol() {
+  const tasksRoot = document.getElementById('tasks-root');
+  const role = tasksRoot.getAttribute('data-role');
+  
+  // Ocultar elementos específicos para profesores
+  if (role === 'profesor') {
+    const elementosEstudiante = document.querySelectorAll('.estudiante-only');
+    elementosEstudiante.forEach(el => {
+      el.style.display = 'none';
+    });
+    
+    // También ocultar el botón de filtro de estado si existe
+    const filtroEstado = document.getElementById('filtroEstado');
+    if (filtroEstado) {
+      filtroEstado.style.display = 'none';
+    }
+  }
+}
+
+// Ejecutar cuando el DOM esté cargado
+document.addEventListener('DOMContentLoaded', configurarVistaPorRol);
+</script>
