@@ -111,21 +111,31 @@ function okJson(res, data, status=200) {
   res.end(JSON.stringify(data));
 }
 
+import { getUserFromRequest } from './_utils/session.js';
+
 export default async function handler(req, res) {
   try {
-    if (req.method !== 'GET') {
-      return okJson(res, { error: 'Método no permitido' }, 405);
-    }
+    if (req.method !== 'GET') return okJson(res, { error: 'Método no permitido' }, 405);
+    
     const { action } = req.query;
-    if (action !== 'por-tarea') {
-      return okJson(res, { error: 'Acción no soportada' }, 400);
+    if (action !== 'por-tarea') return okJson(res, { error: 'Acción no soportada' }, 400);
+
+    const tarea_id = Number(req.query.tarea_id);
+    if (!Number.isInteger(tarea_id) || tarea_id <= 0) {
+      return okJson(res, { error: 'tarea_id inválido' }, 400);
     }
 
-    // Sanitiza y valida inputs
-    const tarea_id = Number(req.query.tarea_id);
-    const estudiante_id = Number(req.query.estudiante_id);
-    if (!Number.isInteger(tarea_id) || tarea_id <= 0) return okJson(res, { error: 'tarea_id inválido' }, 400);
-    if (!Number.isInteger(estudiante_id) || estudiante_id <= 0) return okJson(res, { error: 'estudiante_id inválido' }, 400);
+    // 1) Intento de override para admin/testing
+    let estudiante_id = Number(req.query.estudiante_id);
+
+    // 2) Sesión
+    if (!Number.isInteger(estudiante_id) || estudiante_id <= 0) {
+      const me = await getUserFromRequest(req);
+      if (!me) {
+        return okJson(res, { mostrar: false, motivo: 'No autenticado', calificacion: null });
+      }
+      estudiante_id = Number(me.id);
+    }
 
     const conn = await pool.getConnection();
     try {
