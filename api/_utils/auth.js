@@ -1,4 +1,9 @@
 // api/_utils/auth.js
+import { jwtVerify } from 'jose';
+
+const secret = new TextEncoder().encode(process.env.SESSION_SECRET || 'dev-secret');
+const cookieName = 'session';
+
 export async function parseCookies(req) {
   const raw = req.headers.cookie || '';
   const jar = {};
@@ -15,32 +20,27 @@ export async function parseCookies(req) {
 
 async function tryJoseJWT(cookies) {
   try {
-    const { jwtVerify } = await import('jose');
-    const secret = new TextEncoder().encode(process.env.SESSION_SECRET || 'dev-secret');
-    const token = cookies.session;
+    const token = cookies[cookieName];
     if (!token) return null;
+    
     const { payload } = await jwtVerify(token, secret);
     if (!payload?.id) return null;
+    
     return { 
       id: Number(payload.id), 
       rol: payload.rol, 
       nombre: payload.nombre,  
       email: payload.email 
     };
-  } catch {
+  } catch (error) {
+    console.error('JWT verification error:', error);
     return null;
   }
 }
 
 function tryLegacyId(cookies) {
-  // Prioritize user_id cookie as per requirements
-  const raw = 
-    cookies.user_id || // Primary cookie
-    cookies.usuario_id ||
-    cookies.userId ||
-    cookies.uid ||
-    cookies.id ||
-    null;
+  // Check for user_id cookie as fallback
+  const raw = cookies.user_id || null;
   const id = Number(raw);
   if (Number.isInteger(id) && id > 0) return { id };
   return null;
@@ -51,50 +51,56 @@ async function tryVerificarSesion(req) {
     const host = req.headers['x-forwarded-host'] || req.headers.host;
     const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0];
     const base = `${proto}://${host}`;
+    
     const r = await fetch(`${base}/api/verificarsesion`, {
       headers: {
-        // Reenviar cookies de la petición del cliente
         cookie: req.headers.cookie || ''
       },
+      credentials: 'include',
       method: 'GET'
     });
+    
     if (!r.ok) return null;
-    const data = await r.json().catch(() => ({}));
-    // Adapta a la salida real de tu verificarsesion
-    const id = Number(data?.usuario?.id || data?.id || data?.data?.usuarioId);
-    if (Number.isInteger(id) && id > 0) {
+    const data = await r.json();
+    
+    if (data?.autenticado && data.usuario) {
       return {
-        id,
-        rol: data?.usuario?.rol || data?.rol,
-        nombre: data?.usuario?.nombre || data?.nombre,
-        email: data?.usuario?.email || data?.email
+        id: Number(data.usuario.id),
+        rol: data.usuario.rol,
+        nombre: data.usuario.nombre,
+        email: data.usuario.email
       };
     }
     return null;
-  } catch {
+  } catch (error) {
+    console.error('Error en verificación de sesión:', error);
     return null;
   }
 }
 
 export async function resolveUser(req) {
-  // 0) override de testing
-  const qId = Number((req.query && req.query.estudiante_id) || (req.body && req.body.estudiante_id));
-  if (Number.isInteger(qId) && qId > 0) return { id: qId };
+  try {
+    // 1) Check for testing override
+    const qId = Number((req.query?.estudiante_id) || (req.body?.estudiante_id));
+    if (Number.isInteger(qId) && qId > 0) return { id: qId };
 
-  const cookies = await parseCookies(req);
+    const cookies = await parseCookies(req);
 
-  // 1) JWT con jose (si está)
-  const fromJose = await tryJoseJWT(cookies);
-  if (fromJose?.id) return fromJose;
+    // 2) Try JWT session first (main auth method)
+    const fromJose = await tryJoseJWT(cookies);
+    if (fromJose?.id) return fromJose;
 
-  // 2) cookie legacy con id plano
-  const fromLegacy = tryLegacyId(cookies);
-  if (fromLegacy?.id) return fromLegacy;
+    // 3) Fallback to legacy user_id cookie
+    const fromLegacy = tryLegacyId(cookies);
+    if (fromLegacy?.id) return fromLegacy;
 
-  // 3) tu endpoint de verificación de sesión
-  const fromVerifier = await tryVerificarSesion(req);
-  if (fromVerifier?.id) return fromVerifier;
+    // 4) Last resort: try session verification endpoint
+    const fromVerifier = await tryVerificarSesion(req);
+    if (fromVerifier?.id) return fromVerifier;
 
-  // 4) nada
-  return null;
+    return null;
+  } catch (error) {
+    console.error('Error in resolveUser:', error);
+    return null;
+  }
 }
