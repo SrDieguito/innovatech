@@ -67,11 +67,14 @@ function setupRecomendacionButtons() {
     box.innerHTML = '<div class="text-sm text-gray-500">Cargando recomendaciones...</div>';
     
     try {
-      // Obtener el ID del estudiante del almacenamiento local
-      const estudianteId = Number(localStorage.getItem('estudiante_id')) || 0;
+      // Verificar si el usuario está autenticado
+      if (!window.__user) {
+        box.innerHTML = '<p class="text-sm text-gray-500">Inicia sesión para ver recomendaciones.</p>';
+        return;
+      }
       
       // Hacer la petición al endpoint de recomendaciones
-      const url = `/api/recomendaciones?action=por-tarea&tarea_id=${tareaId}&estudiante_id=${estudianteId}`;
+      const url = `/api/recomendaciones?action=por-tarea&tarea_id=${tareaId}`;
       const resp = await fetch(url, { credentials: 'include' });
       
       if (!resp.ok) throw new Error('Error al cargar recomendaciones');
