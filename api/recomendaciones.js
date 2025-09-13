@@ -126,12 +126,18 @@ export default async function handler(req, res) {
     }
 
     // Obtener usuario autenticado
+    console.log('Cookies recibidas:', req.headers.cookie);
     const me = await resolveUser(req);
+    console.log('Usuario resuelto:', me);
     if (!me?.id) {
       return okJson(res, { 
         mostrar: false, 
         motivo: 'Inicia sesión para ver recomendaciones.', 
-        calificacion: null 
+        calificacion: null,
+        debug: {
+          cookies: req.headers.cookie,
+          resolvedUser: me
+        }
       });
     }
     const estudiante_id = Number(me.id);
