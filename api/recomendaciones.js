@@ -111,7 +111,7 @@ function okJson(res, data, status=200) {
   res.end(JSON.stringify(data));
 }
 
-import { getUserFromRequest } from './_utils/session.js';
+import { resolveUser } from './_utils/auth.js';
 
 export default async function handler(req, res) {
   try {
@@ -125,17 +125,16 @@ export default async function handler(req, res) {
       return okJson(res, { error: 'tarea_id inválido' }, 400);
     }
 
-    // 1) Intento de override para admin/testing
-    let estudiante_id = Number(req.query.estudiante_id);
-
-    // 2) Sesión
-    if (!Number.isInteger(estudiante_id) || estudiante_id <= 0) {
-      const me = await getUserFromRequest(req);
-      if (!me) {
-        return okJson(res, { mostrar: false, motivo: 'No autenticado', calificacion: null });
-      }
-      estudiante_id = Number(me.id);
+    // Obtener usuario autenticado
+    const me = await resolveUser(req);
+    if (!me?.id) {
+      return okJson(res, { 
+        mostrar: false, 
+        motivo: 'Inicia sesión para ver recomendaciones.', 
+        calificacion: null 
+      });
     }
+    const estudiante_id = Number(me.id);
 
     const conn = await pool.getConnection();
     try {
