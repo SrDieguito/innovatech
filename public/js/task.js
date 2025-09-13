@@ -259,6 +259,12 @@
           if (btnEliminarE) btnEliminarE.classList.toggle("hidden", !tiene);
         }
 
+        // Asegurarse de que el botón de recomendaciones tenga el ID correcto
+        const recoBtn = node.querySelector('.reco-toggle');
+        const recoContainer = node.querySelector('.reco-container');
+        if (recoBtn) recoBtn.dataset.tareaId = t.id;
+        if (recoContainer) recoContainer.id = `reco-${t.id}`;
+        
         lista.appendChild(node);
       });
     }
