@@ -1,15 +1,25 @@
 // api/auth/me.js
-import { resolveUser } from '../_utils/auth.js';
+import { readSession, clearSessionCookie } from '../_utils/session.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const me = await resolveUser(req);
+    const me = await readSession(req);
     if (!me) return res.status(200).json({ loggedIn: false });
-    return res.status(200).json({ loggedIn: true, user: me });
+    
+    // Solo devolver datos seguros del usuario
+    const { id, nombre, email, rol } = me;
+    return res.status(200).json({ 
+      loggedIn: true, 
+      user: { id, nombre, email, rol }
+    });
   }
-  // Mantener soporte para DELETE si es necesario, aunque no usa clearSessionCookie
+  
   if (req.method === 'DELETE') {
-    return res.status(200).setHeader('Set-Cookie', 'session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT').json({ ok: true });
+    // Cerrar sesión
+    return res.status(200)
+      .setHeader('Set-Cookie', clearSessionCookie())
+      .json({ ok: true });
   }
+  
   return res.status(405).end('Método no permitido');
 }

@@ -1,6 +1,7 @@
 // api/recomendaciones.js
 import mysql from 'mysql2/promise';
 import { tareaToTema, slugify } from './_utils/text.js';
+import { readSession } from './_utils/session.js';
 
 const pool = mysql.createPool({
   uri: process.env.MYSQL_URL || process.env.DATABASE_URL,
@@ -111,46 +112,6 @@ function okJson(res, data, status=200) {
   res.end(JSON.stringify(data));
 }
 
-import { parse } from 'cookie';
-import { jwtVerify } from 'jose';
-
-const secret = new TextEncoder().encode(process.env.SESSION_SECRET || 'dev-secret');
-const cookieName = 'session';
-
-async function verifySession(req) {
-  try {
-    if (!req.headers.cookie) {
-      return { autenticado: false, mensaje: 'No hay sesión activa' };
-    }
-
-    const cookies = parse(req.headers.cookie);
-    const token = cookies[cookieName];
-
-    if (!token) {
-      return { autenticado: false, mensaje: 'No hay token de sesión' };
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    
-    if (!payload?.id) {
-      return { autenticado: false, mensaje: 'Token inválido' };
-    }
-
-    return {
-      autenticado: true,
-      usuario: {
-        id: payload.id,
-        rol: payload.rol,
-        nombre: payload.nombre,
-        email: payload.email
-      }
-    };
-  } catch (error) {
-    console.error('Error al verificar la sesión:', error);
-    return { autenticado: false, mensaje: 'Sesión expirada o inválida' };
-  }
-}
-
 export default async function handler(req, res) {
   try {
     if (req.method !== 'GET') return okJson(res, { error: 'Método no permitido' }, 405);
@@ -163,24 +124,26 @@ export default async function handler(req, res) {
       return okJson(res, { error: 'tarea_id inválido' }, 400);
     }
 
-    // Verificar sesión del usuario
-    const session = await verifySession(req);
-    if (!session.autenticado || !session.usuario?.id) {
-      return okJson(res, { 
-        mostrar: false, 
-        motivo: session.mensaje || 'Inicia sesión para ver recomendaciones.',
-        calificacion: null
-      }, 401);
+    // Verificar sesión y obtener usuario actual
+    const session = await readSession(req);
+    if (!session) {
+      return res.status(401).json({ error: 'No autenticado' });
     }
-    
-    const estudiante_id = Number(session.usuario.id);
+
+    // Obtener ID de estudiante (por defecto el usuario actual, a menos que sea profesor)
+    const estudianteId = parseInt(req.query.estudiante_id) || session.id;
+  
+    // Control de acceso: solo el propio estudiante o un profesor pueden ver las recomendaciones
+    if (session.rol !== 'profesor' && estudianteId !== session.id) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
 
     const conn = await pool.getConnection();
     try {
       const tarea = await getTarea(conn, tarea_id);
       if (!tarea) return okJson(res, { error: 'Tarea no existe' }, 404);
 
-      const calificacion = await getCalificacion(conn, tarea_id, estudiante_id);
+      const calificacion = await getCalificacion(conn, tarea_id, estudianteId);
 
       // Política: recomendar sólo si calificación ≤ 7 (si es null, no recomendar)
       if (calificacion == null || calificacion > 7) {

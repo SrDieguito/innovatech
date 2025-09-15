@@ -2,15 +2,13 @@ import express from "express";
 import mysql from "mysql2/promise";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-import { serialize } from "cookie";
-import cookieParser from "cookie-parser"; // 🔹 Importamos cookie-parser
+import { createSessionCookie } from "./_utils/session.js";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser()); // 🔹 Habilitamos el middleware para manejar cookies
 
 // Ruta de login
 app.post("/api/procesarlogin", async (req, res) => {
@@ -30,7 +28,11 @@ app.post("/api/procesarlogin", async (req, res) => {
             port: process.env.DB_PORT,
         });
 
-        const sql = "SELECT id, nombre, password, rol FROM usuarios WHERE email = ? AND aprobado = 1";
+        const sql = `
+            SELECT id, nombre, email, password, rol 
+            FROM usuarios 
+            WHERE email = ? AND aprobado = 1
+        `;
         const [results] = await conn.execute(sql, [email]);
 
         if (results.length === 0) {
@@ -44,15 +46,27 @@ app.post("/api/procesarlogin", async (req, res) => {
             return res.status(401).json({ error: "Contraseña incorrecta" });
         }
 
-        // Configurar la cookie con el user_id en lugar de un token manual
-        res.setHeader("Set-Cookie", serialize("user_id", String(user.id), {
-            httpOnly: true, 
-            secure: true, // Cambia a false si pruebas en localhost
-            sameSite: "None",
-            path: "/"
-        }));
+        // Crear sesión JWT
+        const sessionCookie = await createSessionCookie({
+            id: user.id,
+            nombre: user.nombre,
+            email: user.email,
+            rol: user.rol
+        });
 
-        return res.json({ redirect: user.rol === "admin" ? "/admin.html" : "/views/homeuser.html" });
+        // Configurar la cookie de sesión segura
+        res.setHeader('Set-Cookie', sessionCookie);
+
+        return res.json({ 
+            success: true,
+            redirect: user.rol === "admin" ? "/admin.html" : "/views/homeuser.html",
+            user: {
+                id: user.id,
+                nombre: user.nombre,
+                email: user.email,
+                rol: user.rol
+            }
+        });
     } catch (error) {
         console.error("Error en el servidor:", error);
         return res.status(500).json({ error: "Error en el servidor" });
