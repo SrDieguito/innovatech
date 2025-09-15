@@ -1,42 +1,41 @@
 // api/_utils/session.js
 import { SignJWT, jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'dev-secret-change');
-const COOKIE_NAME = 'edutech_session';
+const secret = new TextEncoder().encode(process.env.SESSION_SECRET || 'dev-secret');
+const cookieName = 'session';
 
 export async function createSessionCookie(payload, maxAgeSeconds = 60 * 60 * 24 * 7) {
   const token = await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(`${maxAgeSeconds}s`)
-    .sign(JWT_SECRET);
+    .sign(secret);
 
   const cookie = [
-    `${COOKIE_NAME}=${token}`,
+    `${cookieName}=${token}`,
     `Path=/`,
     `HttpOnly`,
     `SameSite=Lax`,
-    ...(process.env.NODE_ENV === 'production' ? ['Secure'] : []),
+    // En prod, si usas HTTPS:
+    // `Secure`,
     `Max-Age=${maxAgeSeconds}`
   ].join('; ');
   return cookie;
 }
 
-export async function readSession(req) {
+export async function getUserFromRequest(req) {
   try {
-    const raw = req.headers.cookie || '';
-    const kv = raw.split(';').map(s => s.trim());
-    const pair = kv.find(s => s.startsWith(COOKIE_NAME + '='));
-    if (!pair) return null;
-    const token = pair.split('=')[1];
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload; // { id, nombre, rol, email, ... }
-  } catch (error) {
-    console.error('Error reading session:', error);
+    const cookies = req.headers.cookie || '';
+    const match = cookies.split('; ').find(c => c.startsWith(`${cookieName}=`));
+    if (!match) return null;
+    const token = match.split('=')[1];
+    const { payload } = await jwtVerify(token, secret);
+    return payload; // { id, rol, nombre, email, ... }
+  } catch {
     return null;
   }
 }
 
 export function clearSessionCookie() {
-  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+  return [`${cookieName}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`].join('; ');
 }
