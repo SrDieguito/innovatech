@@ -111,7 +111,45 @@ function okJson(res, data, status=200) {
   res.end(JSON.stringify(data));
 }
 
-import { resolveUser } from './_utils/auth.js';
+import { parse } from 'cookie';
+import { jwtVerify } from 'jose';
+
+const secret = new TextEncoder().encode(process.env.SESSION_SECRET || 'dev-secret');
+const cookieName = 'session';
+
+async function verifySession(req) {
+  try {
+    if (!req.headers.cookie) {
+      return { autenticado: false, mensaje: 'No hay sesión activa' };
+    }
+
+    const cookies = parse(req.headers.cookie);
+    const token = cookies[cookieName];
+
+    if (!token) {
+      return { autenticado: false, mensaje: 'No hay token de sesión' };
+    }
+
+    const { payload } = await jwtVerify(token, secret);
+    
+    if (!payload?.id) {
+      return { autenticado: false, mensaje: 'Token inválido' };
+    }
+
+    return {
+      autenticado: true,
+      usuario: {
+        id: payload.id,
+        rol: payload.rol,
+        nombre: payload.nombre,
+        email: payload.email
+      }
+    };
+  } catch (error) {
+    console.error('Error al verificar la sesión:', error);
+    return { autenticado: false, mensaje: 'Sesión expirada o inválida' };
+  }
+}
 
 export default async function handler(req, res) {
   try {
@@ -125,22 +163,17 @@ export default async function handler(req, res) {
       return okJson(res, { error: 'tarea_id inválido' }, 400);
     }
 
-    // Obtener usuario autenticado
-    console.log('Cookies recibidas:', req.headers.cookie);
-    const me = await resolveUser(req);
-    console.log('Usuario resuelto:', me);
-    if (!me?.id) {
+    // Verificar sesión del usuario
+    const session = await verifySession(req);
+    if (!session.autenticado || !session.usuario?.id) {
       return okJson(res, { 
         mostrar: false, 
-        motivo: 'Inicia sesión para ver recomendaciones.', 
-        calificacion: null,
-        debug: {
-          cookies: req.headers.cookie,
-          resolvedUser: me
-        }
-      });
+        motivo: session.mensaje || 'Inicia sesión para ver recomendaciones.',
+        calificacion: null
+      }, 401);
     }
-    const estudiante_id = Number(me.id);
+    
+    const estudiante_id = Number(session.usuario.id);
 
     const conn = await pool.getConnection();
     try {
