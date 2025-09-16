@@ -1,0 +1,79 @@
+/* Typography */
+@font-face {
+  font-family: 'Noto Sans';
+  src: url('https://cdn-next.b2match.com/e/fonts/NotoSans-Regular.woff2') format('woff2'),
+       url('https://cdn-next.b2match.com/e/fonts/NotoSans-Regular.woff') format('woff'),
+       url('https://cdn-next.b2match.com/e/fonts/NotoSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans';
+  src: url('https://cdn-next.b2match.com/e/fonts/NotoSans-SemiBold.woff2') format('woff2'),
+       url('https://cdn-next.b2match.com/e/fonts/NotoSans-SemiBold.woff') format('woff'),
+       url('https://cdn-next.b2match.com/e/fonts/NotoSans-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans';
+  src: url('https://cdn-next.b2match.com/e/fonts/NotoSans-Bold.woff2') format('woff2'),
+       url('https://cdn-next.b2match.com/e/fonts/NotoSans-Bold.woff') format('woff'),
+       url('https://cdn-next.b2match.com/e/fonts/NotoSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+body {
+  font-family: var(--font-primary);
+  color: var(--color-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-md);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.75rem; }
+h4 { font-size: 1.5rem; }
+h5 { font-size: 1.25rem; }
+h6 { font-size: 1rem; }
+
+p {
+  margin-top: 0;
+  margin-bottom: var(--spacing-md);
+  line-height: 1.8;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+  color: darken(var(--color-primary), 10%);
+  text-decoration: underline;
+}
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-uppercase { text-transform: uppercase; }
+.text-lowercase { text-transform: lowercase; }
+.text-capitalize { text-transform: capitalize; }
+
+.font-weight-light { font-weight: 300; }
+.font-weight-normal { font-weight: 400; }
+.font-weight-medium { font-weight: 500; }
+.font-weight-semibold { font-weight: 600; }
+.font-weight-bold { font-weight: 700; }

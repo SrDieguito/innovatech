@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>InnovaTech - Plataforma Educativa</title>
     <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet">
     <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'>
@@ -16,68 +16,88 @@
 </head>
 
 <body>
-    <div>
-        <header class="sc-400fb3e-0 bWWaGg">
-            <div class="max-w-[1100px] mx-auto px-4 flex flex-wrap justify-between items-center">
-                <div class="sc-c592f796-0 chTJIG">
-                    <div class="TabGroup__Container-sc-1k1eo94-0 eIWsfq sc-c592f796-1 ktHNXA">
-                        <img src="/imagenes/UTM-logo.gif" alt="UTM-logo" width="200">
-                    </div>
+    <div class="page">
+        <header class="header">
+            <div class="header__container">
+                <div class="header__logo">
+                    <a href="/" class="header__logo-link">
+                        <img src="/imagenes/UTM-logo.gif" alt="UTM Logo" class="header__logo-image">
+                    </a>
                 </div>
-                <div class="sc-3c285138-0 euyxOI ml-8 d-none d-laptop-flex">
-                    <div class="sc-3c285138-2 gzCmhI hide-empty">
-                        <button type="button" class="Button__StyledButton-sc-1gfts8g-0 gMZAES btn_loing"
-                            onclick="window.location.href='/auth/login.html'">Iniciar sesión</button>
-                    </div>
-                </div>
-                <div class="sc-3c285138-0 euyxOI ml-auto d-none d-tablet-flex d-laptop-none">
-                    <div class="sc-3c285138-2 gzCmhI hide-empty">
-                        <button type="button" class="Button__StyledButton-sc-1gfts8g-0 gMZAES btn_loing"
-                            onclick="window.location.href='/auth/login.html'">Iniciar sesión</button>
-                    </div>
-                </div>
-                <div class="sc-3f224cfc-0 iBuIbN ml-24 mr-16 d-none d-tablet-flex d-laptop-none">
-                    <button type="button" aria-label="Abrir navegación"
-                        class="IconButton__StyledIconButton-sc-o4nnl7-0 dMqGsV">
-                        <svg color="rgba(35, 35, 35, 1)" width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true"
-                            class="Icon-sc-2q4m72-0 ktcoGv">
-                            <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M2 6C2 5.44772 2.44772 5 3 5H21C21.5523 5 22 5.44772 22 6C22 6.55228 21.5523 7 21 7H3C2.44772 7 2 6.55228 2 6ZM2 12C2 11.4477 2.44772 11 3 11H21C21.5523 11 22 11.4477 22 12C22 12.5523 21.5523 13 21 13H3C2.44772 13 2 12.5523 2 12ZM3 17C2.44772 17 2 17.4477 2 18C2 18.5523 2.44772 19 3 19H21C21.5523 19 22 18.5523 22 18C22 17.4477 21.5523 17 21 17H3Z"
-                                fill="currentColor"></path>
-                        </svg>
+                
+                <div class="header__auth header__auth--desktop">
+                    <button type="button" class="button button--primary"
+                        onclick="window.location.href='/auth/login.html'">
+                        Iniciar sesión
                     </button>
                 </div>
-                <div class="sc-3f224cfc-0 iBuIbN ml-auto mr-16 d-tablet-none">
-                    <button type="button" aria-label="Abrir navegación"
-                        class="IconButton__StyledIconButton-sc-o4nnl7-0 dMqGsV">
-                        <svg color="rgba(35, 35, 35, 1)" width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true"
-                            class="Icon-sc-2q4m72-0 ktcoGv">
-                            <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M2 6C2 5.44772 2.44772 5 3 5H21C21.5523 5 22 5.44772 22 6C22 6.55228 21.5523 7 21 7H3C2.44772 7 2 6.55228 2 6ZM2 12C2 11.4477 2.44772 11 3 11H21C21.5523 11 22 11.4477 22 12C22 12.5523 21.5523 13 21 13H3C2.44772 13 2 12.5523 2 12ZM3 17C2.44772 17 2 17.4477 2 18C2 18.5523 2.44772 19 3 19H21C21.5523 19 22 18.5523 22 18C22 17.4477 21.5523 17 21 17H3Z"
-                                fill="currentColor"></path>
-                        </svg>
+                
+                <div class="header__auth header__auth--tablet">
+                    <button type="button" class="button button--primary"
+                        onclick="window.location.href='/auth/login.html'">
+                        Iniciar sesión
+                    </button>
+                </div>
+                
+                <div class="header__menu-toggle header__menu-toggle--tablet">
+                    <button type="button" class="menu-button" aria-label="Abrir menú de navegación">
+                        <span class="menu-button__icon"></span>
+                        <span class="menu-button__icon"></span>
+                        <span class="menu-button__icon"></span>
+                    </button>
+                </div>
+                
+                <div class="header__menu-toggle header__menu-toggle--mobile">
+                    <button type="button" class="menu-button" aria-label="Abrir menú de navegación">
+                        <span class="menu-button__icon"></span>
+                        <span class="menu-button__icon"></span>
+                        <span class="menu-button__icon"></span>
                     </button>
                 </div>
             </div>
         </header>
 
-        <div class="sc-33f09716-0 gtMYgZ">
-            <div class="TabGroup__Container-sc-1k1eo94-0 eIWsfq w-100">
-                <div class="TabGroup__Wrapper-sc-1k1eo94-1 YAXmj">
-                    <a class="TabLink__TabAnchor-sc-e9hfzw-0 bATmFG text-uppercase px-24 px-tablet-40"
-                        id="btnNav_Inicio" href="/views//views/index.html" tabindex="0">Inicio</a>
-                    <a class="TabLink__TabAnchor-sc-e9hfzw-0 bATmFG text-uppercase px-24 px-tablet-40"
-                        id="btnNav_Metodologia" href="/views/metodologias.html" tabindex="0">¿Quiénes somos?</a>
-                    <a class="TabLink__TabAnchor-sc-e9hfzw-0 bATmFG text-uppercase px-24 px-tablet-40"
-                        id="btnNav_Retos" href="/views/retos.html" tabindex="0">¿Cómo funciona?</a>
-                    <a class="TabLink__TabAnchor-sc-e9hfzw-0 bATmFG text-uppercase px-24 px-tablet-40"
-                        id="btnNav_Actividades" href="/views/" tabindex="0">Actividades</a>
-                </div>
+        <nav class="main-nav">
+            <div class="main-nav__container">
+                <ul class="main-nav__list">
+                    <li class="main-nav__item">
+                        <a href="/views/index.html" class="main-nav__link main-nav__link--active" id="btnNav_Inicio">
+                            Inicio
+                        </a>
+                    </li>
+                    <li class="main-nav__item">
+                        <a href="/views/metodologias.html" class="main-nav__link" id="btnNav_Metodologia">
+                            ¿Quiénes somos?
+                        </a>
+                    </li>
+                    <li class="main-nav__item">
+                        <a href="/views/retos.html" class="main-nav__link" id="btnNav_Retos">
+                            ¿Cómo funciona?
+                        </a>
+                    </li>
+                    <li class="main-nav__item">
+                        <a href="/views/" class="main-nav__link" id="btnNav_Actividades">
+                            Actividades
+                        </a>
+                    </li>
+                </ul>
             </div>
-        </div>
+        </nav>
     </div>
 
     <script>
+        // JavaScript para el menú móvil
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuButtons = document.querySelectorAll('.menu-button');
+            const nav = document.querySelector('.main-nav');
+            
+            menuButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    nav.classList.toggle('main-nav--active');
+                    document.body.classList.toggle('no-scroll');
+                });
+            });
+        });
     </script>
 </body>
 

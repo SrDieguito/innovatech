@@ -1,0 +1,78 @@
+/* Metodos component styles */
+.metodos {
+    user-select: none;
+}
+
+.metodos * {
+    color: rgba(35, 35, 35, 1);
+}
+
+.metodos input {
+    user-select: auto;
+}
+
+.metodos__container {
+    display: flex;
+    flex-direction: row;
+    gap: 60px;
+    border: 1px solid black;
+    border-radius: 7px;
+    padding: 50px;
+    align-items: center;
+    justify-content: center;
+}
+
+.metodos__image {
+    width: 350px;
+    height: 350px;
+}
+
+.metodos__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.metodos__title {
+    color: rgb(206, 45, 40);
+    font-size: 30px;
+    font-weight: bold;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.metodos__list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.metodos__item {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 12px;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.metodos__item:last-child {
+    margin-bottom: 0;
+}
+
+.metodos__item-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+    max-width: 350px;
+    margin: 0;
+}
+
+.metodos__item-date {
+    font-size: 12px;
+    font-weight: 300;
+    margin: 0;
+}

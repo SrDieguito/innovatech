@@ -1,198 +1,45 @@
-
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
-    <style>
-        * {
-            user-select: none;
-            color: rgba(35, 35, 35, 1);
-
-            /* Desactivar selección de texto */
-        }
-
-        /* Permitir selección de texto en los elementos input */
-        input {
-            user-select: auto;
-            /* Permitir selección de texto */
-        }
-
-        .container1 {
-            display: flex;
-            flex-direction: row;
-            gap: 60px;
-            border: 1px solid black;
-            border-radius: 7px;
-            padding: 50px;
-            align-items: center;
-            justify-content: center;
-        }
-
-        
-     
-        .item.metodo {
-            display: flex;
-            flex-direction: row;
-            margin-bottom: 12px;
-            align-items: center;
-            gap:8px;
-            justify-content: space-between;
-        }
-
-        .item.metodo .title {
-            font-size: 12px;
-            font-weight:600;
-            text-transform: capitalize;
-            max-width: 350px;
-        }
-        .item.metodo .date {
-            font-size: 12px;
-            font-weight: 300;
-        }
-
-        
-    </style>
-</head>
-
-<body>
-    <div class="container1">
-        <img src="/imagenes/Prototyping.png" width="350" height="350">
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-            <h2 style="color: rgb(206, 45, 40); font-size: 30px; font-weight: bold;">Metodología/Hitos <br/>(Prototipos)</h2>
-            <div style="display:flex;flex-direction: column; gap: 7px;">
-                <div class="item metodo">
-                    <span class="title">lanzamiento</span>
-                    <span class="date">25 julio</span>
-                </div>
-                <div class="item metodo">
-                    <span class="title">promoción</span>
-                    <span class="date">30 Agosto</span>
-                </div>
-                <div class="item metodo">
-                    <span class="title">inscripción</span>
-                    <span class="date">22 septiembre</span>
-                </div>
-                <div class="item metodo">
-                    <span class="title">validación</span>
-                    <span class="date">29 septiembre</span>
-                </div>
-                <div class="item metodo">
-                    <span class="title">mejoras técnicas modelos de negocio</span>
-                    <span class="date">30 octubre</span>
-                </div>
-                <div class="item metodo">
-                    <span class="title">evaluación soluciones y reunion con inversores</span>
-                    <span class="date">18 y 19 agosto</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-
-</html>
-
-
-<!--
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Métodos</title>
-    <style>
-        /* Estilos para el contenedor principal */
-        .container {
-            display: flex;
-            flex-direction: column;
-            gap: 7px; /* Espacio entre los elementos */
-        }
-        /* Estilos para cada item */
-        .item {
-            padding: 10px;
-            border: 1px solid #ccc; /* Borde gris claro */
-            border-radius: 5px; /* Bordes redondeados */
-        }
-        /* Estilos para el título */
-        .title {
-            font-weight: bold; /* Texto en negrita */
-        }
-    </style>
+    <title>Metodología/Hitos - Innovatech</title>
+    <link rel="stylesheet" href="/css/metodos.css">
 </head>
-<body>
 
- Contenedor principal donde se añadirá el nuevo contenedor
-<div id="root"></div>
-
-<script>
-    // Array de objetos que contiene los datos de los métodos
-    const metodos = [
-        { "title": "lanzamiento", "date": "25 julio" },
-        { "title": "promoción", "date": "30 Agosto" },
-        { "title": "inscripción", "date": "22 septiembre" },
-        { "title": "validación", "date": "29 septiembre" },
-        { "title": "mejoras técnicas modelos de negocio", "date": "30 octubre" },
-        { "title": "evaluación soluciones y reunion con inversores", "date": "18 y 19 agosto" }
-    ];
-
-    // Selecciona el contenedor principal
-    const root = document.getElementById('root');
-
-    // Crea un nuevo div para el contenedor principal
-    const mainContainer = document.createElement('div');
-    mainContainer.id = 'main-container';
-
-    // Crea un h2 para el título
-    const title = document.createElement('h2');
-    title.textContent = 'Lista de Métodos';
-
-    // Crea una imagen
-    const image = document.createElement('img');
-    image.src = 'ruta/a/tu/imagen.jpg';
-    image.alt = 'Descripción de la imagen';
-
-    // Crea el contenedor para los métodos
-    const metodosContainer = document.createElement('div');
-    metodosContainer.id = 'metodos';
-    metodosContainer.className = 'container';
-
-    // Añade el título, la imagen y el contenedor de métodos al contenedor principal
-    mainContainer.appendChild(title);
-    mainContainer.appendChild(image);
-    mainContainer.appendChild(metodosContainer);
-
-    // Añade el contenedor principal al root
-    root.appendChild(mainContainer);
-
-    // Itera sobre cada método en el array y añade los elementos al contenedor de métodos
-    metodos.forEach(metodo => {
-        // Crea un nuevo div para cada método
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'item metodo';
-
-        // Crea un nuevo span para el título
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'title';
-        titleSpan.textContent = metodo.title;
-
-        // Crea un nuevo span para la fecha
-        const dateSpan = document.createElement('span');
-        dateSpan.className = 'date';
-        dateSpan.textContent = metodo.date;
-
-        // Añade el span del título al div del método
-        itemDiv.appendChild(titleSpan);
-        // Añade el span de la fecha al div del método
-        itemDiv.appendChild(dateSpan);
-        // Añade el div del método al contenedor de métodos
-        metodosContainer.appendChild(itemDiv);
-    });
-</script>
-
+<body class="metodos">
+    <div class="metodos__container">
+        <img src="/imagenes/Prototyping.png" alt="Prototipado" class="metodos__image">
+        <div class="metodos__content">
+            <h2 class="metodos__title">Metodología/Hitos <span class="metodos__title--highlight">(Prototipos)</span></h2>
+            <ul class="metodos__list">
+                <li class="metodos__item">
+                    <span class="metodos__item-title">lanzamiento</span>
+                    <span class="metodos__item-date">25 julio</span>
+                </li>
+                <li class="metodos__item">
+                    <span class="metodos__item-title">promoción</span>
+                    <span class="metodos__item-date">30 Agosto</span>
+                </li>
+                <li class="metodos__item">
+                    <span class="metodos__item-title">inscripción</span>
+                    <span class="metodos__item-date">22 septiembre</span>
+                </li>
+                <li class="metodos__item">
+                    <span class="metodos__item-title">validación</span>
+                    <span class="metodos__item-date">29 septiembre</span>
+                </li>
+                <li class="metodos__item">
+                    <span class="metodos__item-title">mejoras técnicas modelos de negocio</span>
+                    <span class="metodos__item-date">30 octubre</span>
+                </li>
+                <li class="metodos__item">
+                    <span class="metodos__item-title">evaluación soluciones y reunion con inversores</span>
+                    <span class="metodos__item-date">18 y 19 agosto</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <script src="/js/metodos.js"></script>
 </body>
 </html>
--->
