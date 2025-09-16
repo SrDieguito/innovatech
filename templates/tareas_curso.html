@@ -4,57 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tareas del Curso - Innovatech</title>
+    
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
     <link href="/css/estilos.css" rel="stylesheet">
     <link href="/css/animacion.css" rel="stylesheet">
-    <style>
-        .tarea-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-left: 4px solid #0d6efd;
-        }
-        .tarea-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .tarea-vencida {
-            border-left-color: #dc3545;
-        }
-        .tarea-completada {
-            border-left-color: #198754;
-            opacity: 0.8;
-        }
-        .tarea-pendiente {
-            border-left-color: #ffc107;
-        }
-    </style>
+    <link href="/css/tareas_curso.css" rel="stylesheet">
 </head>
-<body>
+<body class="tareas-curso">
     <!-- Header -->
     <div id="header-placeholder"></div>
 
-    <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0"><i class="bi bi-journal-text me-2"></i>Tareas del Curso</h2>
-            <div>
+    <main class="container">
+        <header class="tareas-curso__header">
+            <h1 class="tareas-curso__title">
+                <i class="bi bi-journal-text"></i> Tareas del Curso
+            </h1>
+            <div class="tareas-curso__actions">
                 <a href="#" id="btn-nueva-tarea" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Nueva Tarea
                 </a>
-                <a href="#" id="btn-volver" class="btn btn-outline-secondary ms-2">
+                <a href="#" id="btn-volver" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Volver al Curso
                 </a>
             </div>
-        </div>
+        </header>
 
         <div class="row">
-            <div class="col-md-3 mb-4">
+            <!-- Filtros -->
+            <aside class="col-md-3">
                 <div class="card">
                     <div class="card-header bg-light">
-                        <h5 class="mb-0">Filtros</h5>
+                        <h2 class="h5 mb-0">Filtros</h2>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label">Estado</label>
+                        <div class="tareas-curso__filtro-grupo">
+                            <label class="tareas-curso__filtro-label">Estado</label>
                             <div class="form-check">
                                 <input class="form-check-input filtro-estado" type="checkbox" value="pendientes" id="filtro-pendientes" checked>
                                 <label class="form-check-label" for="filtro-pendientes">Pendientes</label>
@@ -68,8 +56,8 @@
                                 <label class="form-check-label" for="filtro-vencidas">Vencidas</label>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="filtro-fecha" class="form-label">Fecha límite</label>
+                        <div class="tareas-curso__filtro-grupo">
+                            <label for="filtro-fecha" class="tareas-curso__filtro-label">Fecha límite</label>
                             <select class="form-select" id="filtro-fecha">
                                 <option value="todas">Todas las fechas</option>
                                 <option value="hoy">Hoy</option>
@@ -77,24 +65,25 @@
                                 <option value="mes">Este mes</option>
                             </select>
                         </div>
-                        <button id="btn-aplicar-filtros" class="btn btn-sm btn-primary w-100">Aplicar Filtros</button>
+                        <button id="btn-aplicar-filtros" class="btn btn-sm btn-primary w-100 mt-3">
+                            Aplicar Filtros
+                        </button>
                     </div>
                 </div>
-            </div>
+            </aside>
 
+            <!-- Lista de tareas -->
             <div class="col-md-9">
-                <div id="sin-tareas" class="text-center py-5" style="display: none;">
-                    <div class="text-muted">
-                        <i class="bi bi-journal-x" style="font-size: 3rem;"></i>
-                        <p class="mt-3">No hay tareas para mostrar con los filtros actuales</p>
-                    </div>
+                <div id="sin-tareas" class="tareas-curso__empty" style="display: none;">
+                    <i class="bi bi-journal-x tareas-curso__empty-icon"></i>
+                    <p>No hay tareas para mostrar con los filtros actuales</p>
                 </div>
                 <div id="lista-tareas">
                     <!-- Las tareas se cargarán aquí dinámicamente -->
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Modal para confirmar eliminación -->
     <div class="modal fade" id="modalEliminarTarea" tabindex="-1" aria-hidden="true">
@@ -102,14 +91,18 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Confirmar eliminación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     ¿Estás seguro de que deseas eliminar esta tarea? Esta acción no se puede deshacer.
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-danger" id="btn-confirmar-eliminar">Eliminar</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" id="btn-confirmar-eliminar">
+                        <i class="bi bi-trash me-1"></i> Eliminar
+                    </button>
                 </div>
             </div>
         </div>
@@ -122,259 +115,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/headers.js"></script>
+    <script src="/js/tareas_curso.js"></script>
+    <!-- Scripts de inicialización -->
     <script>
-        let cursoId = null;
-        let tareaAEliminar = null;
-        const modalEliminar = new bootstrap.Modal(document.getElementById('modalEliminarTarea'));
-
         // Cargar el header y footer
         document.addEventListener('DOMContentLoaded', async () => {
-            // Obtener el ID del curso de la URL
-            const urlParams = new URLSearchParams(window.location.search);
-            cursoId = urlParams.get('curso_id');
-            
-            if (!cursoId) {
-                mostrarError('No se ha especificado el curso');
-                return;
-            }
-
             // Cargar el header y footer
             await loadHeader();
             loadFooter();
-
-            // Configurar eventos
-            document.getElementById('btn-nueva-tarea').addEventListener('click', (e) => {
-                e.preventDefault();
-                window.location.href = `/templates/agregar_tarea.html?curso_id=${cursoId}`;
-            });
-
-            document.getElementById('btn-volver').addEventListener('click', (e) => {
-                e.preventDefault();
-                window.location.href = `/curso-detalle.html?curso_id=${cursoId}`;
-            });
-
-            document.getElementById('btn-aplicar-filtros').addEventListener('click', cargarTareas);
-            document.getElementById('btn-confirmar-eliminar').addEventListener('click', eliminarTarea);
-
-            // Cargar las tareas
-            await cargarTareas();
         });
-
-        // Función para cargar las tareas del curso
-        async function cargarTareas() {
-            try {
-                const response = await fetch(`/api/tareas?action=listar&curso_id=${cursoId}`, {
-                    credentials: 'include'
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error al cargar las tareas');
-                }
-
-                const tareas = await response.json();
-                mostrarTareas(tareas);
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarError('Error al cargar las tareas');
-            }
-        }
-
-        // Función para mostrar las tareas en la interfaz
-        function mostrarTareas(tareas) {
-            const listaTareas = document.getElementById('lista-tareas');
-            const sinTareas = document.getElementById('sin-tareas');
-            
-            if (!tareas || tareas.length === 0) {
-                listaTareas.innerHTML = '';
-                sinTareas.style.display = 'block';
-                return;
-            }
-
-            // Obtener filtros
-            const mostrarPendientes = document.getElementById('filtro-pendientes').checked;
-            const mostrarCompletadas = document.getElementById('filtro-completadas').checked;
-            const mostrarVencidas = document.getElementById('filtro-vencidas').checked;
-            const filtroFecha = document.getElementById('filtro-fecha').value;
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-
-            // Filtrar tareas
-            const tareasFiltradas = tareas.filter(tarea => {
-                const fechaLimite = new Date(tarea.fecha_limite);
-                const esVencida = fechaLimite < hoy;
-                const esCompletada = tarea.completada || false;
-                const esPendiente = !esCompletada && !esVencida;
-
-                // Aplicar filtros de estado
-                if ((esPendiente && !mostrarPendientes) || 
-                    (esCompletada && !mostrarCompletadas) || 
-                    (esVencida && !mostrarVencidas)) {
-                    return false;
-                }
-
-                // Aplicar filtro de fecha
-                if (filtroFecha !== 'todas') {
-                    const fechaInicio = new Date(hoy);
-                    let fechaFin = new Date(hoy);
-
-                    if (filtroFecha === 'hoy') {
-                        fechaFin.setDate(fechaFin.getDate() + 1);
-                    } else if (filtroFecha === 'semana') {
-                        fechaFin.setDate(fechaFin.getDate() + 7);
-                    } else if (filtroFecha === 'mes') {
-                        fechaFin.setMonth(fechaFin.getMonth() + 1);
-                    }
-
-                    return fechaLimite >= fechaInicio && fechaLimite < fechaFin;
-                }
-
-                return true;
-            });
-
-            // Mostrar mensaje si no hay tareas con los filtros actuales
-            if (tareasFiltradas.length === 0) {
-                listaTareas.innerHTML = '';
-                sinTareas.style.display = 'block';
-                return;
-            }
-
-            // Ordenar tareas por fecha límite (más cercana primero)
-            tareasFiltradas.sort((a, b) => new Date(a.fecha_limite) - new Date(b.fecha_limite));
-
-            // Generar HTML de las tareas
-            let html = '';
-            tareasFiltradas.forEach(tarea => {
-                const fechaLimite = new Date(tarea.fecha_limite);
-                const esVencida = fechaLimite < hoy;
-                const esCompletada = tarea.completada || false;
-                
-                let claseEstado = '';
-                if (esCompletada) {
-                    claseEstado = 'tarea-completada';
-                } else if (esVencida) {
-                    claseEstado = 'tarea-vencida';
-                } else {
-                    claseEstado = 'tarea-pendiente';
-                }
-
-                html += `
-                    <div class="card mb-3 tarea-card ${claseEstado}" data-tarea-id="${tarea.id}">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h5 class="card-title">${tarea.titulo}</h5>
-                                    <p class="card-text text-muted">${tarea.descripcion || 'Sin descripción'}</p>
-                                    <div class="d-flex align-items-center mt-2">
-                                        <span class="badge bg-${esCompletada ? 'success' : esVencida ? 'danger' : 'warning'} me-2">
-                                            ${esCompletada ? 'Completada' : esVencida ? 'Vencida' : 'Pendiente'}
-                                        </span>
-                                        <small class="text-muted">
-                                            <i class="bi bi-calendar-event me-1"></i>
-                                            Vence: ${formatearFecha(fechaLimite)}
-                                        </small>
-                                        ${tarea.puntos ? `<small class="ms-2"><i class="bi bi-star-fill text-warning"></i> ${tarea.puntos} pts</small>` : ''}
-                                    </div>
-                                </div>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="/templates/editar_tarea.html?curso_id=${cursoId}&tarea_id=${tarea.id}"><i class="bi bi-pencil me-2"></i>Editar</a></li>
-                                        <li><a class="dropdown-item text-danger" href="#" onclick="solicitarEliminacion(event, ${tarea.id}, '${tarea.titulo}')"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            listaTareas.innerHTML = html;
-            sinTareas.style.display = 'none';
-        }
-
-        // Función para formatear fechas
-        function formatearFecha(fecha) {
-            return new Date(fecha).toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        // Función para solicitar confirmación antes de eliminar una tarea
-        function solicitarEliminacion(event, tareaId, tituloTarea) {
-            event.preventDefault();
-            tareaAEliminar = tareaId;
-            
-            Swal.fire({
-                title: '¿Eliminar tarea?',
-                text: `¿Estás seguro de que deseas eliminar la tarea "${tituloTarea}"? Esta acción no se puede deshacer.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    eliminarTarea();
-                }
-            });
-        }
-
-        // Función para eliminar una tarea
-        async function eliminarTarea() {
-            if (!tareaAEliminar) return;
-
-            try {
-                const response = await fetch(`/api/tareas?action=eliminar&tarea_id=${tareaAEliminar}`, {
-                    method: 'DELETE',
-                    credentials: 'include'
-                });
-
-                if (response.ok) {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: '¡Eliminada!',
-                        text: 'La tarea ha sido eliminada correctamente.',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    
-                    // Recargar la lista de tareas
-                    await cargarTareas();
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Error al eliminar la tarea');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message || 'Ocurrió un error al eliminar la tarea',
-                    confirmButtonText: 'Entendido'
-                });
-            } finally {
-                tareaAEliminar = null;
-            }
-        }
-
-        // Función para mostrar errores
-        function mostrarError(mensaje) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: mensaje,
-                confirmButtonText: 'Aceptar'
-            }).then(() => {
-                window.location.href = '/cursos.html';
-            });
-        }
     </script>
 </body>
 </html>

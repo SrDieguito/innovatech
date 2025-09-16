@@ -1,0 +1,147 @@
+/* Tareas del Curso component styles */
+.tareas-curso {
+    padding: 2rem 0;
+}
+
+.tareas-curso__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.tareas-curso__title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tareas-curso__actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Filtros */
+.tareas-curso__filtros {
+    margin-bottom: 1.5rem;
+}
+
+.tareas-curso__filtro-grupo {
+    margin-bottom: 1rem;
+}
+
+.tareas-curso__filtro-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+/* Tarjeta de tarea */
+.tarea-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-left: 4px solid #0d6efd;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.tarea-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tarea-card__body {
+    padding: 1.25rem;
+}
+
+.tarea-card__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.tarea-card__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.tarea-card__descripcion {
+    color: #6c757d;
+    margin-bottom: 0.75rem;
+}
+
+.tarea-card__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.tarea-card__fecha {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.tarea-card__puntos {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+/* Estados de tarea */
+.tarea-card--completada {
+    border-left-color: #198754;
+    opacity: 0.8;
+}
+
+.tarea-card--vencida {
+    border-left-color: #dc3545;
+}
+
+.tarea-card--pendiente {
+    border-left-color: #ffc107;
+}
+
+/* Sin tareas */
+.tareas-curso__empty {
+    text-align: center;
+    padding: 3rem 0;
+    color: #6c757d;
+}
+
+.tareas-curso__empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tareas-curso__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .tareas-curso__actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .tareas-curso__actions .btn {
+        width: 100%;
+    }
+    
+    .tarea-card__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
