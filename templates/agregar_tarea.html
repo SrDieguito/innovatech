@@ -13,44 +13,50 @@
     <!-- Header -->
     <div id="header-placeholder"></div>
 
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0"><i class="bi bi-journal-plus me-2"></i>Nueva Tarea</h4>
+    <div class="tarea-form">
+        <div class="tarea-form__container">
+            <div class="tarea-form__wrapper">
+                <div class="tarea-form__card">
+                    <div class="tarea-form__header">
+                        <h4 class="tarea-form__title">
+                            <i class="bi bi-journal-plus tarea-form__icon"></i>Nueva Tarea
+                        </h4>
                     </div>
-                    <div class="card-body">
-                        <form id="form-tarea">
+                    <div class="tarea-form__body">
+                        <form id="form-tarea" class="tarea-form__form">
                             <input type="hidden" id="curso_id" name="curso_id">
                             
-                            <div class="mb-3">
-                                <label for="titulo" class="form-label">Título de la tarea *</label>
-                                <input type="text" class="form-control" id="titulo" name="titulo" required>
+                            <div class="tarea-form__group">
+                                <label for="titulo" class="tarea-form__label">Título de la tarea <span class="tarea-form__required">*</span></label>
+                                <input type="text" class="tarea-form__input" id="titulo" name="titulo" required>
                             </div>
                             
-                            <div class="mb-3">
-                                <label for="descripcion" class="form-label">Descripción</label>
-                                <textarea class="form-control" id="descripcion" name="descripcion" rows="4"></textarea>
+                            <div class="tarea-form__group">
+                                <label for="descripcion" class="tarea-form__label">Descripción</label>
+                                <textarea class="tarea-form__textarea" id="descripcion" name="descripcion" rows="4"></textarea>
                             </div>
                             
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="fecha_limite" class="form-label">Fecha límite *</label>
-                                    <input type="datetime-local" class="form-control" id="fecha_limite" name="fecha_limite" required>
+                            <div class="tarea-form__row">
+                                <div class="tarea-form__col tarea-form__col--half">
+                                    <div class="tarea-form__group">
+                                        <label for="fecha_limite" class="tarea-form__label">Fecha límite <span class="tarea-form__required">*</span></label>
+                                        <input type="datetime-local" class="tarea-form__input" id="fecha_limite" name="fecha_limite" required>
+                                    </div>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="puntos" class="form-label">Puntos (opcional)</label>
-                                    <input type="number" class="form-control" id="puntos" name="puntos" min="0" value="10">
+                                <div class="tarea-form__col tarea-form__col--half">
+                                    <div class="tarea-form__group">
+                                        <label for="puntos" class="tarea-form__label">Puntos <span class="tarea-form__optional">(opcional)</span></label>
+                                        <input type="number" class="tarea-form__input" id="puntos" name="puntos" min="0" value="10">
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="d-flex justify-content-between mt-4">
-                                <a href="#" class="btn btn-outline-secondary" id="btn-cancelar">
-                                    <i class="bi bi-x-circle me-1"></i> Cancelar
+                            <div class="tarea-form__actions">
+                                <a href="#" class="tarea-form__btn tarea-form__btn--secondary" id="btn-cancelar">
+                                    <i class="bi bi-x-circle tarea-form__btn-icon"></i> Cancelar
                                 </a>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-save me-1"></i> Guardar Tarea
+                                <button type="submit" class="tarea-form__btn tarea-form__btn--primary">
+                                    <i class="bi bi-save tarea-form__btn-icon"></i> Guardar Tarea
                                 </button>
                             </div>
                         </form>

@@ -1,0 +1,170 @@
+/* Tarea Form Component */
+.tarea-form {
+    padding: 2rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.tarea-form__container {
+    width: 100%;
+    padding: 0 1rem;
+}
+
+.tarea-form__wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.tarea-form__card {
+    background: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.tarea-form__header {
+    background-color: #3b82f6;
+    color: white;
+    padding: 1.25rem 1.5rem;
+}
+
+.tarea-form__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tarea-form__body {
+    padding: 1.5rem;
+}
+
+.tarea-form__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.tarea-form__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tarea-form__label {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.tarea-form__required {
+    color: #ef4444;
+}
+
+.tarea-form__optional {
+    font-weight: 400;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.tarea-form__input,
+.tarea-form__textarea {
+    padding: 0.625rem 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.tarea-form__input:focus,
+.tarea-form__textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.tarea-form__textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.tarea-form__row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -0.75rem;
+    gap: 1rem 0;
+}
+
+.tarea-form__col {
+    padding: 0 0.75rem;
+    flex: 1 0 0%;
+    min-width: 0;
+}
+
+.tarea-form__col--half {
+    flex: 0 0 100%;
+}
+
+.tarea-form__actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    gap: 1rem;
+}
+
+.tarea-form__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition: all 0.15s ease-in-out;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.tarea-form__btn--primary {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.tarea-form__btn--primary:hover {
+    background-color: #2563eb;
+}
+
+.tarea-form__btn--secondary {
+    background-color: #ffffff;
+    color: #374151;
+    border-color: #d1d5db;
+}
+
+.tarea-form__btn--secondary:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.tarea-form__btn-icon {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .tarea-form {
+        padding: 3rem 1.5rem;
+    }
+    
+    .tarea-form__body {
+        padding: 2rem;
+    }
+    
+    .tarea-form__col--half {
+        flex: 0 0 calc(50% - 0.5rem);
+    }
+}
