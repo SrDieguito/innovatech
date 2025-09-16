@@ -640,6 +640,9 @@ async function guardarCalificacion() {
   }
 }
 
+// Importar funciones de recomendaciones
+import { initActividadRecomendaciones } from './actividad-recomendaciones.js';
+
 // ---- Inicialización principal ----
 async function initActividad() {
   if(!cursoId || !tareaId) {
@@ -784,6 +787,11 @@ async function initActividad() {
     // Solo cargar comentarios si no es profesor
     if (!esProfesor) {
       await renderComentarios();
+      
+      // Inicializar recomendaciones si hay una calificación menor a 7
+      if (tarea.calificacion !== undefined && tarea.calificacion < 7) {
+        initActividadRecomendaciones(tareaId, cursoId, tarea.calificacion);
+      }
     }
     
   } catch(err) {

@@ -10,7 +10,8 @@
   
     <!-- Correcto: /public/css y /public/js se sirven desde / -->
     <link rel="stylesheet" href="/css/actividad.css" />
-    <script defer src="/js/actividad.js"></script>
+    <link rel="stylesheet" href="/css/recomendaciones.css" />
+    <script type="module" src="/js/actividad.js"></script>
   </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
@@ -84,6 +85,25 @@
             Enviar
           </button>
         </form>
+      </div>
+
+      <!-- Sección de recomendaciones (solo se muestra si la calificación es < 7) -->
+      <div id="recomendaciones-container" class="hidden mt-6">
+        <div class="recomendaciones-container">
+          <div class="recomendaciones-header">
+            <i class="fas fa-lightbulb"></i>
+            <h3>Recursos de aprendizaje recomendados</h3>
+          </div>
+          <div id="recomendaciones-loading" class="recomendaciones-loading">
+            <p><i class="fas fa-spinner fa-spin"></i> Buscando recursos para ti...</p>
+          </div>
+          <div id="recomendaciones-empty" class="recomendaciones-empty hidden">
+            <p>No se encontraron recursos de aprendizaje para esta actividad.</p>
+          </div>
+          <div id="recomendaciones-list" class="recomendaciones-list">
+            <!-- Las recomendaciones se cargarán aquí dinámicamente -->
+          </div>
+        </div>
       </div>
     </div>
 
