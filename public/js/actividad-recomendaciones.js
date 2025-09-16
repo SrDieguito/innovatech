@@ -97,8 +97,11 @@ function mostrarRecomendaciones(data) {
  * @param {number} calificacion - Calificación del estudiante (opcional)
  */
 async function initActividadRecomendaciones(tareaId, cursoId, calificacion) {
+  console.log('initActividadRecomendaciones called with:', { tareaId, cursoId, calificacion });
+  
   // Si hay una calificación y es mayor o igual a 7, no mostrar recomendaciones
   if (calificacion !== undefined && calificacion >= 7) {
+    console.log('No se muestran recomendaciones: calificación >= 7');
     return;
   }
   
@@ -107,8 +110,10 @@ async function initActividadRecomendaciones(tareaId, cursoId, calificacion) {
   loading.classList.remove('hidden');
   
   try {
+    console.log('Obteniendo recomendaciones...');
     // Obtener recomendaciones
     const data = await getRecomendaciones(tareaId, cursoId);
+    console.log('Respuesta de la API:', data);
     
     // Mostrar las recomendaciones
     mostrarRecomendaciones(data);
