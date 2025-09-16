@@ -1,103 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INNOVATECH III EDICIÓN</title>
+    <title>INNOVATECH III EDICIÓN - Retos</title>
+    
+    <!-- External CSS -->
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet'>
+    
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animacion.css">
+    <link rel="stylesheet" href="/css/retos.css">
 </head>
-<link href="vendor/bootstrap//css/bootstrap.min.css" rel="stylesheet">
-<link href="vendor/font-awesome//css/font-awesome.min.css" rel="stylesheet">
-<link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'>
-<link
-    href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
-    rel='stylesheet'>
-<link rel="stylesheet" href="/css/style.css">
-<link rel="stylesheet" href="/css/animacion.css">
-<style>
-    .retos:not(.retos.container) {
-        margin-top: 200px;
-        background-color: rgb(255, 255, 255);
-        gap: 40px;
-        margin-inline: 120px;
-        display: flex;
-        flex-direction: column;
-    }
-
-
-    .retos.container {
-        display: flex;
-        flex-direction: row-reverse;
-        gap: 30px;
-        align-items: center;
-        border: 1px solid rgba(0, 0, 0, 0.4);
-        box-shadow: 0px 0px 5px rgba(0, 73, 119, 0.327);
-        border-radius: 20px;
-        padding-block: 30px;
-        padding-inline: 40px;
-
-
-    }
-
-    .items_r {
-        display: flex;
-        flex-direction: row;
-        gap: 8px;
-        align-items: flex-end;
-        min-width: 350px;
-        position: relative;
-    }
-</style>
-
 
 <body>
-
-    <div class="retos">
-        <div>
-            <div class="fade-in-left retos container">
-                <div>
-                    <div class="items_r">
-                        <label style="font-size: 120px; font-weight: bold;">01</label>
-                        <h3 style="font-weight: bold; font-size: 40px; position: relative; top:-30px;text-transform: capitalize;">seguridad</h3>
-                    </div>
-                    <label>
+    <section class="retos">
+        <div class="retos__wrapper">
+            <article class="fade-in-left retos__container">
+                <div class="retos__content">
+                    <header class="retos__header">
+                        <span class="retos__number">01</span>
+                        <h2 class="retos__title">Seguridad</h2>
+                    </header>
+                    <p class="retos__description">
                         Soluciones relacionadas con: Ciberseguridad urbana, alertas tempranas, vigilancia
-                        inteligente,y Seguridad Ciudadana con tecnología disruptiva.
-                    </label>
+                        inteligente, y Seguridad Ciudadana con tecnología disruptiva.
+                    </p>
                 </div>
-                <img src="https://i.pinimg.com/564x/68/8e/b9/688eb9f10744db8d80e2dd7e3021d2de.jpg" width="500"
-                    height="500" style="border-radius: 15px;" />
-            </div>
+                <img 
+                    src="https://i.pinimg.com/564x/68/8e/b9/688eb9f10744db8d80e2dd7e3021d2de.jpg" 
+                    alt="Seguridad con tecnología" 
+                    class="retos__image"
+                    loading="lazy"
+                />
+            </article>
         </div>
-    </div>
+    </section>
 
+    <!-- External JS -->
     <script src="/js/headers.js"></script>
-    <script>
-        // script.js
-        document.addEventListener('DOMContentLoaded', () => {
-            const fadeInLeftElements = document.querySelectorAll('.fade-in-left');
-
-            const checkVisibility = () => {
-                const windowHeight = window.innerHeight;
-                const scrollY = window.scrollY;
-
-                fadeInLeftElements.forEach(element => {
-                    const elementTop = element.getBoundingClientRect().top + scrollY;
-                    const elementBottom = elementTop + element.offsetHeight;
-
-                    if (elementBottom > scrollY && elementTop < scrollY + windowHeight) {
-                        element.classList.add('visible');
-                    } else {
-                        element.classList.remove('visible');
-                    }
-                });
-            };
-
-            window.addEventListener('scroll', checkVisibility);
-            checkVisibility(); // Ejecuta la función al cargar la página
-        });
-
-    </script>
+    <script src="/js/retos.js"></script>
 </body>
-
 </html>
