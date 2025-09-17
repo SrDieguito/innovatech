@@ -1,6 +1,15 @@
 // api/recomendaciones.js
 import mysql from 'mysql2/promise';
-import { tareaToTema, slugify } from './_utils/text.js';
+import { slugify } from './_utils/text.js';
+
+// Función para obtener la conexión a la base de datos
+async function getPool() {
+  return mysql.createPool({
+    uri: process.env.MYSQL_URL || process.env.DATABASE_URL,
+    waitForConnections: true,
+    connectionLimit: 5,
+  });
+}
 
 const pool = mysql.createPool({
   uri: process.env.MYSQL_URL || process.env.DATABASE_URL,
@@ -151,82 +160,115 @@ async function verifySession(req) {
   }
 }
 
-export default async function handler(req, res) {
+// Función para obtener el usuario desde la sesión (si existe)
+async function getUsuarioFromRequest(req) {
   try {
-    if (req.method !== 'GET') return okJson(res, { error: 'Método no permitido' }, 405);
-    
-    const { action } = req.query;
-    if (action !== 'por-tarea') return okJson(res, { error: 'Acción no soportada' }, 400);
-
-    const tarea_id = Number(req.query.tarea_id);
-    if (!Number.isInteger(tarea_id) || tarea_id <= 0) {
-      return okJson(res, { error: 'tarea_id inválido' }, 400);
-    }
-
-    // Verificar sesión del usuario
     const session = await verifySession(req);
-    if (!session.autenticado || !session.usuario?.id) {
-      return okJson(res, { 
-        mostrar: false, 
-        motivo: session.mensaje || 'Inicia sesión para ver recomendaciones.',
-        calificacion: null
-      }, 401);
+    return session.autenticado ? session.usuario : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export default async function handler(req, res) {
+  const t0 = Date.now();
+  try {
+    const { method, query } = req;
+    if (method !== 'GET') {
+      return res.status(405).json({ error: 'Method not allowed' });
     }
+
+    const tareaId = Number(query.tarea_id || query.tareaId);
+    const cursoId = Number(query.curso_id || query.cursoId);
     
-    const estudiante_id = Number(session.usuario.id);
+    if (!tareaId || !cursoId) {
+      return res.status(400).json({ error: 'tarea_id y curso_id requeridos' });
+    }
+
+    // Sesión opcional: no romper si falta
+    let usuario = null;
+    try { 
+      usuario = await getUsuarioFromRequest(req); 
+    } catch (e) {
+      console.log('No se pudo obtener usuario de la sesión:', e.message);
+    }
 
     const conn = await pool.getConnection();
+
     try {
-      const tarea = await getTarea(conn, tarea_id);
-      if (!tarea) return okJson(res, { error: 'Tarea no existe' }, 404);
+      // 1) Obtener información básica de la tarea
+      const [tareas] = await conn.query(
+        `SELECT id, titulo, descripcion, tema_id 
+         FROM tareas 
+         WHERE id = ? AND curso_id = ?`,
+        [tareaId, cursoId]
+      );
 
-      const calificacion = await getCalificacion(conn, tarea_id, estudiante_id);
+      if (!tareas.length) {
+        return res.status(404).json({ error: 'Tarea no encontrada' });
+      }
+      const tarea = tareas[0];
 
-      // Política: recomendar sólo si calificación ≤ 7 (si es null, no recomendar)
-      if (calificacion == null || calificacion > 7) {
-        return okJson(res, {
-          mostrar: false,
-          motivo: 'Sin recomendaciones (no cumple condición ≤ 7 o no hay calificación).',
-          calificacion
-        });
+      // 2) Obtener calificación del estudiante si está autenticado
+      let calificacion = null;
+      if (usuario?.id) {
+        const [entregas] = await conn.query(
+          `SELECT calificacion 
+           FROM tareas_entregas 
+           WHERE tarea_id = ? AND estudiante_id = ? 
+           ORDER BY id DESC LIMIT 1`,
+          [tareaId, usuario.id]
+        );
+        calificacion = entregas[0]?.calificacion ?? null;
       }
 
-      // Asegurar tema
-      const temaId = await ensureTemaFromTarea(conn, tarea);
+      // 3) Definir tema desde el título (fallback: usa descripción)
+      const baseTexto = (tarea.titulo || tarea.descripcion || '').trim();
+      const temaSlug = slugify(baseTexto);
+
+      // 4) Buscar recursos internos por tema
       let recursos = [];
-      if (temaId) {
-        recursos = await getRecursosInternosPorTema(conn, temaId, 5);
+      try {
+        const [recursosDB] = await conn.query(
+          `SELECT r.id, r.fuente, r.url, r.titulo, r.descripcion, r.licencia, r.dificultad
+           FROM recursos r
+           JOIN recurso_tema rt ON rt.recurso_id = r.id
+           WHERE rt.tema_slug = ?
+           ORDER BY r.dificultad ASC, r.id DESC
+           LIMIT 10`,
+          [temaSlug]
+        );
+        recursos = recursosDB || [];
+      } catch (e) {
+        console.error('Error al buscar recursos internos:', e);
+        // Continuar con recursos vacíos en caso de error
       }
 
-      // Si hay menos de 3 internos, completar con Khan Academy
-      if (recursos.length < 3) {
-        const q = `${tarea.titulo} ${tarea.descripcion}`.trim() || 'aprendizaje';
-        const web = await fetchKhan(q, 5 - recursos.length);
-        recursos = recursos.concat(web);
-      }
-
-      // (Opcional) actualizar tabla estudiante_tema
-      // Nota: no obligatorio para mostrar recomendaciones.
-      // try {
-      //   await conn.execute(
-      //     `INSERT INTO estudiante_tema (estudiante_id, tema_id, aciertos, fallos, nota_media, mastery_prob)
-      //      VALUES (?, ?, 0, 1, ?, NULL)
-      //      ON DUPLICATE KEY UPDATE fallos = fallos + 1, nota_media = IFNULL( (IFNULL(nota_media, ?)+?)/2, ?)`,
-      //     [estudiante_id, temaId, calificacion, calificacion, calificacion, calificacion]
-      //   );
-      // } catch {}
-
-      return okJson(res, {
-        mostrar: true,
+      // 5) Preparar respuesta
+      const payload = {
+        tarea: { 
+          id: tareaId, 
+          curso_id: cursoId, 
+          titulo: tarea.titulo, 
+          tema_slug: temaSlug 
+        },
         calificacion,
-        tema_id: temaId,
-        recursos
-      });
+        recursos,
+        fuente: recursos.length ? 'interno' : 'vacio',
+        ms: Date.now() - t0
+      };
+
+      return res.status(200).json({ ok: true, data: payload });
     } finally {
-      conn.release();
+      if (conn) conn.release();
     }
   } catch (err) {
-    console.error(err);
-    return okJson(res, { error: 'Error interno' }, 500);
+    console.error('GET /api/recomendaciones error:', err);
+    // No exponer detalles del error al cliente
+    return res.status(500).json({ 
+      ok: false, 
+      error: 'Error al cargar recomendaciones',
+      ms: Date.now() - t0
+    });
   }
 }
