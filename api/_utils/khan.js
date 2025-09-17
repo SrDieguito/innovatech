@@ -14,23 +14,62 @@ function scoreItem(title, snippet, kwSet){
 }
 
 export async function khanSearchES(query, kw=[]) {
+  console.log('Buscando en Khan Academy con query:', query);
+  console.log('Palabras clave para puntuación:', kw);
+  
   const url = `https://es.khanacademy.org/search?query=${encodeURIComponent(query)}`;
+  console.log('URL de búsqueda:', url);
+  
   let html;
   
   try {
+    console.log('Realizando petición a Khan Academy...');
     const response = await fetch(url, { 
-      headers: {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'},
-      timeout: 5000 // 5 second timeout
+      headers: {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'accept': 'text/html',
+        'accept-language': 'es-ES,es;q=0.9',
+      },
+      referrer: 'https://es.khanacademy.org/',
+      timeout: 10000 // 10 segundos de timeout
     });
     
+    console.log('Respuesta recibida. Status:', response.status);
+    
     if (!response.ok) {
-      console.error('Khan Academy search failed with status:', response.status);
+      const errorText = await response.text().catch(() => 'No se pudo obtener el texto de error');
+      console.error('Error en la respuesta de Khan Academy:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        errorText
+      });
       return [];
     }
     
     html = await response.text();
+    console.log('HTML recibido. Longitud:', html.length, 'caracteres');
+    
+    // Guardar el HTML para depuración
+    if (process.env.NODE_ENV === 'development') {
+      const fs = await import('fs');
+      const path = await import('path');
+      const debugDir = path.join(process.cwd(), 'debug');
+      if (!fs.existsSync(debugDir)) {
+        fs.mkdirSync(debugDir, { recursive: true });
+      }
+      const debugFile = path.join(debugDir, `khan-debug-${Date.now()}.html`);
+      fs.writeFileSync(debugFile, html);
+      console.log('HTML guardado para depuración en:', debugFile);
+    }
+    
   } catch (err) {
-    console.error('Error fetching from Khan Academy:', err.message);
+    console.error('Error al realizar la petición a Khan Academy:', {
+      message: err.message,
+      stack: err.stack,
+      name: err.name,
+      code: err.code
+    });
     return [];
   }
   

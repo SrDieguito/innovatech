@@ -101,14 +101,27 @@ export default async function handler(req, res) {
     await cn.end();
 
     // --- búsqueda en Khan ES ---
+    console.log('Iniciando búsqueda de recomendaciones...', {
+      tareaId,
+      cursoId,
+      estudianteId,
+      calificacion,
+      tema: tarea.tema,
+      query,
+      keywords: kws
+    });
+    
     let items = [];
     let khanError = null;
     
     try {
+      console.log('Llamando a khanSearchES...');
       items = await khanSearchES(query, kws);
+      console.log(`Resultados de khanSearchES: ${items.length} items encontrados`);
       
       // --- personalización simple por nota ---
       if (calificacion != null && items.length > 0) {
+        console.log('Aplicando personalización por calificación:', calificacion);
         const low = Number(calificacion) <= 70;
         items = items.map(it => {
           let bonus = 0;
