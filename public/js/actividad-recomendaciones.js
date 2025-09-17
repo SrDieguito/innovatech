@@ -64,6 +64,35 @@ function initRecomendacionesEstudiante(userRole) {
     toggleRecomendaciones(true);
   }
 }
+/**
+ * Muestra las recomendaciones en la interfaz
+ * @param {Array} recomendaciones - Lista de recomendaciones a mostrar
+ */
+function mostrarRecomendaciones(recomendaciones) {
+  const list = document.getElementById('recomendaciones-list');
+  const empty = document.getElementById('recomendaciones-empty');
+  const loading = document.getElementById('recomendaciones-loading');
+
+  // Ocultar indicador de carga
+  if (loading) loading.classList.add('hidden');
+
+  // Verificar si hay recomendaciones
+  if (!recomendaciones || recomendaciones.length === 0) {
+    if (empty) {
+      empty.textContent = 'No hay recomendaciones disponibles en este momento.';
+      empty.classList.remove('hidden');
+    }
+    return;
+  }
+
+  // Limpiar lista
+  if (list) list.innerHTML = '';
+
+  // Mostrar cada recomendación
+  recomendaciones.forEach(recurso => {
+    const card = document.createElement('div');
+    card.className = 'recomendacion-card';
+
     let icon = '';
     let sourceClass = '';
     let sourceText = '';
@@ -93,8 +122,28 @@ function initRecomendacionesEstudiante(userRole) {
       ` : ''}
     `;
     
-    list.appendChild(card);
+    if (list) list.appendChild(card);
+  });
+}
 
+/**
+ * Obtiene las recomendaciones desde el servidor
+ * @param {number} tareaId - ID de la tarea
+ * @param {number} cursoId - ID del curso
+ * @returns {Promise<Array>} Lista de recomendaciones
+ */
+async function getRecomendaciones(tareaId, cursoId) {
+  try {
+    const response = await fetch(`/api/recomendaciones?tareaId=${tareaId}&cursoId=${cursoId}`);
+    if (!response.ok) {
+      throw new Error('Error al obtener recomendaciones');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error en getRecomendaciones:', error);
+    throw error;
+  }
+}
 
 /**
  * Inicializa la funcionalidad de recomendaciones
