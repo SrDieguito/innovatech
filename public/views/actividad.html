@@ -1,77 +1,80 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Actividad - Sistema de Calificaciones</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Actividad - Sistema de Calificaciones</title>
   
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
   
-    <!-- Correcto: /public/css y /public/js se sirven desde / -->
-    <link rel="stylesheet" href="/css/actividad.css" />
-    <link rel="stylesheet" href="/css/recomendaciones.css" />
-    <script type="module" src="/js/actividad.js"></script>
-  </head>
+  <!-- Correcto: /public/css y /public/js se sirven desde / -->
+  <link rel="stylesheet" href="/css/actividad.css" />
+  <link rel="stylesheet" href="/css/recomendaciones.css" />
+  <script type="module" src="/js/actividad.js"></script>
+</head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
   <div id="header-container"></div>
   
   <!-- Toast de notificación -->
   <div id="toast" class="toast hidden">
-    <i class="fas fa-check-circle mr-2"></i>
-    <span id="toast-message"></span>
+    <i class="fas fa-check-circle mr-3 text-xl"></i>
+    <span id="toast-message" class="font-medium"></span>
   </div>
 
   <main class="flex-grow px-4 py-8">
     <div class="max-w-5xl mx-auto space-y-6">
 
       <!-- Botón de regresar -->
-      <div class="flex justify-start">
-        <button id="btn-regresar" class="flex items-center text-emerald-600 hover:text-emerald-700 transition">
+      <div class="flex justify-start slide-in">
+        <button id="btn-regresar" class="flex items-center text-emerald-600 hover:text-emerald-700 transition-all duration-300 transform hover:-translate-x-1">
           <i class="fas fa-arrow-left mr-2"></i>
           Regresar al curso
         </button>
       </div>
 
       <!-- Título -->
-      <div>
-        <h1 id="actividad-title" class="text-3xl font-bold text-emerald-700 text-center sm:text-left">Cargando...</h1>
+      <div class="fade-in">
+        <h1 id="actividad-title" class="text-3xl font-bold text-emerald-700 text-center sm:text-left mb-2">Cargando...</h1>
         <p id="actividad-description" class="text-gray-600 mt-1 text-center sm:text-left"></p>
       </div>
 
       <!-- Detalles de la tarea -->
-      <div class="bg-white rounded-2xl shadow-md p-6 space-y-4">
-        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2">Detalles de la tarea</h2>
+      <div class="card card-hover p-6 space-y-4 fade-in">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-3 flex items-center">
+          <i class="fas fa-info-circle mr-2 text-emerald-600"></i>
+          Detalles de la tarea
+        </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-          <p><span class="font-medium text-gray-700">Fecha de creación:</span> <span id="actividad-created_at" class="text-gray-600">—</span></p>
-          <p><span class="font-medium text-gray-700">Fecha límite:</span> <span id="actividad-due_at" class="text-gray-600">—</span></p>
-          <p id="estado-container"><span class="font-medium text-gray-700">Estado:</span> <span id="actividad-status" class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">—</span></p>
-          <p><span class="font-medium text-gray-700">Puntos:</span> <span id="actividad-points" class="text-gray-600">0</span></p>
-          <p id="profesor-container"><span class="font-medium text-gray-700">Profesor:</span> <span id="actividad-profesor" class="text-gray-600">—</span></p>
-          <p id="entrega-container"><span class="font-medium text-gray-700">Última entrega:</span> <span id="actividad-ultima-entrega" class="text-gray-600">—</span></p>
+          <p class="flex items-center"><span class="font-medium text-gray-700 mr-2"><i class="far fa-calendar-plus mr-1 text-emerald-600"></i>Fecha de creación:</span> <span id="actividad-created_at" class="text-gray-600">—</span></p>
+          <p class="flex items-center"><span class="font-medium text-gray-700 mr-2"><i class="far fa-clock mr-1 text-amber-600"></i>Fecha límite:</span> <span id="actividad-due_at" class="text-gray-600">—</span></p>
+          <p id="estado-container" class="flex items-center"><span class="font-medium text-gray-700 mr-2"><i class="fas fa-tasks mr-1 text-blue-600"></i>Estado:</span> <span id="actividad-status" class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">—</span></p>
+          <p class="flex items-center"><span class="font-medium text-gray-700 mr-2"><i class="fas fa-star mr-1 text-yellow-500"></i>Puntos:</span> <span id="actividad-points" class="text-gray-600">0</span></p>
+          <p id="profesor-container" class="flex items-center"><span class="font-medium text-gray-700 mr-2"><i class="fas fa-chalkboard-teacher mr-1 text-purple-600"></i>Profesor:</span> <span id="actividad-profesor" class="text-gray-600">—</span></p>
+          <p id="entrega-container" class="flex items-center"><span class="font-medium text-gray-700 mr-2"><i class="fas fa-paper-plane mr-1 text-indigo-600"></i>Última entrega:</span> <span id="actividad-ultima-entrega" class="text-gray-600">—</span></p>
         </div>
       </div>
 
       <!-- Sección de Recomendaciones (solo para estudiantes) -->
-      <div id="recomendaciones-estudiante" class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg hidden">
+      <div id="recomendaciones-estudiante" class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg hidden slide-in">
         <div class="flex">
           <div class="flex-shrink-0">
-            <i class="fas fa-lightbulb text-blue-500 text-xl"></i>
+            <i class="fas fa-lightbulb text-blue-500 text-2xl"></i>
           </div>
           <div class="ml-3">
             <h3 class="text-sm font-medium text-blue-800">Recomendaciones para tu entrega</h3>
             <div class="mt-2 text-sm text-blue-700">
               <ul class="list-disc pl-5 space-y-1">
-                <li>Revisa cuidadosamente las instrucciones antes de comenzar</li>
-                <li>Asegúrate de incluir todos los elementos solicitados</li>
-                <li>Revisa la ortografía y gramática de tu trabajo</li>
-                <li>Si tienes dudas, consulta con tu profesor antes de la fecha límite</li>
-                <li>Envía tu trabajo con anticipación para evitar problemas de última hora</li>
+                <li class="transition-colors hover:text-blue-800">Revisa cuidadosamente las instrucciones antes de comenzar</li>
+                <li class="transition-colors hover:text-blue-800">Asegúrate de incluir todos los elementos solicitados</li>
+                <li class="transition-colors hover:text-blue-800">Revisa la ortografía y gramática de tu trabajo</li>
+                <li class="transition-colors hover:text-blue-800">Si tienes dudas, consulta con tu profesor antes de la fecha límite</li>
+                <li class="transition-colors hover:text-blue-800">Envía tu trabajo con anticipación para evitar problemas de última hora</li>
               </ul>
             </div>
             <div class="mt-4">
-              <button type="button" class="text-sm text-blue-600 hover:text-blue-500 font-medium" id="btn-ocultar-recomendaciones">
+              <button type="button" class="text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors" id="btn-ocultar-recomendaciones">
                 Ocultar recomendaciones
               </button>
             </div>
@@ -80,146 +83,158 @@
       </div>
 
       <!-- Contenedor de botones independiente, centrado -->
-      <div id="actividad-buttons" class="flex flex-wrap gap-3 mt-4 justify-center"></div>
+      <div id="actividad-buttons" class="flex flex-wrap gap-3 mt-4 justify-center fade-in"></div>
 
       <!-- Calificación (solo para estudiantes) -->
-      <div id="calificacion-container" class="bg-white rounded-2xl shadow-md p-6">
-        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Calificación</h2>
+      <div id="calificacion-container" class="card p-6 fade-in">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-3 mb-4 flex items-center">
+          <i class="fas fa-star-half-alt mr-2 text-yellow-500"></i>
+          Calificación
+        </h2>
         <div id="actividad-calificacion" class="text-center text-gray-600">Aún no calificado</div>
       </div>
 
       <!-- Sección de comentarios -->
-      <div id="comentarios-container" class="bg-white rounded-2xl shadow-md p-6">
-        <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Comentarios 222</h2>
-        <div id="comentarios-list" class="space-y-4">
-          <p class="text-gray-500 text-center">Sin comentarios aún</p>
+      <div id="comentarios-container" class="card p-6 fade-in">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-3 mb-4 flex items-center">
+          <i class="fas fa-comments mr-2 text-blue-500"></i>
+          Comentarios
+        </h2>
+        <div id="comentarios-list" class="space-y-4 max-h-80 overflow-y-auto custom-scrollbar p-1">
+          <p class="text-gray-500 text-center py-4">Sin comentarios aún</p>
         </div>
 
         <!-- Formulario de comentario -->
-        <form id="formComentario" class="mt-4 flex gap-2">
+        <form id="formComentario" class="mt-6 flex gap-2 bg-gray-50 p-3 rounded-xl">
           <input 
             type="text" 
             name="comentario" 
             placeholder="Escribe un comentario..." 
             required
-            class="flex-1 px-3 py-2 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            class="input-enhanced flex-1"
           >
           <button 
             type="submit" 
-            class="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition"
+            class="btn-primary flex items-center"
           >
+            <i class="fas fa-paper-plane mr-2"></i>
             Enviar
           </button>
         </form>
       </div>
 
       <!-- Sección de recomendaciones con panel persistente -->
-      <section id="panel-recomendaciones" class="mt-6">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="text-lg font-semibold">Recursos recomendados</h3>
-          <button id="btn-toggle-recomendaciones" class="text-sm text-blue-600 hover:text-blue-800">
+      <section id="panel-recomendaciones" class="mt-6 fade-in">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold flex items-center">
+            <i class="fas fa-book-open mr-2 text-emerald-600"></i>
+            Recursos recomendados
+          </h3>
+          <button id="btn-toggle-recomendaciones" class="text-sm text-blue-600 hover:text-blue-800 transition-colors flex items-center">
             <i class="fas fa-sync-alt mr-1"></i> Actualizar
           </button>
         </div>
-        <div id="lista-recomendaciones" class="space-y-2">
+        <div id="lista-recomendaciones" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Las recomendaciones se cargarán aquí dinámicamente -->
-          <div class="text-sm text-gray-500">Cargando recursos recomendados...</div>
+          <div class="col-span-full text-center text-gray-500 py-4 bg-gray-50 rounded-xl">
+            <i class="fas fa-spinner fa-spin text-emerald-600 mb-2"></i>
+            <p>Cargando recursos recomendados...</p>
+          </div>
         </div>
       </section>
       
-      <!-- Script para cargar las recomendaciones -->
       <script type="module" src="/js/actividad-recomendaciones.js"></script>
-      
-      <!-- Estilos para el panel persistente -->
-      <style>
-        /* Evita efectos colapsables heredados; mantén el panel visible */
-        #panel-recomendaciones.recs-sticky { 
-          display: block !important; 
-          opacity: 1 !important; 
-          visibility: visible !important; 
-        }
-        
-        #lista-recomendaciones {
-          transition: all 0.3s ease;
-        }
-        
-        #lista-recomendaciones a[data-rec-link] {
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        #lista-recomendaciones a[data-rec-link]:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-      </style>
     </div>
 
     <!-- CONTENEDOR DE ENTREGAS DEL PROFESOR -->
-    <div id="profesor-entregas" class="bg-white rounded-2xl shadow-md p-6 mt-6 hidden">
-      <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Entregas de estudiantes</h2>
+    <div id="profesor-entregas" class="card p-6 mt-6 hidden fade-in">
+      <h2 class="text-lg font-semibold text-gray-800 border-b pb-3 mb-4 flex items-center">
+        <i class="fas fa-file-export mr-2 text-purple-600"></i>
+        Entregas de estudiantes
+      </h2>
       <div class="mb-4 flex items-center justify-between">
-        <span class="text-sm text-gray-600">Mostrando <span id="entregas-count">0</span> entregas</span>
-        <button id="btn-exportar" class="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Exportar calificaciones</button>
+        <span class="text-sm text-gray-600 flex items-center">
+          <i class="fas fa-clipboard-list mr-2"></i>
+          Mostrando <span id="entregas-count" class="font-medium mx-1">0</span> entregas
+        </span>
+        <button id="btn-exportar" class="btn-secondary flex items-center">
+          <i class="fas fa-download mr-2"></i>
+          Exportar calificaciones
+        </button>
       </div>
       <div id="entregas-list" class="space-y-4">
-        <p class="text-gray-500 text-center">Cargando entregas...</p>
+        <p class="text-gray-500 text-center py-6">
+          <i class="fas fa-spinner fa-spin text-emerald-600 mb-2 block text-xl"></i>
+          Cargando entregas...
+        </p>
       </div>
     </div>
   </main>
 
   <!-- Modal de entrega -->
-  <dialog id="modalEntrega" class="rounded-2xl p-0 w-full max-w-md backdrop:bg-black/30">
-    <form id="formEntrega" class="p-6 space-y-4" method="post" enctype="multipart/form-data">
-      <h4 class="text-lg font-semibold">Entregar archivo</h4>
-      <input type="hidden" name="tarea_id">
-      <input type="hidden" name="curso_id">
-      <div class="text-xs text-gray-600">Archivo actual: <span id="archivoActual">—</span></div>
-      <label class="grid gap-1">
-        <span class="text-sm text-gray-700">Archivo (máx 2 MB)</span>
-        <input type="file" name="archivo" required
-          class="px-3 py-2 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-        <span id="pesoArchivo" class="text-xs text-gray-500">—</span>
-      </label>
+  <dialog id="modalEntrega" class="rounded-2xl p-0 w-full max-w-md backdrop:bg-black/50 backdrop:backdrop-blur-sm">
+    <div class="card p-0 overflow-hidden">
+      <form id="formEntrega" class="p-6 space-y-4" method="post" enctype="multipart/form-data">
+        <h4 class="text-lg font-semibold flex items-center">
+          <i class="fas fa-cloud-upload-alt mr-2 text-emerald-600"></i>
+          Entregar archivo
+        </h4>
+        <input type="hidden" name="tarea_id">
+        <input type="hidden" name="curso_id">
+        <div class="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
+          <span class="font-medium">Archivo actual:</span> <span id="archivoActual">—</span>
+        </div>
+        <label class="grid gap-1">
+          <span class="text-sm text-gray-700 font-medium">Archivo (máx 2 MB)</span>
+          <div class="relative">
+            <input type="file" name="archivo" required class="input-enhanced w-full">
+          </div>
+          <span id="pesoArchivo" class="text-xs text-gray-500">—</span>
+        </label>
 
-      <!-- Previsualización de archivo -->
-      <div id="previewContainer" class="mt-2">
-        <p class="text-xs text-gray-500">Vista previa:</p>
-        <div id="previewContent" class="border border-gray-200 rounded p-2 max-h-48 overflow-auto">—</div>
-      </div>
+        <!-- Previsualización de archivo -->
+        <div id="previewContainer" class="mt-2 bg-gray-50 p-3 rounded-lg">
+          <p class="text-xs text-gray-700 font-medium mb-2">Vista previa:</p>
+          <div id="previewContent" class="border border-gray-200 rounded p-3 max-h-48 overflow-auto custom-scrollbar bg-white">—</div>
+        </div>
 
-      <div class="pt-2 flex items-center justify-end gap-2">
-        <button type="button" id="btnCancelarEntrega"
-          class="px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50">Cancelar</button>
-        <button type="submit" id="btnSubmitEntrega"
-          class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 flex items-center justify-center">
-          <span id="btnSubmitText">Subir</span>
-          <i id="btnSubmitSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
-        </button>
-      </div>
-    </form>
+        <div class="pt-4 flex items-center justify-end gap-3 border-t mt-4">
+          <button type="button" id="btnCancelarEntrega" class="btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" id="btnSubmitEntrega" class="btn-primary flex items-center justify-center">
+            <span id="btnSubmitText">Subir</span>
+            <i id="btnSubmitSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+          </button>
+        </div>
+      </form>
+    </div>
   </dialog>
 
   <!-- Modal de calificación -->
-  <div id="modalCalificacion" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4">
+  <div id="modalCalificacion" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50 backdrop-blur-sm">
+    <div class="card w-full max-w-md mx-4 transform transition-all duration-300 scale-95 opacity-0" id="modalCalificacionInner">
       <div class="p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Calificar entrega de <span id="student-name">estudiante</span></h3>
+        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+          <i class="fas fa-star mr-2 text-yellow-500"></i>
+          Calificar entrega de <span id="student-name" class="text-emerald-600 ml-1">estudiante</span>
+        </h3>
         
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">Calificación (0-10)</label>
-          <input type="number" id="calificacion-input" min="0" max="10" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <input type="number" id="calificacion-input" min="0" max="10" step="0.1" class="input-enhanced w-full">
         </div>
         
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">Comentario para el estudiante</label>
-          <textarea id="comentario-calificacion" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Escribe tus comentarios sobre la entrega..."></textarea>
+          <textarea id="comentario-calificacion" rows="3" class="input-enhanced w-full" placeholder="Escribe tus comentarios sobre la entrega..."></textarea>
         </div>
         
-        <div class="flex justify-end space-x-3">
-          <button id="btn-cancelar-calificacion" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+        <div class="flex justify-end space-x-3 pt-3">
+          <button id="btn-cancelar-calificacion" class="btn-secondary">
             Cancelar
           </button>
-          <button id="btn-guardar-calificacion" class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <button id="btn-guardar-calificacion" class="btn-primary">
             Guardar calificación
           </button>
         </div>
@@ -228,47 +243,44 @@
   </div>
 
   <!-- Modal de edición de tarea -->
-  <div id="modalEditarTarea" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+  <div id="modalEditarTarea" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50 backdrop-blur-sm">
+    <div class="card w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 opacity-0" id="modalEditarTareaInner">
       <div class="p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Editar Tarea</h3>
+        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+          <i class="fas fa-edit mr-2 text-emerald-600"></i>
+          Editar Tarea
+        </h3>
         
         <form id="formEditarTarea" class="space-y-4">
           <input type="hidden" id="editar-tarea-id">
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Título de la tarea</label>
-            <input type="text" id="editar-titulo" required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <input type="text" id="editar-titulo" required class="input-enhanced w-full">
           </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
-            <textarea id="editar-descripcion" rows="3"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Describe la tarea..."></textarea>
+            <textarea id="editar-descripcion" rows="3" class="input-enhanced w-full" placeholder="Describe la tarea..."></textarea>
           </div>
           
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Fecha límite</label>
-              <input type="datetime-local" id="editar-fecha-limite" required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <input type="datetime-local" id="editar-fecha-limite" required class="input-enhanced w-full">
             </div>
             
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Puntos</label>
-              <input type="number" id="editar-puntos" min="0" step="1" required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <input type="number" id="editar-puntos" min="0" step="1" required class="input-enhanced w-full">
             </div>
           </div>
           
-          <div class="flex justify-end space-x-3 pt-4">
-            <button type="button" id="btn-cancelar-editar"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+          <div class="flex justify-end space-x-3 pt-6 border-t mt-6">
+            <button type="button" id="btn-cancelar-editar" class="btn-secondary">
               Cancelar
             </button>
-            <button type="submit"
-              class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <button type="submit" class="btn-primary">
               Guardar cambios
             </button>
           </div>
@@ -278,16 +290,19 @@
   </div>
 
   <!-- Modal de confirmación para eliminar -->
-  <div id="modalConfirmacion" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4">
+  <div id="modalConfirmacion" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50 backdrop-blur-sm">
+    <div class="card w-full max-w-md mx-4 transform transition-all duration-300 scale-95 opacity-0" id="modalConfirmacionInner">
       <div class="p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4" id="confirmacion-titulo">Confirmar acción</h3>
-        <p class="text-gray-700 mb-4" id="confirmacion-mensaje">¿Estás seguro de que deseas realizar esta acción?</p>
+        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+          <i class="fas fa-exclamation-triangle mr-2 text-amber-500"></i>
+          <span id="confirmacion-titulo">Confirmar acción</span>
+        </h3>
+        <p class="text-gray-700 mb-6" id="confirmacion-mensaje">¿Estás seguro de que deseas realizar esta acción?</p>
         <div class="flex justify-end space-x-3">
-          <button id="btn-cancelar-confirmacion" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
+          <button id="btn-cancelar-confirmacion" class="btn-secondary">
             Cancelar
           </button>
-          <button id="btn-confirmar-accion" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
+          <button id="btn-confirmar-accion" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
             Confirmar
           </button>
         </div>
@@ -295,7 +310,41 @@
     </div>
   </div>
 
-
+  <script>
+    // Script para manejar animaciones de los modales
+    document.addEventListener('DOMContentLoaded', function() {
+      // Animación para mostrar modales
+      function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const innerModal = document.getElementById(modalId + 'Inner');
+        
+        modal.classList.remove('hidden');
+        
+        setTimeout(() => {
+          innerModal.classList.remove('scale-95', 'opacity-0');
+          innerModal.classList.add('scale-100', 'opacity-100');
+        }, 10);
+      }
+      
+      // Animación para ocultar modales
+      function hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const innerModal = document.getElementById(modalId + 'Inner');
+        
+        innerModal.classList.remove('scale-100', 'opacity-100');
+        innerModal.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+          modal.classList.add('hidden');
+        }, 300);
+      }
+      
+      // Asignar eventos a los botones de modales (deberías conectar estos con tus eventos existentes)
+      // Ejemplo:
+      // document.getElementById('btn-abrir-modal').addEventListener('click', () => showModal('modalCalificacion'));
+      // document.getElementById('btn-cancelar-calificacion').addEventListener('click', () => hideModal('modalCalificacion'));
+    });
+  </script>
 
 </body>
 </html>
