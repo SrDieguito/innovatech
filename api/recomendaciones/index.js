@@ -4,6 +4,49 @@ import { topKeywords } from '../_utils/text.js';
 import { khanSearchES } from '../_utils/khan.js';
 import { getEstudianteId } from '../_utils/cookies.js';
 
+// Recursos de respaldo cuando falla la búsqueda en Khan Academy
+function getFallbackResources(tema, keywords) {
+  const baseResources = [
+    {
+      titulo: 'Recursos educativos abiertos',
+      url: 'https://es.khanacademy.org/',
+      snippet: 'Explora miles de recursos educativos gratuitos en Khan Academy',
+      source: 'Sistema',
+      score: 100
+    },
+    {
+      titulo: 'Guías de estudio y ejercicios',
+      url: 'https://es.khanacademy.org/math',
+      snippet: 'Encuentra ejercicios y guías de estudio para practicar',
+      source: 'Sistema',
+      score: 90
+    },
+    {
+      titulo: 'Videos educativos',
+      url: 'https://es.khanacademy.org/science',
+      snippet: 'Aprende con videos explicativos sobre diversos temas',
+      source: 'Sistema',
+      score: 80
+    }
+  ];
+
+  // Si tenemos un tema específico, lo añadimos a los recursos
+  if (tema) {
+    return [
+      {
+        titulo: `Recursos sobre: ${tema}`,
+        url: `https://es.khanacademy.org/search?referer=%2F&page_search_query=${encodeURIComponent(tema)}`,
+        snippet: `Busca recursos específicos sobre ${tema} en Khan Academy`,
+        source: 'Sistema',
+        score: 100
+      },
+      ...baseResources
+    ];
+  }
+  
+  return baseResources;
+}
+
 const cfg = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -58,32 +101,62 @@ export default async function handler(req, res) {
     await cn.end();
 
     // --- búsqueda en Khan ES ---
-    let items = await khanSearchES(query, kws);
+    let items = [];
+    let khanError = null;
+    
+    try {
+      items = await khanSearchES(query, kws);
+      
+      // --- personalización simple por nota ---
+      if (calificacion != null && items.length > 0) {
+        const low = Number(calificacion) <= 70;
+        items = items.map(it => {
+          let bonus = 0;
+          const t = `${it.titulo} ${it.snippet||''}`.toLowerCase();
 
-    // --- personalización simple por nota ---
-    if (calificacion != null) {
-      const low = Number(calificacion) <= 70;
-      items = items.map(it => {
-        let bonus = 0;
-        const t = `${it.titulo} ${it.snippet||''}`.toLowerCase();
-
-        // si le fue bajo: premia intro/práctica; si alto: premia avanzado
-        if (low) {
-          if (/introducci|basi|fundament|práctica|practica|ejercic/.test(t)) bonus += 2.5;
-          if (/video/.test(t)) bonus += 0.5;
-        } else {
-          if (/avanzad|profund|teor|demostraci/.test(t)) bonus += 2.0;
-        }
-        return { ...it, score: (it.score||0) + bonus };
-      }).sort((a,b)=>b.score-a.score);
+          // si le fue bajo: premia intro/práctica; si alto: premia avanzado
+          if (low) {
+            if (/introducci|basi|fundament|práctica|practica|ejercic/.test(t)) bonus += 2.5;
+            if (/video/.test(t)) bonus += 0.5;
+          } else {
+            if (/avanzad|profund|teor|demostraci/.test(t)) bonus += 2.0;
+          }
+          return { ...it, score: (it.score||0) + bonus };
+        }).sort((a,b)=>b.score-a.score);
+      }
+    } catch (err) {
+      console.error('Error in khanSearchES:', err);
+      khanError = err.message;
+    }
+    
+    // Si no hay resultados de Khan Academy, proporcionar recursos genéricos
+    if (items.length === 0) {
+      items = getFallbackResources(tarea.tema || query, kws);
     }
 
     return res.status(200).json({
-      ok:true,
-      meta:{ tareaId, cursoId, query, keywords:kws, tema:tarea.tema||null, estudianteId, calificacion },
+      ok: true,
+      meta: { 
+        tareaId, 
+        cursoId, 
+        query, 
+        keywords: kws, 
+        tema: tarea.tema || null, 
+        estudianteId, 
+        calificacion,
+        khanError: khanError || undefined
+      },
       items
     });
   } catch (err) {
-    return res.status(200).json({ ok:true, meta:{ error:String(err?.message||err) }, items:[] });
+    console.error('Error in /api/recomendaciones:', err);
+    return res.status(200).json({ 
+      ok: true, 
+      meta: { 
+        error: 'Error al obtener recomendaciones',
+        internalError: process.env.NODE_ENV === 'development' ? String(err?.message || err) : undefined
+      }, 
+      items: getFallbackResources('', []) 
+    });
   }
 }

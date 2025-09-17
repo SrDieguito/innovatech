@@ -15,7 +15,25 @@ function scoreItem(title, snippet, kwSet){
 
 export async function khanSearchES(query, kw=[]) {
   const url = `https://es.khanacademy.org/search?query=${encodeURIComponent(query)}`;
-  const html = await fetch(url, { headers:{'user-agent':'Mozilla/5.0 EducaTechBot'} }).then(r=>r.text());
+  let html;
+  
+  try {
+    const response = await fetch(url, { 
+      headers: {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'},
+      timeout: 5000 // 5 second timeout
+    });
+    
+    if (!response.ok) {
+      console.error('Khan Academy search failed with status:', response.status);
+      return [];
+    }
+    
+    html = await response.text();
+  } catch (err) {
+    console.error('Error fetching from Khan Academy:', err.message);
+    return [];
+  }
+  
   const $ = cheerio.load(html);
 
   // Selectores tolerantes a cambios: tomamos anchors principales del listado
