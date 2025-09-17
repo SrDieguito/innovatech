@@ -1,113 +1,189 @@
 // api/_utils/khan.js
 import * as cheerio from 'cheerio';
-import { tokens } from './text.js';
 
-function scoreItem(title, snippet, kwSet){
-  const tksTitle = new Set(tokens(title));
-  const tksSnip  = new Set(tokens(snippet||''));
-  let s = 0;
-  for (const k of kwSet) {
-    if (tksTitle.has(k)) s += 3; // título pesa más
-    if (tksSnip.has(k))  s += 1;
-  }
-  return s;
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+/**
+ * Builds a search query from title and description
+ */
+function buildQuery(titulo = '', descripcion = '') {
+  const base = `${(titulo || '').trim()} ${(descripcion || '').trim()}`.replace(/\s+/g, ' ');
+  return base.length > 20 ? base : (titulo || descripcion || 'matemáticas');
 }
 
-export async function khanSearchES(query, kw=[]) {
-  console.log('Buscando en Khan Academy con query:', query);
-  console.log('Palabras clave para puntuación:', kw);
-  
-  const url = `https://es.khanacademy.org/search?query=${encodeURIComponent(query)}`;
-  console.log('URL de búsqueda:', url);
-  
-  let html;
+/**
+ * Search Khan Academy using DuckDuckGo HTML results
+ */
+async function ddgSearch(query) {
+  const q = encodeURIComponent(`site:es.khanacademy.org ${query}`);
+  const url = `https://duckduckgo.com/html/?q=${q}`;
   
   try {
-    console.log('Realizando petición a Khan Academy...');
-    const response = await fetch(url, { 
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'accept': 'text/html',
-        'accept-language': 'es-ES,es;q=0.9',
+    const resp = await fetch(url, {
+      headers: { 
+        'User-Agent': UA, 
+        'Accept-Language': 'es-ES,es;q=0.9',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
       },
-      referrer: 'https://es.khanacademy.org/',
-      timeout: 10000 // 10 segundos de timeout
+      referrer: 'https://duckduckgo.com/'
     });
     
-    console.log('Respuesta recibida. Status:', response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => 'No se pudo obtener el texto de error');
-      console.error('Error en la respuesta de Khan Academy:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-        errorText
-      });
+    if (!resp.ok) {
+      console.error(`DDG search failed with status ${resp.status}`);
       return [];
     }
     
-    html = await response.text();
-    console.log('HTML recibido. Longitud:', html.length, 'caracteres');
+    const html = await resp.text();
+    const $ = cheerio.load(html);
+    const items = [];
     
-    // Guardar el HTML para depuración
-    if (process.env.NODE_ENV === 'development') {
-      const fs = await import('fs');
-      const path = await import('path');
-      const debugDir = path.join(process.cwd(), 'debug');
-      if (!fs.existsSync(debugDir)) {
-        fs.mkdirSync(debugDir, { recursive: true });
+    $('.result').each((_, el) => {
+      const a = $(el).find('.result__a');
+      const href = a.attr('href');
+      const title = a.text().trim();
+      const snippet = $(el).find('.result__snippet').text().trim();
+      
+      if (href && title) {
+        // Normalize URL if it comes with /l/?kh=-1&uddg=...
+        let urlFinal = href;
+        try {
+          const u = new URL(href, 'https://duckduckgo.com');
+          if (u.searchParams.get('uddg')) {
+            urlFinal = decodeURIComponent(u.searchParams.get('uddg'));
+          }
+        } catch (e) {
+          console.error('Error normalizing URL:', e);
+        }
+        
+        // Only Spanish KA pages
+        if (/^https?:\/\/(www\.)?es\.khanacademy\.org/.test(urlFinal)) {
+          items.push({ 
+            url: urlFinal, 
+            titulo: title, 
+            resumen: snippet,
+            source: 'DuckDuckGo',
+            snippet: snippet
+          });
+        }
       }
-      const debugFile = path.join(debugDir, `khan-debug-${Date.now()}.html`);
-      fs.writeFileSync(debugFile, html);
-      console.log('HTML guardado para depuración en:', debugFile);
-    }
-    
-  } catch (err) {
-    console.error('Error al realizar la petición a Khan Academy:', {
-      message: err.message,
-      stack: err.stack,
-      name: err.name,
-      code: err.code
     });
+    
+    return items;
+  } catch (error) {
+    console.error('Error in ddgSearch:', error);
     return [];
   }
-  
-  const $ = cheerio.load(html);
+}
 
-  // Selectores tolerantes a cambios: tomamos anchors principales del listado
-  const anchors = $('a[href^="/"] , a[href*="khanacademy.org"]')
-    .filter((_,a)=>$(a).text().trim().length>0)
-    .slice(0,80);
-
-  const kwSet = new Set(kw);
-  const items = [];
-
-  anchors.each((_,a)=>{
-    const $a = $(a);
-    const title = $a.text().trim();
-    let href = $a.attr('href')||'';
-    if (href.startsWith('/')) href = 'https://es.khanacademy.org'+href;
-
-    // descartes frecuentes
-    if (!/^https:\/\/(es\.)?khanacademy\.org/.test(href)) return;
-    if (/\/profile|\/sign(in|up)|\/donate|\/privacy|\/about/.test(href)) return;
-
-    // buscamos un posible snippet cercano
-    const parent = $a.closest('div,li,article');
-    const snippet = parent.find('p').first().text().trim() || '';
-
-    const score = scoreItem(title, snippet, kwSet);
-    if (score>0) items.push({ titulo:title, url:href, snippet, source:'Khan Academy', score });
-  });
-
-  // únicos por URL y ordenados
-  const uniq = [];
-  const seen = new Set();
-  for (const it of items.sort((a,b)=>b.score-a.score)) {
-    if (seen.has(it.url)) continue;
-    seen.add(it.url); uniq.push(it);
-    if (uniq.length>=12) break;
+/**
+ * Fetches additional details from a Khan Academy URL
+ */
+async function fetchKAItem(url) {
+  try {
+    const resp = await fetch(url, {
+      headers: { 
+        'User-Agent': UA, 
+        'Accept-Language': 'es-ES,es;q=0.9',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+      }
+    });
+    
+    if (!resp.ok) {
+      console.error(`Failed to fetch KA item: HTTP ${resp.status} ${url}`);
+      return null;
+    }
+    
+    const html = await resp.text();
+    const $ = cheerio.load(html);
+    
+    const h1 = $('h1').first().text().trim();
+    const desc = $('meta[name="description"]').attr('content')?.trim() || '';
+    
+    // Extract useful internal links
+    const links = [];
+    $('a[href^="/"]')
+      .slice(0, 8)
+      .each((_, a) => {
+        const href = $(a).attr('href');
+        const text = $(a).text().trim().replace(/\s+/g, ' ');
+        if (href && text && text.length > 2) {
+          links.push({ 
+            text, 
+            url: `https://es.khanacademy.org${href}`,
+            source: 'Khan Academy'
+          });
+        }
+      });
+    
+    return {
+      url,
+      titulo: h1 || $('title').text().trim(),
+      descripcion: desc,
+      enlaces: links,
+      source: 'Khan Academy'
+    };
+  } catch (error) {
+    console.error(`Error fetching KA item ${url}:`, error);
+    return null;
   }
-  return uniq;
+}
+
+/**
+ * Main search function for Khan Academy content
+ */
+export async function khanSearchES(query, title = '', description = '') {
+  const searchQuery = buildQuery(title, description);
+  console.log(`Searching Khan Academy for: "${searchQuery}"`);
+  
+  try {
+    // First try DuckDuckGo search
+    const searchResults = await ddgSearch(searchQuery);
+    
+    if (!searchResults.length) {
+      console.log('No results from DuckDuckGo, falling back to direct search');
+      // Fallback to direct KA search
+      const kaUrl = `https://es.khanacademy.org/search?referer=%2F&page_search_query=${encodeURIComponent(searchQuery)}`;
+      return [{
+        url: kaUrl,
+        titulo: 'Ver más en Khan Academy',
+        resumen: 'Resultados en KA (requiere navegación).',
+        enlaces: [],
+        source: 'Khan Academy (fallback)'
+      }];
+    }
+    
+    // Enrich top results with more details
+    const enriched = [];
+    for (const item of searchResults.slice(0, 4)) {
+      try {
+        const details = await fetchKAItem(item.url);
+        if (details) {
+          enriched.push({
+            ...item,
+            titulo: details.titulo || item.titulo,
+            descripcion: details.descripcion || item.resumen,
+            enlaces: details.enlaces || [],
+            source: details.source || item.source
+          });
+        } else {
+          enriched.push(item);
+        }
+      } catch (e) {
+        console.error('Error enriching result:', e);
+        enriched.push(item);
+      }
+    }
+    
+    return enriched;
+  } catch (error) {
+    console.error('Error in khanSearchES:', error);
+    // Return a fallback result with the search URL
+    return [{
+      url: `https://es.khanacademy.org/search?referer=%2F&page_search_query=${encodeURIComponent(searchQuery)}`,
+      titulo: 'Buscar en Khan Academy',
+      resumen: 'No se pudieron cargar los resultados. Haz clic para buscar manualmente.',
+      enlaces: [],
+      source: 'Khan Academy (error)'
+    }];
+  }
 }

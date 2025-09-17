@@ -1,6 +1,7 @@
 // api/recomendaciones.js
 import mysql from 'mysql2/promise';
-import { tareaToTema, slugify } from './_utils/text.js';
+import { tareaToTema } from './_utils/text.js';
+import { khanSearchES } from './_utils/khan.js';
 
 const pool = mysql.createPool({
   uri: process.env.MYSQL_URL || process.env.DATABASE_URL,
@@ -65,44 +66,26 @@ async function getRecursosInternosPorTema(conn, tema_id, limit=5) {
   return rows;
 }
 
-// Fallback web → Khan Academy (heurístico y robusto):
-async function fetchKhan(query, limit=5) {
-  const results = [];
-
-  // 1) Endpoint HTML de búsqueda (simple y estable): /search?page_search_query=...
-  // Nota: evitamos parseo complejo; devolvemos enlaces principales conocidos.
-  const url = `https://www.khanacademy.org/search?page_search_query=${encodeURIComponent(query)}`;
-
+// Función mejorada para obtener recursos de Khan Academy
+async function fetchKhanResources(titulo, descripcion, limit = 5) {
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }});
-    const html = await res.text();
-
-    // Extrae algunos enlaces Khan (ej: /math/... o /science/...)
-    const re = /href="(\/[a-z0-9\-\/]+)"/gi;
-    const seen = new Set();
-    let m;
-    while ((m = re.exec(html)) && results.length < limit) {
-      const path = m[1];
-      // Filtra solo contenido curricular típico
-      if (/^\/(math|science|computing|economics|humanities|test-prep)\//.test(path)) {
-        if (!seen.has(path)) {
-          seen.add(path);
-          results.push({
-            fuente: 'web',
-            url: `https://www.khanacademy.org${path}`,
-            titulo: path.split('/').slice(-1)[0].replace(/-/g,' ').slice(0, 100),
-            descripcion: `Recurso de Khan Academy relacionado con "${query}".`,
-            licencia: 'KhanAcademy',
-            dificultad: null
-          });
-        }
-      }
-    }
-  } catch(e) {
-    // Silencioso; si falla, devolvemos vacío
+    console.log(`Buscando recursos en Khan Academy para: "${titulo}"`);
+    const results = await khanSearchES('', titulo, descripcion);
+    
+    // Mapear los resultados al formato esperado
+    return results.slice(0, limit).map(item => ({
+      fuente: 'Khan Academy',
+      url: item.url,
+      titulo: item.titulo,
+      descripcion: item.descripcion || item.resumen || 'Recurso educativo de Khan Academy',
+      licencia: 'KhanAcademy',
+      dificultad: null,
+      enlaces: item.enlaces || []
+    }));
+  } catch (error) {
+    console.error('Error al buscar en Khan Academy:', error);
+    return [];
   }
-
-  return results;
 }
 
 function okJson(res, data, status=200) {
@@ -198,11 +181,14 @@ export default async function handler(req, res) {
         recursos = await getRecursosInternosPorTema(conn, temaId, 5);
       }
 
-      // Si hay menos de 3 internos, completar con Khan Academy
-      if (recursos.length < 3) {
-        const q = `${tarea.titulo} ${tarea.descripcion}`.trim() || 'aprendizaje';
-        const web = await fetchKhan(q, 5 - recursos.length);
-        recursos = recursos.concat(web);
+      // Completar con recursos de Khan Academy si es necesario
+      if (recursos.length < 5) {
+        const khanResources = await fetchKhanResources(
+          tarea.titulo, 
+          tarea.descripcion, 
+          5 - recursos.length
+        );
+        recursos = [...recursos, ...khanResources];
       }
 
       // (Opcional) actualizar tabla estudiante_tema
