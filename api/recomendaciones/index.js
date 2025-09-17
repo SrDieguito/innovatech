@@ -1,134 +1,55 @@
-import { pickQuery, toInt, ok, fail } from '../_utils/params.js';
-import { pool } from '../_utils/db.js';
+// api/recomendaciones/index.js
+import mysql from 'mysql2/promise';
+import { topKeywords } from '../_utils/text.js';
+import { khanSearchES } from '../_utils/khan.js';
 
-// External resource fallbacks
-const EXTERNAL_RESOURCES = (term) => {
-  const q = encodeURIComponent(term || 'matemáticas fundamentos');
-  return [
-    { 
-      id: -1, 
-      titulo: 'Khan Academy - búsqueda', 
-      url: `https://www.khanacademy.org/search?page_search_query=${q}`,
-      descripcion: 'Recursos relacionados',
-      es_externo: true
-    },
-    { 
-      id: -2, 
-      titulo: 'OpenStax - búsqueda', 
-      url: `https://openstax.org/search?query=${q}`,
-      descripcion: 'Libros y secciones',
-      es_externo: true
-    },
-    { 
-      id: -3, 
-      titulo: 'LibreTexts - búsqueda', 
-      url: `https://search.libretexts.org/?query=${q}`,
-      descripcion: 'Textos abiertos',
-      es_externo: true
-    }
-  ];
+const cfg = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME || process.env.DB_DATABASE
 };
 
-async function getAssignmentDetails(tarea_id) {
-  try {
-    const [[row]] = await pool.query(
-      `SELECT t.id, t.titulo, t.descripcion,
-              (SELECT te.nota FROM tareas_entregas te 
-                WHERE te.tarea_id = t.id 
-                ORDER BY te.id DESC LIMIT 1) AS nota
-       FROM tareas t
-       WHERE t.id = ? LIMIT 1`, 
-      [tarea_id]
-    );
-    return row || null;
-  } catch (error) {
-    console.error('[ERROR] Error al obtener detalles de la tarea:', error.message);
-    return null;
-  }
-}
-
-async function searchResources(term) {
-  try {
-    const [rows] = await pool.query(
-      `SELECT id, titulo, url, descripcion, false as es_externo
-       FROM recursos
-       WHERE (titulo LIKE CONCAT('%', ?, '%') OR descripcion LIKE CONCAT('%', ?, '%'))
-       ORDER BY id DESC
-       LIMIT 10`,
-      [term, term]
-    );
-    return rows;
-  } catch (error) {
-    console.error('[WARN] Error al buscar recursos, usando alternativas:', error.message);
-    return EXTERNAL_RESOURCES(term);
-  }
-}
-
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Método no permitido' });
-  }
-
-  // Endpoint de prueba
-  if ('ping' in (req.query || {})) {
-    return ok(res, { 
-      ok: true, 
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development'
-    });
-  }
-
   try {
-    // Obtener parámetros con soporte para snake_case y camelCase
-    const tareaRaw = pickQuery(req, ['tarea_id', 'tareaId', 'id'], { 
-      required: true, 
-      nameForError: 'tarea_id|tareaId|id' 
-    });
-    
-    const cursoRaw = pickQuery(req, ['curso_id', 'cursoId', 'curso'], { 
-      required: true, 
-      nameForError: 'curso_id|cursoId|curso' 
-    });
+    if (req.method !== 'GET') return res.status(405).json({ ok:false, error:'Method not allowed' });
 
-    const tarea_id = toInt(tareaRaw, 'tarea_id');
-    const curso_id = toInt(cursoRaw, 'curso_id');
+    const tareaId = Number(req.query.tareaId || req.query.tarea_id);
+    const cursoId = Number(req.query.cursoId || req.query.curso_id); // opcional, solo para trazas
 
-    // Obtener detalles de la tarea
-    const tarea = await getAssignmentDetails(tarea_id);
-    
-    if (!tarea) {
-      return ok(res, { 
-        tarea_id, 
-        curso_id, 
-        recursos: [], 
-        motivo: 'tarea_no_encontrada',
-        sugerencia: 'Verifica que el ID de la tarea sea correcto'
-      });
+    if (!tareaId) {
+      // nunca 500 por validación
+      return res.status(200).json({ ok:true, meta:{tareaId,cursoId}, items:[] });
     }
 
-    const nota = Number.isFinite(tarea?.nota) ? Number(tarea.nota) : null;
-    const baseTexto = `${tarea?.titulo || ''} ${tarea?.descripcion || ''}`.trim();
-    const term = baseTexto.split(/\s+/).slice(0, 6).join(' ');
+    // 1) obtener título/descripcion de la tarea
+    const cn = await mysql.createConnection(cfg);
+    const [rows] = await cn.execute(
+      'SELECT id, titulo, descripcion FROM tareas WHERE id=? LIMIT 1', [tareaId]
+    );
+    await cn.end();
 
-    // Buscar recursos solo si es necesario
-    let recursos = [];
-    if (nota === null || nota < 70) {
-      recursos = await searchResources(term);
+    if (!rows?.length) {
+      return res.status(200).json({ ok:true, meta:{tareaId,cursoId}, items:[] });
     }
 
-    return ok(res, { 
-      tarea_id, 
-      curso_id, 
-      nota,
-      titulo: tarea.titulo,
-      termino_busqueda: term,
-      recursos,
-      total_recursos: recursos.length,
-      necesita_ayuda: nota === null || nota < 70
-    });
+    const tarea = rows[0];
+    const baseText = `${tarea.titulo || ''}. ${tarea.descripcion || ''}`;
 
-  } catch (error) {
-    console.error('[ERROR] Error en el endpoint de recomendaciones:', error);
-    return fail(res, error);
+    // 2) keywords/tema
+    const kws = topKeywords(baseText, 8);
+    const query = kws.join(' ');
+
+    // 3) buscar en Khan ES y puntuar
+    const items = query ? await khanSearchES(query, kws) : [];
+
+    return res.status(200).json({
+      ok:true,
+      meta:{ tareaId, cursoId, query, keywords:kws, fuente:'khan_es' },
+      items
+    });
+  } catch (err) {
+    // Nunca romper UI: responder 200 con items vacíos y error en meta
+    return res.status(200).json({ ok:true, meta:{ error:String(err?.message||err) }, items:[] });
   }
 }

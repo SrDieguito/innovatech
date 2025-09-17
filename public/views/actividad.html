@@ -113,24 +113,16 @@
         </form>
       </div>
 
-      <!-- Sección de recomendaciones (solo se muestra si la calificación es < 7) -->
-      <div id="recomendaciones-container" class="hidden mt-6">
-        <div class="recomendaciones-container">
-          <div class="recomendaciones-header">
-            <i class="fas fa-lightbulb"></i>
-            <h3>Recursos de aprendizaje recomendados</h3>
-          </div>
-          <div id="recomendaciones-loading" class="recomendaciones-loading">
-            <p><i class="fas fa-spinner fa-spin"></i> Buscando recursos para ti...</p>
-          </div>
-          <div id="recomendaciones-empty" class="recomendaciones-empty hidden">
-            <p>No se encontraron recursos de aprendizaje para esta actividad.</p>
-          </div>
-          <div id="recomendaciones-list" class="recomendaciones-list">
-            <!-- Las recomendaciones se cargarán aquí dinámicamente -->
-          </div>
+      <!-- Sección de recomendaciones -->
+      <section class="mt-6">
+        <h3 class="text-lg font-semibold mb-2">Recomendaciones</h3>
+        <div id="lista-recomendaciones" class="space-y-2">
+          <!-- Las recomendaciones se cargarán aquí dinámicamente -->
         </div>
-      </div>
+      </section>
+      
+      <!-- Script para cargar las recomendaciones -->
+      <script type="module" src="/js/actividad-recomendaciones.js"></script>
     </div>
 
     <!-- CONTENEDOR DE ENTREGAS DEL PROFESOR -->
