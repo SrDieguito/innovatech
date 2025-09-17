@@ -1,62 +1,69 @@
 /**
  * Módulo de recomendaciones para la página de actividad
- * Muestra recursos de aprendizaje recomendados cuando la calificación es < 7
+ * Muestra recomendaciones para estudiantes en la entrega de tareas
  */
 
+// Referencias a los elementos del DOM
+const recomendacionesSection = document.getElementById('recomendaciones-estudiante');
+const btnOcultarRecomendaciones = document.getElementById('btn-ocultar-recomendaciones');
+
 /**
- * Obtiene recomendaciones para la tarea actual
- * @param {number} tareaId - ID de la tarea
- * @param {number} cursoId - ID del curso
- * @returns {Promise<Object>} Datos de las recomendaciones
+ * Muestra u oculta la sección de recomendaciones
+ * @param {boolean} show - Indica si se debe mostrar u ocultar la sección
  */
-async function getRecomendaciones(tareaId, cursoId) {
-  try {
-    const response = await fetch(`/api/recomendaciones?tarea_id=${tareaId}&curso_id=${cursoId}`, {
-      credentials: 'include'
-    });
-    
-    if (!response.ok) {
-      throw new Error('Error al cargar recomendaciones');
+function toggleRecomendaciones(show = true) {
+  if (recomendacionesSection) {
+    if (show) {
+      recomendacionesSection.classList.remove('hidden');
+      // Guardar preferencia de visibilidad en localStorage
+      localStorage.setItem('recomendaciones-visible', 'true');
+    } else {
+      recomendacionesSection.classList.add('hidden');
+      localStorage.setItem('recomendaciones-visible', 'false');
     }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Error al obtener recomendaciones:', error);
-    return { error: error.message };
   }
 }
 
 /**
- * Muestra las recomendaciones en la interfaz
- * @param {Object} data - Datos de las recomendaciones
+ * Inicializa los event listeners para la sección de recomendaciones
  */
-function mostrarRecomendaciones(data) {
-  const container = document.getElementById('recomendaciones-container');
-  const loading = document.getElementById('recomendaciones-loading');
-  const empty = document.getElementById('recomendaciones-empty');
-  const list = document.getElementById('recomendaciones-list');
-  
-  // Ocultar indicador de carga
-  loading.classList.add('hidden');
-  
-  // Verificar si hay un error o no hay datos
-  if (data.error || !data.recursos || data.recursos.length === 0) {
-    empty.classList.remove('hidden');
+function initEventListeners() {
+  // Botón para ocultar las recomendaciones
+  if (btnOcultarRecomendaciones) {
+    btnOcultarRecomendaciones.addEventListener('click', () => {
+      toggleRecomendaciones(false);
+    });
+  }
+
+  // Mostrar recomendaciones al hacer clic en el botón de ayuda
+  const btnMostrarRecomendaciones = document.getElementById('btn-mostrar-recomendaciones');
+  if (btnMostrarRecomendaciones) {
+    btnMostrarRecomendaciones.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleRecomendaciones(true);
+    });
+  }
+}
+
+/**
+ * Inicializa la funcionalidad de recomendaciones para estudiantes
+ * @param {string} userRole - Rol del usuario (estudiante, profesor, etc.)
+ */
+function initRecomendacionesEstudiante(userRole) {
+  // Solo inicializar si el usuario es estudiante
+  if (userRole !== 'estudiante') {
     return;
   }
-  
-  // Mostrar la sección de recomendaciones
-  container.classList.remove('hidden');
-  
-  // Limpiar lista existente
-  list.innerHTML = '';
-  
-  // Agregar cada recurso a la lista
-  data.recursos.forEach(recurso => {
-    const card = document.createElement('div');
-    card.className = 'recomendacion-card';
-    
-    // Determinar el ícono según la fuente
+
+  // Inicializar event listeners
+  initEventListeners();
+
+  // Mostrar recomendaciones por defecto (si no se ha guardado preferencia)
+  const recomendacionesGuardadas = localStorage.getItem('recomendaciones-visible');
+  if (recomendacionesGuardadas === null || recomendacionesGuardadas === 'true') {
+    toggleRecomendaciones(true);
+  }
+}
     let icon = '';
     let sourceClass = '';
     let sourceText = '';
@@ -87,8 +94,7 @@ function mostrarRecomendaciones(data) {
     `;
     
     list.appendChild(card);
-  });
-}
+
 
 /**
  * Inicializa la funcionalidad de recomendaciones
@@ -122,6 +128,7 @@ async function initActividadRecomendaciones(tareaId, cursoId, calificacion) {
 
 // Exportar para uso en otros módulos
 export {
+  initRecomendacionesEstudiante,
   initActividadRecomendaciones,
   getRecomendaciones,
   mostrarRecomendaciones
