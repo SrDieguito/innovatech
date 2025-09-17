@@ -640,8 +640,6 @@ async function guardarCalificacion() {
   }
 }
 
-// Importar funciones de recomendaciones
-import { initActividadRecomendaciones } from './actividad-recomendaciones.js';
 
 // ---- Inicialización principal ----
 async function initActividad() {
