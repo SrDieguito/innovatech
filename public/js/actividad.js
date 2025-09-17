@@ -788,9 +788,9 @@ async function initActividad() {
     if (!esProfesor) {
       await renderComentarios();
       
-      // Inicializar recomendaciones si hay una calificación menor a 7
-      if (tarea.calificacion !== undefined && tarea.calificacion < 7) {
-        initActividadRecomendaciones(tareaId, cursoId, tarea.calificacion);
+      // Cargar recomendaciones para la tarea actual
+      if (window.loadRecsFor) {
+        window.loadRecsFor(tareaId, cursoId);
       }
     }
     

@@ -113,16 +113,45 @@
         </form>
       </div>
 
-      <!-- Sección de recomendaciones -->
-      <section class="mt-6">
-        <h3 class="text-lg font-semibold mb-2">Recomendaciones</h3>
+      <!-- Sección de recomendaciones con panel persistente -->
+      <section id="panel-recomendaciones" class="mt-6">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-lg font-semibold">Recursos recomendados</h3>
+          <button id="btn-toggle-recomendaciones" class="text-sm text-blue-600 hover:text-blue-800">
+            <i class="fas fa-sync-alt mr-1"></i> Actualizar
+          </button>
+        </div>
         <div id="lista-recomendaciones" class="space-y-2">
           <!-- Las recomendaciones se cargarán aquí dinámicamente -->
+          <div class="text-sm text-gray-500">Cargando recursos recomendados...</div>
         </div>
       </section>
       
       <!-- Script para cargar las recomendaciones -->
       <script type="module" src="/js/actividad-recomendaciones.js"></script>
+      
+      <!-- Estilos para el panel persistente -->
+      <style>
+        /* Evita efectos colapsables heredados; mantén el panel visible */
+        #panel-recomendaciones.recs-sticky { 
+          display: block !important; 
+          opacity: 1 !important; 
+          visibility: visible !important; 
+        }
+        
+        #lista-recomendaciones {
+          transition: all 0.3s ease;
+        }
+        
+        #lista-recomendaciones a[data-rec-link] {
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        #lista-recomendaciones a[data-rec-link]:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+      </style>
     </div>
 
     <!-- CONTENEDOR DE ENTREGAS DEL PROFESOR -->
