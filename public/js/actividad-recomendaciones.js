@@ -3,127 +3,91 @@
  * Muestra recursos de aprendizaje recomendados cuando la calificación es < 7
  */
 
-// URL base para las llamadas a la API
-const API_BASE = `${window.location.origin}/api`;
-
 /**
  * Obtiene recomendaciones para la tarea actual
  * @param {number} tareaId - ID de la tarea
  * @param {number} cursoId - ID del curso
  * @returns {Promise<Object>} Datos de las recomendaciones
  */
-export async function getRecomendaciones({ tareaId, cursoId }) {
-  const url = `${API_BASE}/recomendaciones?tarea_id=${encodeURIComponent(tareaId)}&curso_id=${encodeURIComponent(cursoId)}`;
-  
+async function getRecomendaciones(tareaId, cursoId) {
   try {
-    const response = await fetch(url, { 
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache'
-      }
+    const response = await fetch(`/api/recomendaciones?tarea_id=${tareaId}&curso_id=${cursoId}`, {
+      credentials: 'include'
     });
     
     if (!response.ok) {
-      console.warn('Recomendaciones HTTP', response.status);
-      return { 
-        ok: false, 
-        data: { recursos: [] }, 
-        error: 'http',
-        status: response.status 
-      };
+      throw new Error('Error al cargar recomendaciones');
     }
     
-    const json = await response.json().catch(() => ({}));
-    
-    if (!json?.ok) {
-      console.warn('Recomendaciones payload', json);
-      return { 
-        ok: false, 
-        data: { recursos: [] }, 
-        error: json?.error || 'payload' 
-      };
-    }
-    
-    return json;
+    return await response.json();
   } catch (error) {
-    console.error('Error en getRecomendaciones:', error);
-    return { 
-      ok: false, 
-      data: { recursos: [] }, 
-      error: 'network' 
-    };
+    console.error('Error al obtener recomendaciones:', error);
+    return { error: error.message };
   }
 }
 
 /**
  * Muestra las recomendaciones en la interfaz
- * @param {Array} recursos - Lista de recursos a mostrar
- * @param {Object} meta - Metadatos adicionales (calificación, tema, fuente)
+ * @param {Object} data - Datos de las recomendaciones
  */
-function mostrarRecomendaciones(recursos = [], meta = {}) {
+function mostrarRecomendaciones(data) {
   const container = document.getElementById('recomendaciones-container');
   const loading = document.getElementById('recomendaciones-loading');
   const empty = document.getElementById('recomendaciones-empty');
   const list = document.getElementById('recomendaciones-list');
   
   // Ocultar indicador de carga
-  if (loading) loading.classList.add('hidden');
+  loading.classList.add('hidden');
   
-  // Mostrar u ocultar contenedor principal
-  if (container) {
-    if (recursos.length > 0) {
-      container.classList.remove('hidden');
-    } else if (empty) {
-      empty.classList.remove('hidden');
-    }
+  // Verificar si hay un error o no hay datos
+  if (data.error || !data.recursos || data.recursos.length === 0) {
+    empty.classList.remove('hidden');
+    return;
   }
+  
+  // Mostrar la sección de recomendaciones
+  container.classList.remove('hidden');
   
   // Limpiar lista existente
-  if (list) {
-    list.innerHTML = '';
+  list.innerHTML = '';
+  
+  // Agregar cada recurso a la lista
+  data.recursos.forEach(recurso => {
+    const card = document.createElement('div');
+    card.className = 'recomendacion-card';
     
-    // Agregar cada recurso a la lista
-    recursos.forEach(recurso => {
-      const card = document.createElement('div');
-      card.className = 'recomendacion-card';
-      
-      // Determinar el ícono según la fuente
-      let icon = 'book';
-      let sourceClass = 'fuente-interna';
-      let sourceText = recurso.fuente || 'Recurso';
-      
-      if (recurso.fuente === 'khan' || recurso.licencia === 'KhanAcademy' || 
-          recurso.url?.includes('khanacademy.org')) {
-        icon = 'graduation-cap';
-        sourceClass = 'fuente-khan';
-        sourceText = 'Khan Academy';
-      }
-      
-      // Crear el contenido de la tarjeta
-      card.innerHTML = `
-        <h4><i class="fas fa-${icon}"></i> ${recurso.titulo || 'Recurso de aprendizaje'}</h4>
-        ${recurso.descripcion ? `<p class="text-sm text-gray-600 mt-1">${recurso.descripcion}</p>` : ''}
-        <div class="flex justify-between items-center mt-2">
-          <span class="text-xs px-2 py-1 rounded-full ${sourceClass}">${sourceText}</span>
-          ${recurso.dificultad ? 
-            `<span class="text-xs bg-gray-100 px-2 py-1 rounded">${recurso.dificultad}</span>` : ''}
-        </div>
-        ${recurso.url ? `
-          <div class="mt-3">
-            <a href="${recurso.url}" 
-               target="_blank" 
-               rel="noopener noreferrer" 
-               class="text-sm text-emerald-600 hover:text-emerald-800 font-medium inline-flex items-center">
-              Ver recurso <i class="fas fa-external-link-alt ml-1 text-xs"></i>
-            </a>
-          </div>
-        ` : ''}
-      `;
-      
-      list.appendChild(card);
-    });
-  }
+    // Determinar el ícono según la fuente
+    let icon = '';
+    let sourceClass = '';
+    let sourceText = '';
+    
+    if (recurso.fuente === 'khan') {
+      icon = 'graduation-cap';
+      sourceClass = 'fuente-khan';
+      sourceText = 'Khan Academy';
+    } else {
+      icon = 'book';
+      sourceClass = 'fuente-interna';
+      sourceText = 'Recurso Interno';
+    }
+    
+    // Crear el contenido de la tarjeta
+    card.innerHTML = `
+      <h4><i class="fas fa-${icon}"></i> ${recurso.titulo || 'Recurso de aprendizaje'}</h4>
+      ${recurso.descripcion ? `<p>${recurso.descripcion}</p>` : ''}
+      <div class="recomendacion-meta">
+        <span class="fuente-badge ${sourceClass}">${sourceText}</span>
+        ${recurso.dificultad ? `<span class="dificultad">${recurso.dificultad}</span>` : ''}
+      </div>
+      ${recurso.url ? `
+        <a href="${recurso.url}" target="_blank" rel="noopener noreferrer" class="recomendacion-link">
+          Ver recurso <i class="fas fa-external-link-alt"></i>
+        </a>
+      ` : ''}
+    `;
+    
+    list.appendChild(card);
+  });
 }
 
 /**
@@ -132,47 +96,27 @@ function mostrarRecomendaciones(recursos = [], meta = {}) {
  * @param {number} cursoId - ID del curso
  * @param {number} calificacion - Calificación del estudiante (opcional)
  */
-export async function initActividadRecomendaciones({ tareaId, cursoId, calificacion }) {
-  console.log('initActividadRecomendaciones called with:', { tareaId, cursoId, calificacion });
-  
+async function initActividadRecomendaciones(tareaId, cursoId, calificacion) {
   // Si hay una calificación y es mayor o igual a 7, no mostrar recomendaciones
   if (calificacion !== undefined && calificacion >= 7) {
-    console.log('No se muestran recomendaciones: calificación >= 7');
     return;
   }
   
   // Mostrar indicador de carga
   const loading = document.getElementById('recomendaciones-loading');
-  const empty = document.getElementById('recomendaciones-empty');
-  
-  if (loading) loading.classList.remove('hidden');
-  if (empty) empty.classList.add('hidden');
+  loading.classList.remove('hidden');
   
   try {
-    console.log('Obteniendo recomendaciones...');
-    
     // Obtener recomendaciones
-    const result = await getRecomendaciones({ tareaId, cursoId });
-    console.log('Respuesta de la API:', result);
+    const data = await getRecomendaciones(tareaId, cursoId);
     
     // Mostrar las recomendaciones
-    mostrarRecomendaciones(
-      result.data?.recursos || [],
-      {
-        calificacion,
-        tema: result.data?.tarea?.tema_slug,
-        fuente: result.data?.fuente
-      }
-    );
+    mostrarRecomendaciones(data);
   } catch (error) {
     console.error('Error al inicializar recomendaciones:', error);
-    
-    if (empty) {
-      empty.textContent = 'No se pudieron cargar las recomendaciones. Intenta más tarde.';
-      empty.classList.remove('hidden');
-    }
-  } finally {
-    if (loading) loading.classList.add('hidden');
+    const empty = document.getElementById('recomendaciones-empty');
+    empty.textContent = 'No se pudieron cargar las recomendaciones. Intenta más tarde.';
+    empty.classList.remove('hidden');
   }
 }
 

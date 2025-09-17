@@ -789,21 +789,9 @@ async function initActividad() {
       await renderComentarios();
       
       // Inicializar recomendaciones si hay una calificación menor a 7
-      console.log('Verificando recomendaciones para tarea:', {
-        tareaId,
-        cursoId,
-        calificacion: tarea.calificacion,
-        tieneCalificacion: tarea.calificacion !== undefined,
-        esMenorA7: tarea.calificacion < 7
-      });
-      
-      // Inicializar recomendaciones (la función manejará si debe mostrarlas o no)
-      console.log('Inicializando recomendaciones...');
-      initActividadRecomendaciones({
-        tareaId,
-        cursoId,
-        calificacion: tarea.calificacion
-      });
+      if (tarea.calificacion !== undefined && tarea.calificacion < 7) {
+        initActividadRecomendaciones(tareaId, cursoId, tarea.calificacion);
+      }
     }
     
   } catch(err) {
