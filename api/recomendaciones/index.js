@@ -5,7 +5,7 @@ import { khanSearchES } from '../_utils/khan.js';
 import { getEstudianteId } from '../_utils/cookies.js';
 
 // Recursos de respaldo cuando falla la búsqueda en Khan Academy
-function getFallbackResources(tema, keywords) {
+async function getFallbackResources(tema, keywords) {
   const baseResources = [
     {
       titulo: 'Recursos educativos abiertos',
@@ -30,21 +30,22 @@ function getFallbackResources(tema, keywords) {
     }
   ];
 
-  // Si tenemos un tema específico, lo añadimos a los recursos
-  if (tema) {
-    return [
-      {
-        titulo: `Recursos sobre: ${tema}`,
-        url: `https://es.khanacademy.org/search?referer=%2F&page_search_query=${encodeURIComponent(tema)}`,
-        snippet: `Busca recursos específicos sobre ${tema} en Khan Academy`,
-        source: 'Sistema',
-        score: 100
-      },
-      ...baseResources
-    ];
+  // Si no hay tema, devolver recursos base
+  if (!tema) {
+    return baseResources;
   }
-  
-  return baseResources;
+
+  // Si hay tema, devolver recursos específicos
+  return [
+    {
+      titulo: `Búsqueda: ${tema}`,
+      url: `https://es.khanacademy.org/search?referer=%2F&page_search_query=${encodeURIComponent(tema)}`,
+      snippet: `Buscar recursos sobre "${tema}" en Khan Academy`,
+      source: 'Sistema',
+      score: 100
+    },
+    ...baseResources
+  ];
 }
 
 const cfg = {
@@ -142,9 +143,50 @@ export default async function handler(req, res) {
       khanError = err.message;
     }
     
-    // Si no hay resultados de Khan Academy, proporcionar recursos genéricos
-    if (items.length === 0) {
-      items = getFallbackResources(tarea.tema || query, kws);
+    // Si no hay resultados de Khan Academy o hubo un error, intentar con búsqueda directa
+    if (items.length === 0 || khanError) {
+      console.log('Usando búsqueda de respaldo para:', query);
+      try {
+        // Primero intentamos con una búsqueda directa en KA
+        const kaUrl = `https://es.khanacademy.org/search?referer=%2F&page_search_query=${encodeURIComponent(query)}`;
+        
+        // Si hay un error específico de KA, intentamos una búsqueda más amplia
+        const searchQuery = khanError?.includes('timeout') ? query : `site:es.khanacademy.org ${query}`;
+        
+        const kaResults = await khanSearchES(searchQuery, kws);
+        
+        if (kaResults.length > 0) {
+          items = [
+            {
+              titulo: `Resultados de búsqueda para: ${query}`,
+              url: kaUrl,
+              snippet: `Resultados de búsqueda en Khan Academy para "${query}"`,
+              source: 'Khan Academy',
+              score: 100
+            },
+            ...kaResults.slice(0, 4).map(r => ({
+              ...r,
+              score: 90 - (items.indexOf(r) * 2) // Ajustar puntuación para mantener orden
+            }))
+          ];
+        } else {
+          // Si no hay resultados, proporcionar enlace directo a la búsqueda
+          items = [
+            {
+              titulo: 'Buscar en Khan Academy',
+              url: kaUrl,
+              snippet: `No se encontraron resultados. Haz clic para buscar "${query}" directamente en Khan Academy`,
+              source: 'Khan Academy',
+              score: 100
+            },
+            ...(await getFallbackResources(tarea.tema || query, kws))
+          ];
+        }
+      } catch (fallbackError) {
+        console.error('Error en búsqueda de respaldo:', fallbackError);
+        // Si todo falla, usar recursos locales
+        items = await getFallbackResources(tarea.tema || query, kws);
+      }
     }
 
     return res.status(200).json({
@@ -169,7 +211,7 @@ export default async function handler(req, res) {
         error: 'Error al obtener recomendaciones',
         internalError: process.env.NODE_ENV === 'development' ? String(err?.message || err) : undefined
       }, 
-      items: getFallbackResources('', []) 
+      items: await getFallbackResources('', []) 
     });
   }
 }
