@@ -135,84 +135,100 @@ async function verifySession(req) {
 }
 
 export default async function handler(req, res) {
+  const conn = await pool.getConnection();
   try {
-    if (req.method !== 'GET') return okJson(res, { error: 'Método no permitido' }, 405);
+    const { tareaId, cursoId, estudianteId, lang = 'es', q } = req.query;
     
-    const { action } = req.query;
-    if (action !== 'por-tarea') return okJson(res, { error: 'Acción no soportada' }, 400);
-
-    const tarea_id = Number(req.query.tarea_id);
-    if (!Number.isInteger(tarea_id) || tarea_id <= 0) {
-      return okJson(res, { error: 'tarea_id inválido' }, 400);
-    }
-
-    // Verificar sesión del usuario
+    // Verificar sesión
     const session = await verifySession(req);
-    if (!session.autenticado || !session.usuario?.id) {
-      return okJson(res, { 
-        mostrar: false, 
-        motivo: session.mensaje || 'Inicia sesión para ver recomendaciones.',
-        calificacion: null
-      }, 401);
+    if (!session.autenticado) {
+      return okJson(res, { error: 'No autenticado' }, 401);
     }
+
+    // Obtener tarea si se proporciona tareaId
+    let tarea = null;
+    let consulta = (q || '').trim();
     
-    const estudiante_id = Number(session.usuario.id);
-
-    const conn = await pool.getConnection();
-    try {
-      const tarea = await getTarea(conn, tarea_id);
-      if (!tarea) return okJson(res, { error: 'Tarea no existe' }, 404);
-
-      const calificacion = await getCalificacion(conn, tarea_id, estudiante_id);
-
-      // Política: recomendar sólo si calificación ≤ 7 (si es null, no recomendar)
-      if (calificacion == null || calificacion > 7) {
-        return okJson(res, {
-          mostrar: false,
-          motivo: 'Sin recomendaciones (no cumple condición ≤ 7 o no hay calificación).',
-          calificacion
-        });
+    if (tareaId) {
+      tarea = await getTarea(conn, tareaId);
+      if (!tarea) {
+        return okJson(res, { error: 'Tarea no encontrada' }, 404);
       }
-
-      // Asegurar tema
-      const temaId = await ensureTemaFromTarea(conn, tarea);
-      let recursos = [];
-      if (temaId) {
-        recursos = await getRecursosInternosPorTema(conn, temaId, 5);
+      
+      // Si no hay consulta explícita, usar título y descripción de la tarea
+      if (!consulta) {
+        consulta = [tarea.titulo, tarea.descripcion].filter(Boolean).join(' ');
       }
-
-      // Completar con recursos de Khan Academy si es necesario
-      if (recursos.length < 5) {
-        const khanResources = await fetchKhanResources(
-          tarea.titulo, 
-          tarea.descripcion, 
-          5 - recursos.length
-        );
-        recursos = [...recursos, ...khanResources];
+      
+      // Verificar calificación si se proporciona estudianteId
+      if (estudianteId) {
+        const calificacion = await getCalificacion(conn, tareaId, estudianteId);
+        if (calificacion === null || calificacion > 7) {
+          return okJson(res, {
+            mostrar: false,
+            motivo: 'Sin recomendaciones (no cumple condición ≤ 7 o no hay calificación).',
+            calificacion
+          });
+        }
       }
-
-      // (Opcional) actualizar tabla estudiante_tema
-      // Nota: no obligatorio para mostrar recomendaciones.
-      // try {
-      //   await conn.execute(
-      //     `INSERT INTO estudiante_tema (estudiante_id, tema_id, aciertos, fallos, nota_media, mastery_prob)
-      //      VALUES (?, ?, 0, 1, ?, NULL)
-      //      ON DUPLICATE KEY UPDATE fallos = fallos + 1, nota_media = IFNULL( (IFNULL(nota_media, ?)+?)/2, ?)`,
-      //     [estudiante_id, temaId, calificacion, calificacion, calificacion, calificacion]
-      //   );
-      // } catch {}
-
-      return okJson(res, {
-        mostrar: true,
-        calificacion,
-        tema_id: temaId,
-        recursos
-      });
-    } finally {
-      conn.release();
     }
+
+    if (!consulta) {
+      return okJson(res, { error: 'Se requiere un término de búsqueda (q) o un ID de tarea' }, 400);
+    }
+
+    // Buscar en Wikimedia
+    const wikimediaData = await buscarPaginas({ q: consulta, lang, limite: 10 });
+    const wikimediaItems = (wikimediaData?.pages || []).map(p => ({
+      id: `wm_${p.id}`,
+      titulo: p.title,
+      descripcion: p.description,
+      url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(p.key)}`,
+      thumbnail: p.thumbnail?.url || null,
+      fuente: 'Wikimedia',
+      tipo: 'articulo'
+    }));
+
+    // Obtener recursos internos si hay una tarea
+    let recursosInternos = [];
+    if (tarea) {
+      const temaId = await ensureTemaFromTarea(conn, tarea);
+      if (temaId) {
+        recursosInternos = await getRecursosInternosPorTema(conn, temaId, 5);
+      }
+    }
+
+    // Obtener recursos de Khan Academy
+    const khanResources = await fetchKhanResources(
+      tarea?.titulo || consulta,
+      tarea?.descripcion || '',
+      5
+    );
+
+    // Combinar todos los recursos
+    const todosRecursos = [
+      ...recursosInternos,
+      ...khanResources,
+      ...wikimediaItems
+    ];
+
+    return okJson(res, {
+      mostrar: true,
+      calificacion: null,
+      tema_id: null,
+      recursos: todosRecursos,
+      meta: {
+        total: todosRecursos.length,
+        wikimedia: wikimediaItems.length,
+        khan: khanResources.length,
+        internos: recursosInternos.length
+      }
+    });
+
   } catch (err) {
-    console.error(err);
-    return okJson(res, { error: 'Error interno' }, 500);
+    console.error('Error en handler de recomendaciones:', err);
+    return okJson(res, { error: 'Error interno del servidor' }, 500);
+  } finally {
+    if (conn) conn.release();
   }
 }

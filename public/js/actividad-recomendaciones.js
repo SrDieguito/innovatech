@@ -99,8 +99,18 @@ export async function loadRecsFor(tareaId, cursoId) {
   }
 }
 
+async function getRecomendaciones({ tareaId, cursoId, lang = 'es' }) {
+  const u = new URL('/api/recomendaciones', location.origin);
+  u.searchParams.set('tareaId', tareaId);
+  u.searchParams.set('cursoId', cursoId);
+  u.searchParams.set('lang', lang);
+  const r = await fetch(u);
+  if (!r.ok) throw new Error('Error al obtener recomendaciones');
+  return r.json();
+}
+
 function renderRecs(items) {
-  const cont = document.getElementById('lista-recomendaciones');
+  const cont = document.getElementById('recs-container') || document.getElementById('lista-recomendaciones');
   if (!cont) return;
 
   if (!items || !items.length) {
@@ -114,45 +124,24 @@ function renderRecs(items) {
 
   cont.innerHTML = items.map(item => {
     // Handle different item formats
-    const title = item.titulo || 'Recurso sin título';
-    const description = item.descripcion || item.resumen || '';
+    const title = item.titulo || item.title || 'Recurso sin título';
+    const description = item.descripcion || item.extracto || item.resumen || '';
     const source = item.fuente || item.source || 'Fuente desconocida';
     const url = item.url || '#';
-    
-    // Create links section if available
-    let linksHtml = '';
-    if (Array.isArray(item.enlaces) && item.enlaces.length > 0) {
-      linksHtml = `
-        <div class="mt-2 pt-2 border-t border-gray-100">
-          <p class="text-xs font-medium text-gray-500 mb-1">Enlaces relacionados:</p>
-          <ul class="space-y-1">
-            ${item.enlaces.slice(0, 3).map(link => `
-              <li class="text-xs">
-                <a href="${link.url}" target="_blank" rel="noopener" 
-                   class="text-blue-600 hover:underline flex items-center">
-                  <span class="truncate">${link.text || 'Enlace'}</span>
-                  <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                  </svg>
-                </a>
-              </li>
-            `).join('')}
-          </ul>
-        </div>`;
-    }
+    const thumbnail = item.thumbnail || item.imagen;
     
     return `
-      <div class="p-4 mb-3 rounded-lg border border-gray-200 hover:border-blue-200 hover:bg-blue-50 transition-colors">
-        <a href="${url}" target="_blank" rel="noopener" class="block">
-          <h3 class="font-medium text-blue-700 hover:underline">${escapeHtml(title)}</h3>
-          ${description ? `<p class="mt-1 text-sm text-gray-600 line-clamp-2">${escapeHtml(description)}</p>` : ''}
-        </a>
-        ${linksHtml}
-        <div class="mt-2 flex items-center justify-between">
-          <span class="text-xs text-gray-500">${source}</span>
-          ${item.licencia ? `<span class="text-xs text-gray-400">${item.licencia}</span>` : ''}
+      <a class="block p-3 mb-3 rounded-lg border border-gray-200 hover:shadow hover:border-blue-200 hover:bg-blue-50 transition-colors"
+         href="${url}" target="_blank" rel="noopener">
+        <div class="flex gap-3">
+          ${thumbnail ? `<img src="${thumbnail}" class="w-16 h-16 object-cover rounded" alt="${title}"/>` : ''}
+          <div class="flex-1">
+            <h4 class="font-semibold text-blue-700">${escapeHtml(title)}</h4>
+            ${description ? `<p class="mt-1 text-sm text-gray-600 line-clamp-2">${escapeHtml(description)}</p>` : ''}
+            <span class="inline-block mt-1 text-xs text-gray-400">${source}${item.licencia ? ` • ${item.licencia}` : ''}</span>
+          </div>
         </div>
-      </div>`;
+      </a>`;
   }).join('');
 }
 
