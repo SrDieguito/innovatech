@@ -1,7 +1,8 @@
-// api/recomendaciones.js
-import mysql from 'mysql2/promise';
-import { tareaToTema } from './_utils/text.js';
-import { khanSearchES } from './_utils/khan.js';
+// CommonJS para evitar fallos de módulos en Vercel
+const mysql = require('mysql2/promise');
+const { tareaToTema } = require('./_utils/text.js');
+const { khanSearchES } = require('./_utils/khan.js');
+const { buscarPaginas, sanitizeQuery } = require('./_utils/wikimedia');
 
 const pool = mysql.createPool({
   uri: process.env.MYSQL_URL || process.env.DATABASE_URL,
@@ -134,7 +135,7 @@ async function verifySession(req) {
   }
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const conn = await pool.getConnection();
   try {
     // Acepta ambas convenciones (legacy y nueva)
@@ -144,7 +145,7 @@ export default async function handler(req, res) {
     const estudianteId = qp.estudianteId || qp.estudiante_id || qp.estudiante || null;
     const lang = qp.lang || 'es';
     const action = qp.action || null; // ignorado (compatibilidad)
-    let consulta = (qp.q || '').trim();
+    let consulta = sanitizeQuery(qp.q || '');
     
     // Verificar sesión
     const session = await verifySession(req);
@@ -183,13 +184,14 @@ export default async function handler(req, res) {
       return okJson(res, { error: 'Se requiere un término de búsqueda (q) o un ID de tarea' }, 400);
     }
 
-    // Buscar en Wikimedia
-    const wikimediaData = await buscarPaginas({ q: consulta, lang, limite: 10 });
+    // 2) Llamada a Wikimedia Core REST Search
+    const wikimediaData = await buscarPaginas({ q: consulta || String(tareaId), lang, limite: 10 });
     const wikimediaItems = (wikimediaData?.pages || []).map(p => ({
       id: `wm_${p.id}`,
       titulo: p.title,
-      descripcion: p.description,
-      url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(p.key)}`,
+      descripcion: p.description || '',
+      extracto: p.description || '',
+      url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(p.key || p.title.replace(/ /g, '_'))}`,
       thumbnail: p.thumbnail?.url || null,
       fuente: 'Wikimedia',
       tipo: 'articulo'
@@ -205,11 +207,17 @@ export default async function handler(req, res) {
     }
 
     // Obtener recursos de Khan Academy
-    const khanResources = await fetchKhanResources(
-      tarea?.titulo || consulta,
-      tarea?.descripcion || '',
-      5
-    );
+    let khanResources = [];
+    try {
+      khanResources = await fetchKhanResources(
+        tarea?.titulo || consulta,
+        tarea?.descripcion || '',
+        5
+      );
+    } catch (error) {
+      console.error('Error al obtener recursos de Khan Academy:', error);
+      // Continuar sin recursos de Khan Academy
+    }
 
     // Combinar todos los recursos
     const todosRecursos = [

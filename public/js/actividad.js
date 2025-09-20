@@ -140,12 +140,13 @@ async function getTarea(){
 }
 
 async function getEntrega(){
-  const res = await fetch(`/api/entregas?action=detalle&tarea_id=${tareaId}`,{credentials:'include'});
+  const res = await fetch(`/api/entregas?action=detalle&tareaId=${tareaId}`,{credentials:'include'});
   return res.ok ? await res.json() : null;
 }
 
 async function getComentarios(){
-  const res = await fetch(`/api/comentarios?tarea_id=${tareaId}`,{credentials:'include'});
+  // Backend espera camelCase; mantenemos compat hacia adelante
+  const res = await fetch(`/api/comentarios?tareaId=${tareaId}`,{credentials:'include'});
   return res.ok ? await res.json() : [];
 }
 
@@ -398,7 +399,7 @@ function updateStatusVisual(statusEl, estado) {
 // ---- Funciones de profesor ----
 async function getEntregasProfesor() {
   try {
-    const res = await fetch(`/api/entregas?action=listar_por_tarea_profesor&tarea_id=${tareaId}`, {
+    const res = await fetch(`/api/entregas?action=listar_por_tarea_profesor&tareaId=${tareaId}`, {
       credentials: 'include'
     });
     
