@@ -1,8 +1,12 @@
-// CommonJS: handler robusto que asegura q = nombre de la tarea
-const { buscarPaginas, sanitizeQuery } = require('./_utils/wikimedia');
+// ESM: handler que asegura q = nombre de la tarea
 const mysql = require('mysql2/promise');
 const { tareaToTema } = require('./_utils/text.js');
 const { khanSearchES } = require('./_utils/khan.js');
+
+// Función local para sanitizar consultas
+function sanitizeQuery(s) {
+  return String(s || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+}
 
 async function obtenerTituloTareaDesdeAPI(req, { tareaId, cursoId }) {
   try {
@@ -159,7 +163,7 @@ async function verifySession(req) {
   }
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   const conn = await pool.getConnection();
   try {
     const qp = req.query || {};
@@ -219,18 +223,8 @@ module.exports = async function handler(req, res) {
       return okJson(res, { error: 'Se requiere un término de búsqueda (q) o un ID de tarea' }, 400);
     }
 
-    // 2) Llamada a Wikimedia Core REST Search
-    const wikimediaData = await buscarPaginas({ q: consulta || String(tareaId), lang, limite: 10 });
-    const wikimediaItems = (wikimediaData?.pages || []).map(p => ({
-      id: `wm_${p.id}`,
-      titulo: p.title,
-      descripcion: p.description || '',
-      extracto: p.description || '',
-      url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(p.key || p.title.replace(/ /g, '_'))}`,
-      thumbnail: p.thumbnail?.url || null,
-      fuente: 'Wikimedia',
-      tipo: 'articulo'
-    }));
+    // 2) No se incluyen resultados de Wikimedia
+    const wikimediaItems = [];
 
     // Obtener recursos internos si hay una tarea
     let recursosInternos = [];

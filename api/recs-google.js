@@ -1,7 +1,11 @@
-// /api/recs-google.js — Recomendaciones con Gemini + Crossref (CommonJS)
-const GEMINI_KEY = process.env.GEMINI_API_KEY;
+// /api/recs-google.js — Recomendaciones con Gemini + Crossref (ESM)
+const GEMINI_KEY = 'AIzaSyANm3Q_5HNSzAup79INUOiUexWq5Y5dGOE';
 const CROSSREF_MAILTO = process.env.CROSSREF_MAILTO || 'devnull@example.com';
-const { sanitizeQuery } = require('./_utils/wikimedia');
+
+// Función local para sanitizar consultas
+function sanitizeQuery(s) {
+  return String(s || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+}
 
 async function getTituloTarea(req, { tareaId, cursoId }) {
   try {
@@ -122,7 +126,7 @@ async function crossrefSearch({ query, rows = 6, from = '2019-01-01' }) {
   });
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   try {
     if (!GEMINI_KEY) {
       return res.status(500).json({ 
