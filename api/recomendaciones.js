@@ -137,7 +137,14 @@ async function verifySession(req) {
 export default async function handler(req, res) {
   const conn = await pool.getConnection();
   try {
-    const { tareaId, cursoId, estudianteId, lang = 'es', q } = req.query;
+    // Acepta ambas convenciones (legacy y nueva)
+    const qp = req.query || {};
+    const tareaId = qp.tareaId || qp.tarea_id || qp.id || null;
+    const cursoId = qp.cursoId || qp.curso_id || qp.curso || null;
+    const estudianteId = qp.estudianteId || qp.estudiante_id || qp.estudiante || null;
+    const lang = qp.lang || 'es';
+    const action = qp.action || null; // ignorado (compatibilidad)
+    let consulta = (qp.q || '').trim();
     
     // Verificar sesión
     const session = await verifySession(req);
@@ -147,7 +154,6 @@ export default async function handler(req, res) {
 
     // Obtener tarea si se proporciona tareaId
     let tarea = null;
-    let consulta = (q || '').trim();
     
     if (tareaId) {
       tarea = await getTarea(conn, tareaId);

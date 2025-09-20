@@ -1,12 +1,31 @@
 let lastKey = '';
 
-async function apiRecs({ tareaId, cursoId }) {
-  console.log('Solicitando recomendaciones para:', { tareaId, cursoId });
-  const url = `/api/recomendaciones?action=por-tarea&tarea_id=${encodeURIComponent(tareaId)}`;
+function buildConsultaFromDOM() {
+  // Intenta usar lo que ya pintaste en la página:
+  const cand = [
+    document.getElementById('actividad-titulo')?.textContent,
+    document.getElementById('titulo-actividad')?.textContent,
+    document.querySelector('[data-actividad-titulo]')?.getAttribute('data-actividad-titulo'),
+    document.getElementById('actividad-descripcion')?.textContent,
+    document.querySelector('[data-actividad-descripcion]')?.getAttribute('data-actividad-descripcion')
+  ].filter(Boolean).map(s => s.trim()).filter(Boolean);
+  return cand.join(' ').replace(/\s+/g, ' ').slice(0, 300);
+}
+
+async function apiRecs({ tareaId, cursoId, lang = 'es' }) {
+  const q = buildConsultaFromDOM();
+  console.log('Solicitando recomendaciones para:', { tareaId, cursoId, q });
+  
+  const u = new URL('/api/recomendaciones', location.origin);
+  if (tareaId) u.searchParams.set('tareaId', tareaId);
+  if (cursoId) u.searchParams.set('cursoId', cursoId);
+  if (lang) u.searchParams.set('lang', lang);
+  if (q) u.searchParams.set('q', q);
+  
+  console.log('Realizando petición a:', u.toString());
   
   try {
-    console.log('Realizando petición a:', url);
-    const r = await fetch(url, { 
+    const r = await fetch(u.toString(), { 
       credentials: 'include',
       headers: {
         'Accept': 'application/json',
@@ -62,7 +81,7 @@ export async function loadRecsFor(tareaId, cursoId) {
   }
   
   lastKey = key;
-  const cont = document.getElementById('lista-recomendaciones');
+  const cont = document.getElementById('recs-container') || document.getElementById('lista-recomendaciones');
   
   if (!cont) {
     console.warn('No se encontró el contenedor de recomendaciones');
