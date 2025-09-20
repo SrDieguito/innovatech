@@ -1,8 +1,32 @@
-// CommonJS para evitar fallos de módulos en Vercel
+// CommonJS: handler robusto que asegura q = nombre de la tarea
+const { buscarPaginas, sanitizeQuery } = require('./_utils/wikimedia');
 const mysql = require('mysql2/promise');
 const { tareaToTema } = require('./_utils/text.js');
 const { khanSearchES } = require('./_utils/khan.js');
-const { buscarPaginas, sanitizeQuery } = require('./_utils/wikimedia');
+
+async function obtenerTituloTareaDesdeAPI(req, { tareaId, cursoId }) {
+  try {
+    const proto =
+      req.headers['x-forwarded-proto'] ||
+      (req.headers['referer'] && new URL(req.headers['referer']).protocol.replace(':','')) ||
+      'https';
+    const host = req.headers['x-vercel-deployment-url'] || req.headers['host'];
+    const base = `${proto}://${host}`;
+    const u = new URL('/api/tareas', base);
+    u.searchParams.set('action', 'detalle');
+    u.searchParams.set('id', String(tareaId));
+    if (cursoId) u.searchParams.set('cursoId', String(cursoId));
+    const r = await fetch(u.toString());
+    if (!r.ok) return null;
+    const data = await r.json().catch(() => null);
+    // Adaptarse a estructuras típicas: {tarea:{titulo, descripcion}} OR directo {titulo, descripcion}
+    const tarea = data?.tarea || data;
+    const titulo = tarea?.titulo || tarea?.nombre || null;
+    const descripcion = tarea?.descripcion || '';
+    const q = [titulo, descripcion].filter(Boolean).join(' ');
+    return sanitizeQuery(q);
+  } catch (_) { return null; }
+}
 
 const pool = mysql.createPool({
   uri: process.env.MYSQL_URL || process.env.DATABASE_URL,
@@ -138,14 +162,25 @@ async function verifySession(req) {
 module.exports = async function handler(req, res) {
   const conn = await pool.getConnection();
   try {
-    // Acepta ambas convenciones (legacy y nueva)
     const qp = req.query || {};
     const tareaId = qp.tareaId || qp.tarea_id || qp.id || null;
     const cursoId = qp.cursoId || qp.curso_id || qp.curso || null;
     const estudianteId = qp.estudianteId || qp.estudiante_id || qp.estudiante || null;
     const lang = qp.lang || 'es';
-    const action = qp.action || null; // ignorado (compatibilidad)
+    const action = qp.action || null; // compat
+
+    // 1) Prioridad: si cliente envía q (preferimos nombre de la tarea)
     let consulta = sanitizeQuery(qp.q || '');
+
+    // 2) Si q está vacío, derivarlo de la propia API de tareas (nombre + descripción)
+    if (!consulta && tareaId) {
+      consulta = await obtenerTituloTareaDesdeAPI(req, { tareaId, cursoId }) || '';
+    }
+    // 3) Último recurso: usar el id literal, para no devolver 400
+    if (!consulta && tareaId) consulta = String(tareaId);
+    if (!consulta) {
+      return res.status(400).json({ error: 'Falta q o tareaId' });
+    }
     
     // Verificar sesión
     const session = await verifySession(req);

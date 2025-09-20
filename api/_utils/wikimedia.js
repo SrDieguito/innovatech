@@ -37,8 +37,6 @@ async function wmFetch(path, params = {}) {
 async function buscarPaginas({ q, lang = 'es', limite = 8 }) {
   const query = sanitizeQuery(q);
   if (!query) return { pages: [] };
-  // Core REST Search (page) — devuelve pages[].title/description/thumbnail/key
-  // https://api.wikimedia.org/core/v1/wikipedia/{lang}/search/page?q=...
   return wmFetch(`/core/v1/wikipedia/${lang}/search/page`, { q: query, limit: String(limite) });
 }
 

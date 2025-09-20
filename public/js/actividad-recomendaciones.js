@@ -1,15 +1,33 @@
 let lastKey = '';
 
 function buildConsultaFromDOM() {
-  // Intenta usar lo que ya pintaste en la página:
-  const cand = [
-    document.getElementById('actividad-titulo')?.textContent,
-    document.getElementById('titulo-actividad')?.textContent,
-    document.querySelector('[data-actividad-titulo]')?.getAttribute('data-actividad-titulo'),
-    document.getElementById('actividad-descripcion')?.textContent,
-    document.querySelector('[data-actividad-descripcion]')?.getAttribute('data-actividad-descripcion')
-  ].filter(Boolean).map(s => s.trim()).filter(Boolean);
-  return cand.join(' ').replace(/\s+/g, ' ').slice(0, 300);
+  // q = **nombre de la tarea** (título). Agarro varias opciones comunes.
+  const selectors = [
+    '#titulo-actividad',
+    '#actividad-titulo',
+    '.titulo-actividad',
+    '.actividad-titulo',
+    '[data-actividad-titulo]',
+    'h1',
+    'h2'
+  ];
+  
+  // Buscar en los selectores por orden de prioridad
+  for (const sel of selectors) {
+    const el = document.querySelector(sel);
+    if (!el) continue;
+    const val = (el.getAttribute('data-actividad-titulo') || el.textContent || '').trim();
+    if (val && val.length > 2) return val.slice(0, 200);
+  }
+  
+  // Fallback: param ?titulo= en URL, si existiera
+  const url = new URL(location.href);
+  const t = (url.searchParams.get('titulo') || '').trim();
+  if (t) return t.slice(0, 200);
+  
+  // Último recurso: buscar en cualquier parte del documento
+  const fallback = document.body.innerText.trim().split('\n')[0];
+  return (fallback || '').slice(0, 200);
 }
 
 async function apiRecs({ tareaId, cursoId, lang = 'es' }) {

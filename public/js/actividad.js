@@ -140,14 +140,37 @@ async function getTarea(){
 }
 
 async function getEntrega(){
-  const res = await fetch(`/api/entregas?action=detalle&tareaId=${tareaId}`,{credentials:'include'});
-  return res.ok ? await res.json() : null;
+  // Enviamos **ambos** nombres por compatibilidad (id y tareaId)
+  const u = new URL('/api/entregas', window.location.origin);
+  u.searchParams.set('action', 'detalle');
+  u.searchParams.set('id', String(tareaId));
+  u.searchParams.set('tareaId', String(tareaId));
+  
+  try {
+    const res = await fetch(u.toString(), {credentials:'include'});
+    return res.ok ? await res.json() : null;
+  } catch (error) {
+    console.error('Error al obtener entrega:', error);
+    return null;
+  }
 }
 
 async function getComentarios(){
-  // Backend espera camelCase; mantenemos compat hacia adelante
-  const res = await fetch(`/api/comentarios?tareaId=${tareaId}`,{credentials:'include'});
-  return res.ok ? await res.json() : [];
+  // Intentar con ambos formatos de parámetro para máxima compatibilidad
+  try {
+    // Primero intentar con tareaId (nuevo formato)
+    let res = await fetch(`/api/comentarios?tareaId=${tareaId}`, {credentials:'include'});
+    
+    // Si falla con 404, intentar con tarea_id (formato legacy)
+    if (res.status === 404) {
+      res = await fetch(`/api/comentarios?tarea_id=${tareaId}`, {credentials:'include'});
+    }
+    
+    return res.ok ? await res.json() : [];
+  } catch (error) {
+    console.error('Error al cargar comentarios:', error);
+    return [];
+  }
 }
 
 async function renderComentarios(){
