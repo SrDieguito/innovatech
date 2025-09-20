@@ -1,5 +1,5 @@
 // /api/recs-google.js — Recomendaciones con Gemini + Crossref (ESM)
-const GEMINI_KEY = 'AIzaSyANm3Q_5HNSzAup79INUOiUexWq5Y5dGOE';
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const CROSSREF_MAILTO = process.env.CROSSREF_MAILTO || 'devnull@example.com';
 
 // Función local para sanitizar consultas
