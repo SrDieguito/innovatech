@@ -101,6 +101,12 @@
     const url = new URL(API_TAREAS, location.origin);
     url.searchParams.append("action", "listar");
     url.searchParams.append("curso_id", course_id);
+    
+    // Add status filter to the request if it's set
+    if (state.filtro.status) {
+      url.searchParams.append("estado", state.filtro.status);
+    }
+    
     const r = await fetch(url, withCreds());
     if (!r.ok) throw new Error("HTTP " + r.status);
     const data = await r.json();
@@ -172,10 +178,11 @@
     lista.innerHTML = "";
 
     const q = state.filtro.q.toLowerCase();
-    const st = state.filtro.status;
 
+    // Only filter by search term on the client side
+    // Status filtering is now handled by the backend
     const filtradas = state.tareas
-      .filter(t => (!q || `${t.title} ${t.description}`.toLowerCase().includes(q)) && (!st || t.status === st))
+      .filter(t => !q || `${t.title} ${t.description}`.toLowerCase().includes(q))
       .sort((a, b) => parseTS(a.due_at) - parseTS(b.due_at));
 
     if (!filtradas.length) {
@@ -372,7 +379,11 @@
     $("#btnNuevaTarea")?.addEventListener("click", () => openModal());
     $("#btnCancelarModal")?.addEventListener("click", closeModal);
     $("#buscarTarea")?.addEventListener("input", (e) => { state.filtro.q = e.target.value; render(); });
-    $("#filtroEstado")?.addEventListener("change", (e) => { state.filtro.status = e.target.value; render(); });
+    $("#filtroEstado")?.addEventListener("change", async (e) => { 
+      state.filtro.status = e.target.value; 
+      await loadTasks();
+      render(); 
+    });
 
     $("#formTarea")?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -445,21 +456,17 @@
       }
     });
 
-    /* Cargar tareas */
-    try {
-      state.tareas = await apiList(state.courseId);
-    } catch (err) {
-      console.error(err);
-      root.innerHTML = `
-        <div class="p-6 text-red-700 bg-red-50 rounded-xl border border-red-200">
-          Error cargando tareas. Revisa tu API.
-          <div class="mt-1"><code class="text-xs">/api/tareas?action=listar&curso_id=${state.courseId ?? "?"}</code></div>
-        </div>`;
-      return;
-    }
+    // Load tasks initially
+    await loadTasks();
+  }
 
-    /* Hidratar entregas del estudiante */
+  async function loadTasks() {
+    const root = $("#tasks-root");
     try {
+      // Load tasks from API with current filters
+      state.tareas = await apiList(state.courseId);
+      
+      // Hydrate student submissions
       if (state.role === "estudiante" && state.courseId) {
         const { entregas } = await apiEntregasList(state.courseId);
         const mapa = new Map((entregas || []).map(e => [String(e.tarea_id), e]));
@@ -469,15 +476,22 @@
           return t;
         });
       }
-    } catch {}
-
-    render();
+      
+      render();
+    } catch (err) {
+      console.error(err);
+      root.innerHTML = `
+        <div class="p-6 text-red-700 bg-red-50 rounded-xl border border-red-200">
+          Error cargando tareas. Revisa tu conexión e inténtalo de nuevo.
+          <div class="mt-1"><code class="text-xs">/api/tareas?action=listar&curso_id=${state.courseId ?? "?"}</code></div>
+        </div>`;
+    }
   }
 
   document.addEventListener("DOMContentLoaded", () => {
     if (document.querySelector("#tasks-root")) init();
   });
 
-  window.TasksPage = { init };
+  window.TasksPage = { init, loadTasks };
   window.openEntrega = openEntrega;
 })();
