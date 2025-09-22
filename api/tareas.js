@@ -75,7 +75,7 @@ export default async function handler(req, res) {
       const curso_id = resolveCursoId(req, { allowBody: false });
       if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
 
-      const me = await getUser(req); // {id, rol} o null
+      const me = await getUserId(req); // {id, rol} o null
       const estado = normEstado(req.query.estado);
       const q = (req.query.q || '').toString().trim();
 
