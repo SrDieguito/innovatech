@@ -11,8 +11,16 @@ const pool = mysql.createPool({
 });
 
 /* ===== Helpers ===== */
-function getUserId(req) {
-  return req.cookies?.user_id || null;
+async function getUserId(req) {
+  const id = Number(req.cookies?.user_id || req.headers['x-user-id'] || 0);
+  if (!Number.isFinite(id) || id <= 0) return null;
+  let rol = (req.cookies?.user_role || req.headers['x-user-role'] || '').toString().toLowerCase();
+  if (!rol) {
+    const [[u]] = await pool.query('SELECT id, rol FROM usuarios WHERE id=?', [id]);
+    if (!u) return null;
+    rol = (u.rol || '').toLowerCase();
+  }
+  return { id, rol };
 }
 
 function resolveCursoId(req, { allowBody = true } = {}) {
@@ -50,6 +58,13 @@ async function getColumns(table) {
   return { has: (c) => set.has(c), set };
 }
 
+
+// NUEVO: normaliza el filtro de estado
+function normEstado(e) {
+  const v = (e || 'todos').toString().toLowerCase().trim();
+  return ['pendiente', 'completada', 'vencida', 'todos'].includes(v) ? v : 'todos';
+}
+
 /* ===== Handler ===== */
 export default async function handler(req, res) {
   const { action } = req.query;
@@ -60,28 +75,76 @@ export default async function handler(req, res) {
       const curso_id = resolveCursoId(req, { allowBody: false });
       if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
 
-      // Consulta mejorada para incluir profesor_id
-      const [rows] = await pool.query(`
-        SELECT
-          t.id,
-          t.curso_id,
-          COALESCE(t.titulo,'(Sin título)') AS title,
-          COALESCE(t.descripcion,'') AS description,
-          t.fecha_limite AS due_at,
-          COALESCE(t.puntos,0) AS points,
-          t.completada AS status,
-          t.fecha_creacion AS created_at,
-          t.fecha_completacion AS updated_at,
-          u.nombre AS profesor,
-          c.profesor_id  -- ¡IMPORTANTE! Incluir el ID del profesor
-        FROM tareas t
-        LEFT JOIN cursos c ON t.curso_id = c.id
-        LEFT JOIN usuarios u ON c.profesor_id = u.id
-        WHERE t.curso_id = ?
-        ORDER BY t.fecha_limite DESC
-      `, [curso_id]);
+      const me = await getUser(req); // {id, rol} o null
+      const estado = normEstado(req.query.estado);
+      const q = (req.query.q || '').toString().trim();
 
-      return res.status(200).json(rows);
+      // Estudiante: calcular estado por su entrega y fecha
+      if (me && me.rol === 'estudiante') {
+        const params = [me.id, curso_id];
+        let sql = `
+          SELECT
+            t.id,
+            t.curso_id,
+            COALESCE(t.titulo,'(Sin título)') AS title,
+            COALESCE(t.descripcion,'') AS description,
+            t.fecha_limite AS due_at,
+            COALESCE(t.puntos,0) AS points,
+            t.completada AS status,
+            t.fecha_creacion AS created_at,
+            t.fecha_completacion AS updated_at,
+            u.nombre AS profesor,
+            c.profesor_id,
+            CASE
+              WHEN te.id IS NOT NULL THEN 'completada'
+              WHEN t.fecha_limite < NOW() THEN 'vencida'
+              ELSE 'pendiente'
+            END AS estado_calculado
+          FROM tareas t
+          LEFT JOIN cursos c ON t.curso_id = c.id
+          LEFT JOIN usuarios u ON c.profesor_id = u.id
+          LEFT JOIN tareas_entregas te
+            ON te.tarea_id = t.id AND te.estudiante_id = ?
+          WHERE t.curso_id = ?
+          `;
+        if (q) { sql += ` AND (t.titulo LIKE ? OR t.descripcion LIKE ?)`; params.push(`%${q}%`, `%${q}%`); }
+        if (estado !== 'todos') { sql += ` HAVING estado_calculado = ?`; params.push(estado); }
+        sql += ` ORDER BY t.fecha_limite DESC`;
+        const [rows] = await pool.query(sql, params);
+        return res.status(200).json(rows);
+      }
+
+      // Profesor (o sin sesión): estado por fecha (útil para filtrar vencidas/pendientes)
+      {
+        const params = [curso_id];
+        let sql = `
+          SELECT
+            t.id,
+            t.curso_id,
+            COALESCE(t.titulo,'(Sin título)') AS title,
+            COALESCE(t.descripcion,'') AS description,
+            t.fecha_limite AS due_at,
+            COALESCE(t.puntos,0) AS points,
+            t.completada AS status,
+            t.fecha_creacion AS created_at,
+            t.fecha_completacion AS updated_at,
+            u.nombre AS profesor,
+            c.profesor_id,
+            CASE
+              WHEN t.fecha_limite < NOW() THEN 'vencida'
+              ELSE 'pendiente'
+            END AS estado_calculado
+          FROM tareas t
+          LEFT JOIN cursos c ON t.curso_id = c.id
+          LEFT JOIN usuarios u ON c.profesor_id = u.id
+          WHERE t.curso_id = ?
+        `;
+        if (q) { sql += ` AND (t.titulo LIKE ? OR t.descripcion LIKE ?)`; params.push(`%${q}%`, `%${q}%`); }
+        if (estado !== 'todos') { sql += ` HAVING estado_calculado = ?`; params.push(estado); }
+        sql += ` ORDER BY t.fecha_limite DESC`;
+        const [rows] = await pool.query(sql, params);
+        return res.status(200).json(rows);
+      }
     }
 
 // ---------- DETALLE (nuevo endpoint) ----------
