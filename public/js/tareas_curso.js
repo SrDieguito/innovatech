@@ -5,6 +5,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     let tareaAEliminar = null;
     let modalEliminar = null;
 
+    // Obtener el rol del usuario
+    async function getCurrentUserRole() {
+        try {
+            const response = await fetch('/api/sesion', {
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                return data?.rol?.toLowerCase() || 'estudiante';
+            }
+            return 'estudiante';
+        } catch (error) {
+            console.error('Error al obtener el rol del usuario:', error);
+            return 'estudiante';
+        }
+    }
+
     // Inicialización
     async function init() {
         // Obtener el ID del curso de la URL
@@ -18,6 +35,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Inicializar componentes
         modalEliminar = new bootstrap.Modal(document.getElementById('modalEliminarTarea'));
+        
+        // Obtener el rol del usuario y configurar la UI según el rol
+        const userRole = await getCurrentUserRole();
+        const isProfesor = ['profesor', 'admin'].includes(userRole);
+        const btnNuevaTarea = document.getElementById('btn-nueva-tarea');
+        if (btnNuevaTarea) {
+            btnNuevaTarea.style.display = isProfesor ? 'inline-flex' : 'none';
+        }
         
         // Configurar eventos
         setupEventListeners();

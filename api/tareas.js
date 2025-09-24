@@ -182,27 +182,31 @@ if (req.method === 'GET' && action === 'detalle') {
   if (rows.length === 0) {
     return res.status(404).json({ error: 'Tarea no encontrada' });
   }
-
   return res.status(200).json(rows[0]);
 }
 
     // ---------- CREAR (profesor/admin del curso) ----------
     if (req.method === 'POST' && action === 'crear') {
-      const userId = getUserId(req);
-      if (!userId) return res.status(401).json({ error: 'No autenticado' });
+      const user = await getUserId(req); // Ahora devuelve {id, rol}
+      if (!user || !user.id) return res.status(401).json({ error: 'No autenticado' });
+
+      // Verificar que el usuario sea profesor o admin
+      if (!['profesor', 'admin'].includes(user.rol)) {
+        return res.status(403).json({ error: 'Solo profesores y administradores pueden crear tareas' });
+      }
 
       const curso_id = resolveCursoId(req);
       const { titulo, descripcion=null, fecha_limite=null, puntos=0 } = req.body || {};
 
-      if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
-      if (!await isProfesor(userId, curso_id)) {
-        return res.status(403).json({ error: 'Solo el profesor puede crear tareas' });
+      if (!curso_id) return res.status(400).json({ error: 'Curso_id requerido' });
+      
+      // Verificar que el profesor sea el dueño del curso (a menos que sea admin)
+      if (user.rol !== 'admin' && !(await isProfesor(user.id, curso_id))) {
+        return res.status(403).json({ error: 'No tienes permisos para crear tareas en este curso' });
       }
 
       const cols = await getColumns('tareas');
       const columns = ['curso_id']; const values = ['?']; const params = [curso_id];
-
-      if (cols.has('titulo'))          { columns.push('titulo');          values.push('?'); params.push((titulo||'').trim()); }
       if (cols.has('descripcion'))     { columns.push('descripcion');     values.push('?'); params.push(descripcion); }
       if (cols.has('fecha_limite'))    { columns.push('fecha_limite');    values.push('?'); params.push(fecha_limite ? new Date(fecha_limite) : null); }
       if (cols.has('puntos'))          { columns.push('puntos');          values.push('?'); params.push(puntos ?? 0); }
