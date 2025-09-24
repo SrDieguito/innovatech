@@ -50,20 +50,27 @@
       <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-calendar-alt mr-2"></i> Cronograma</h2>
       <p class="text-gray-700">Contenido del cronograma...</p>
     </div>
-
     <div x-show="subTab==='materiales'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
       <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-folder-open mr-2"></i> Materiales de aprendizaje</h2>
       <p class="text-gray-700">Materiales aquí...</p>
     </div>
 
     <div x-show="subTab==='actividades'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-tasks mr-2"></i> Actividades de aprendizaje</h2>
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-2xl font-semibold"><i class="fas fa-tasks mr-2"></i> Actividades de aprendizaje</h2>
+        <!-- Botón de crear tarea -->
+        <button id="btn-crear-tarea"
+                class="hidden px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
+          <i class="fas fa-plus mr-1"></i> Crear tarea
+        </button>
+      </div>
       <div id="actividades-holder" class="mt-2 text-left"></div>
     </div>
 
     <div x-show="subTab==='examenes'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
       <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-file-alt mr-2"></i> Exámenes</h2>
       <p class="text-gray-700">Exámenes aquí...</p>
+{{ ... }}
     </div>
 
     <div x-show="subTab==='encuesta'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
@@ -91,6 +98,7 @@
 
 <script src="/js/task.js"></script>
 <script src="/js/recomendaciones.js"></script>
+<script src="/js/curso-boton-crear.js" type="module"></script>
 <script>
   // Variables globales
   let cursoId;
