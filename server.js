@@ -91,11 +91,9 @@ app.post('/api/procesarlogin', async (req, res) => {
 });
 
 // Verificar sesión
-app.get('/api/verificarSesion', (req, res) => {
-  const userId = req.cookies.user_id;
-  if (userId) res.json({ autenticado: true, user_id: userId });
-  else res.status(401).json({ autenticado: false });
-});
+import verificarSesion from './api/verificarSesion.js';
+
+app.get('/api/verificarSesion', (req, res) => verificarSesion(req, res));
 
 // Servir HTML
 app.get('*', (req, res) => {
