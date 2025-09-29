@@ -193,11 +193,10 @@
   function guardarDescripcion() {
     const nuevaDescripcion = document.getElementById('descripcion-input').value;
 
-    fetch(`/api/cursos`, {
+    fetch(`/api/cursos?action=actualizar-descripcion`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        action: 'actualizar-descripcion',
         curso_id: cursoId,
         descripcion: nuevaDescripcion
       })
