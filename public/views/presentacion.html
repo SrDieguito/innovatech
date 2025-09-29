@@ -4,30 +4,20 @@
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-semibold"><i class="fas fa-book-open mr-2"></i> Presentación del Curso</h2>
       <button id="btn-editar-descripcion" class="btn-edicion hidden bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm hover:bg-blue-200 transition">
-        <i class="fas fa-edit mr-1"></i> Editar
-      </button>
+      </button> 
     </div>
     <p id="presentacion-texto" class="text-gray-700 mb-4">Cargando descripción...</p>
     
     <!-- Editor de presentación (solo para profesores) -->
     <div id="presentacion-editor" class="hidden bg-gray-50 p-4 rounded-lg mt-4">
-      <textarea id="descripcion-input" class="w-full border border-gray-300 rounded p-2 resize-none" rows="6" placeholder="Escribe la presentación de tu curso aquí..."></textarea>
+      <textarea id="presentacion-textarea" class="w-full border border-gray-300 rounded p-2 resize-none" rows="6" placeholder="Escribe la presentación de tu curso aquí..."></textarea>
       <div class="flex justify-end gap-2 mt-2">
         <button id="cancelar-descripcion" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium px-4 py-2 rounded shadow">Cancelar</button>
-        <button id="guardar-descripcion" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded shadow">Guardar</button>
+        <button onclick="actualizarDescripcion()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          Guardar
+        </button>
       </div>
     </div>
-  </div>
-
-  <!-- Sección de Presentación del Profesor -->
-  <div class="border-l-4 border-blue-500 pl-4">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-2xl font-semibold"><i class="fas fa-user-graduate mr-2"></i> Presentación del Profesor</h2>
-      <button class="btn-edicion hidden bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm hover:bg-blue-200 transition">
-        <i class="fas fa-edit mr-1"></i> Editar
-      </button>
-    </div>
-    
     <div class="flex flex-col md:flex-row gap-6 items-start">
       <!-- Foto del profesor -->
       <div class="w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-lg">
