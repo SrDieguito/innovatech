@@ -7,15 +7,15 @@ function getCookie(name) {
 
 async function whoami() {
   try {
-    const r = await fetch('/api/verificarSesion', { 
+    const r = await fetch('/api/perfil', { 
       credentials: 'include' 
     });
     if (r.ok) {
       const response = await r.json();
-      if (response.autenticado && response.usuario) {
+      if (response.id && response.rol) {
         return { 
-          id: response.usuario.id, 
-          rol: (response.usuario.rol || '').toLowerCase() 
+          id: response.id, 
+          rol: (response.rol || '').toLowerCase() 
         };
       }
     }
