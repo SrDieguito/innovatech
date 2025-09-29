@@ -128,22 +128,38 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && action === 'detalle') {
       const userId = getUserId(req);
       if (!userId) return res.status(401).json({ error: 'No autenticado' });
-      const tarea_id = Number(req.query?.tarea_id);
-      if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
+      
+      // Aceptar tanto tarea_id como id/tareaId
+      const tarea_id = Number(req.query?.tarea_id || req.query?.id || req.query?.tareaId);
+      if (!tarea_id || isNaN(tarea_id)) {
+        return res.status(400).json({ 
+          error: 'ID de tarea requerido',
+          details: 'Se requiere el parámetro tarea_id, id o tareaId'
+        });
+      }
+      
       // seguridad: debe poder entregar esa tarea
       if (!await canSubmit(userId, tarea_id)) {
-        return res.status(403).json({ error: 'No autorizado' });
+        return res.status(403).json({ error: 'No tienes permiso para ver esta entrega' });
       }
-      const [[row]] = await pool.query(
-        `SELECT id, tarea_id, archivo_nombre, tamano_bytes, fecha_entrega, estado
-         FROM tareas_entregas
-         WHERE tarea_id=? AND estudiante_id=?
-         ORDER BY fecha_entrega DESC
-         LIMIT 1`,
-        [tarea_id, userId]
-      );
-      if (!row) return res.status(404).json({ error: 'No hay entrega' });
-      return res.status(200).json({ entrega: row });
+      try {
+        const [[row]] = await pool.query(
+          `SELECT id, tarea_id, archivo_nombre, tamano_bytes, fecha_entrega, estado
+           FROM tareas_entregas
+           WHERE tarea_id=? AND estudiante_id=?
+           ORDER BY fecha_entrega DESC
+           LIMIT 1`,
+          [tarea_id, userId]
+        );
+        if (!row) return res.status(404).json({ error: 'No se encontró ninguna entrega para esta tarea' });
+        return res.status(200).json({ entrega: row });
+      } catch (error) {
+        console.error('Error al obtener detalle de entrega:', error);
+        return res.status(500).json({ 
+          error: 'Error interno del servidor',
+          details: error.message 
+        });
+      }
     }
 
     /* ===== ELIMINAR mi entrega ===== */

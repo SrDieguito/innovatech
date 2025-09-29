@@ -64,18 +64,14 @@ function normEstado(e) {
   const v = (e || 'todos').toString().toLowerCase().trim();
   return ['pendiente', 'completada', 'vencida', 'todos'].includes(v) ? v : 'todos';
 }
-
 /* ===== Handler ===== */
 export default async function handler(req, res) {
   const { action } = req.query;
 
   try {
-    // ---------- LISTAR ----------
-    if (req.method === 'GET' && action === 'listar') {
-      const curso_id = resolveCursoId(req, { allowBody: false });
-      if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
-
-      const me = await getUserId(req); // {id, rol} o null
+    // ---------- DETALLE ----------
+    if (req.method === 'GET' && action === 'detalle') {
+      const tareaId = Number(req.query.id || req.query.tareaId);
       const estado = normEstado(req.query.estado);
       const q = (req.query.q || '').toString().trim();
 
