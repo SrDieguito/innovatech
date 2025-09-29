@@ -7,15 +7,17 @@ function getCookie(name) {
 
 async function whoami() {
   try {
-    const r = await fetch('/api/sesion', { 
+    const r = await fetch('/api/verificarSesion', { 
       credentials: 'include' 
     });
     if (r.ok) {
-      const me = await r.json();
-      if (me) return { 
-        id: me.id, 
-        rol: (me.rol || '').toLowerCase() 
-      };
+      const response = await r.json();
+      if (response.autenticado && response.usuario) {
+        return { 
+          id: response.usuario.id, 
+          rol: (response.usuario.rol || '').toLowerCase() 
+        };
+      }
     }
   } catch (error) {
     console.error('Error al verificar sesión:', error);
