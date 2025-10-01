@@ -69,7 +69,66 @@ export default async function handler(req, res) {
   const { action } = req.query;
 
   try {
+    // ---------- LISTAR ----------
+    if (req.method === 'GET' && action === 'listar') {
+      const curso_id = resolveCursoId(req, { allowBody: false });
+      if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
+
+      const estado = normEstado(req.query.estado);
+      const q = (req.query.q || '').toString().trim();
+
+      // Intentamos identificar usuario para el cálculo de estado por entrega
+      const me = await getUserId(req); // {id, rol} | null
+      const params = [];
+      let sqlBase = `
+        SELECT
+          t.id,
+          t.curso_id,
+          COALESCE(t.titulo,'(Sin título)') AS title,
+          COALESCE(t.descripcion,'') AS description,
+          t.fecha_limite AS due_at,
+          COALESCE(t.puntos,0) AS points,
+          t.completada AS status,
+          t.fecha_creacion AS created_at,
+          t.fecha_completacion AS updated_at,
+          u.nombre AS profesor,
+          c.profesor_id`;
+
+      if (me && me.rol === 'estudiante') {
+        sqlBase += `,
+          CASE
+            WHEN te.id IS NOT NULL THEN 'completada'
+            WHEN t.fecha_limite < NOW() THEN 'vencida'
+            ELSE 'pendiente'
+          END AS estado_calculado
+        `;
+      } else {
+        sqlBase += `,
+          CASE
+            WHEN t.fecha_limite < NOW() THEN 'vencida'
+            ELSE 'pendiente'
+          END AS estado_calculado
+        `;
+      }
+      let sql = `${sqlBase}
+        FROM tareas t
+        LEFT JOIN cursos c ON t.curso_id = c.id
+        LEFT JOIN usuarios u ON c.profesor_id = u.id
+        ${me && me.rol === 'estudiante' ? 'LEFT JOIN tareas_entregas te ON te.tarea_id = t.id AND te.estudiante_id = ?' : ''}
+        WHERE t.curso_id = ?
+      `;
+      if (me && me.rol === 'estudiante') params.push(me.id);
+      params.push(curso_id);
+
+      if (q) { sql += ` AND (t.titulo LIKE ? OR t.descripcion LIKE ?)`; params.push(`%${q}%`, `%${q}%`); }
+      if (estado !== 'todos') { sql += ` HAVING estado_calculado = ?`; params.push(estado); }
+      sql += ` ORDER BY t.fecha_limite DESC`;
+
+      const [rows] = await pool.query(sql, params);
+      return res.status(200).json(rows);
+    }
     // ---------- DETALLE ----------
+
     if (req.method === 'GET' && action === 'detalle') {
       const tareaId = Number(req.query.id || req.query.tareaId);
       const estado = normEstado(req.query.estado);
