@@ -2,23 +2,30 @@ import mysql from "mysql2/promise";
 
 // Normalizador de fechas
 function toMySQLDateTime(input) {
-  if (input == null || input === '') return null;
-  // Si ya viene ISO de <input type="datetime-local">
-  if (typeof input === 'string' && input.includes('T')) {
-    // "2025-09-14T09:50" -> "2025-09-14 09:50:00"
+  if (!input) return null;
+
+  // formato HTML datetime-local: 2025-12-25T17:00
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(input)) {
     const [d, t] = input.split('T');
-    return `${d} ${t.length === 5 ? t + ':00' : t}`;
+    return `${d} ${t}:00`;
   }
-  // Si viene "DD/MM/YYYY HH:mm"
-  const m = /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/.exec(String(input).trim());
+
+  // formato DD/MM/YYYY HH:mm
+  const m = input.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
   if (m) {
-    const [, dd, mm, yyyy, HH, MM] = m;
-    return `${yyyy}-${mm}-${dd} ${HH}:${MM}:00`;
+    const [, dd, mm, yyyy, hh, mi] = m;
+    return `${yyyy}-${mm}-${dd} ${hh}:${mi}:00`;
   }
-  // Último intento: Date parseable -> a "YYYY-MM-DD HH:mm:ss"
+
+  // formato YYYY-MM-DD HH:mm
+  if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/.test(input)) {
+    return `${input}:00`;
+  }
+
+  // último intento: si viene ISO (2025-12-25T17:00:00Z)
   const d = new Date(input);
-  if (!isNaN(d)) {
-    const pad = (n) => String(n).padStart(2, '0');
+  if (!isNaN(d.getTime())) {
+    const pad = n => String(n).padStart(2, '0');
     const y = d.getFullYear();
     const mo = pad(d.getMonth() + 1);
     const da = pad(d.getDate());
@@ -27,8 +34,8 @@ function toMySQLDateTime(input) {
     const s = pad(d.getSeconds());
     return `${y}-${mo}-${da} ${h}:${mi}:${s}`;
   }
-  // Inaceptable
-  throw new Error('Fecha inválida: ' + input);
+
+  return null;
 }
 
 // Crear el pool de conexiones a la base de datos
@@ -291,35 +298,44 @@ if (req.method === 'GET' && action === 'detalle') {
 
     // ---------- CREAR (profesor/admin del curso) ----------
     if (req.method === 'POST' && action === 'crear') {
-      const user = await getUserId(req); // Ahora devuelve {id, rol}
-      if (!user || !user.id) return res.status(401).json({ error: 'No autenticado' });
+      const user = await getUserId(req);
+      if (!user) return res.status(401).json({ error: 'No autenticado' });
 
-      // Verificar que el usuario sea profesor o admin
-      if (!['profesor', 'admin'].includes(user.rol)) {
-        return res.status(403).json({ error: 'Solo profesores y administradores pueden crear tareas' });
-      }
-
-      const curso_id = resolveCursoId(req);
-      const { titulo, descripcion=null, fecha_limite=null, puntos=0 } = req.body || {};
-
-      if (!curso_id) return res.status(400).json({ error: 'Curso_id requerido' });
+      let { titulo, descripcion, fecha_limite, puntos, curso_id } = req.body || {};
+      curso_id = Number(curso_id || req.query?.curso_id);
       
-      // Verificar que el profesor sea el dueño del curso (a menos que sea admin)
-      if (user.rol !== 'admin' && !(await isProfesor(user.id, curso_id))) {
-        return res.status(403).json({ error: 'No tienes permisos para crear tareas en este curso' });
+      if (!curso_id) return res.status(400).json({ error: 'Falta curso_id' });
+      if (!titulo || !titulo.trim()) return res.status(400).json({ error: 'Falta título' });
+
+      // Normalizar y validar la fecha
+      const fechaSQL = toMySQLDateTime(fecha_limite);
+      if (fecha_limite && !fechaSQL) {
+        return res.status(400).json({ error: 'Formato de fecha inválido. Use YYYY-MM-DD HH:mm o DD/MM/YYYY HH:mm' });
       }
 
-      const cols = await getColumns('tareas');
-      const columns = ['curso_id']; const values = ['?']; const params = [curso_id];
-      if (cols.has('descripcion'))     { columns.push('descripcion');     values.push('?'); params.push(descripcion); }
-      if (cols.has('fecha_limite'))    { columns.push('fecha_limite');    values.push('?'); params.push(fecha_limite ? new Date(fecha_limite) : null); }
-      if (cols.has('puntos'))          { columns.push('puntos');          values.push('?'); params.push(puntos ?? 0); }
-      if (cols.has('estado'))          { columns.push('estado');          values.push('?'); params.push('pendiente'); }
-      if (cols.has('fecha_creacion'))  { columns.push('fecha_creacion');  values.push('NOW()'); }
+      // Verificar permisos
+      if (!await isProfesor(user.id, curso_id)) {
+        return res.status(403).json({ error: 'Solo el profesor puede crear tareas' });
+      }
 
-      const sql = `INSERT INTO tareas (${columns.join(',')}) VALUES (${values.join(',')})`;
-      const [r] = await pool.query(sql, params);
-      return res.status(201).json({ id: r.insertId, message: 'Tarea creada' });
+      // Validar puntos
+      const pts = Number(puntos);
+      const puntosNum = Number.isFinite(pts) ? pts : 0;
+
+      try {
+        const [result] = await pool.query(
+          'INSERT INTO tareas (curso_id, titulo, descripcion, fecha_limite, puntos) VALUES (?, ?, ?, ?, ?)',
+          [curso_id, titulo.trim(), descripcion || null, fechaSQL, puntosNum]
+        );
+        return res.status(201).json({ 
+          success: true, 
+          id: result.insertId, 
+          message: 'Tarea creada correctamente' 
+        });
+      } catch (err) {
+        console.error('Error al crear tarea:', err);
+        throw err; // Será manejado por el catch global
+      }
     }
 
     // ---------- EDITAR (profesor/admin del curso) ----------
@@ -383,10 +399,32 @@ if (req.method === 'GET' && action === 'detalle') {
 
     return res.status(400).json({ error: 'Acción inválida o método no soportado' });
     } catch (err) {
+      console.error('Error en tareas API:', err);
+      
+      // Manejo de errores específicos de MySQL
       if (err?.code === 'ER_ROW_IS_REFERENCED_2') {
         return res.status(409).json({ error: 'No se puede eliminar: hay entregas/comentarios asociados.' });
       }
-      console.error('Error en tareas API:', err);
-      return res.status(500).json({ error: 'Error interno del servidor', details: err.message });
+      if (err?.code === 'ER_TRUNCATED_WRONG_VALUE' || err?.code === 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD') {
+        return res.status(400).json({ error: 'Valor inválido (revisa la fecha y los campos numéricos)' });
+      }
+      if (err?.code === 'ER_NO_DEFAULT_FOR_FIELD' || err?.code === 'ER_BAD_NULL_ERROR') {
+        return res.status(400).json({ error: 'Faltan campos obligatorios' });
+      }
+      if (err?.code === 'ER_NO_REFERENCED_ROW_2') {
+        return res.status(404).json({ error: 'Recurso relacionado no encontrado' });
+      }
+      
+      // Para modo desarrollo, incluir más detalles del error
+      const errorResponse = process.env.NODE_ENV === 'development' 
+        ? { 
+            error: 'Error interno del servidor',
+            message: err.message,
+            code: err.code,
+            stack: err.stack
+          }
+        : { error: 'Error interno del servidor' };
+      
+      return res.status(500).json(errorResponse);
     }
 }
