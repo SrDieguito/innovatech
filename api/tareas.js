@@ -351,13 +351,21 @@ if (req.method === 'GET' && action === 'detalle') {
         return res.status(403).json({ error: 'Solo el profesor puede eliminar tareas' });
       }
 
-      await pool.query('DELETE FROM tareas WHERE id=?', [tarea_id]);
+      // limpiar dependencias directas
+      await pool.query('DELETE FROM comentarios WHERE tarea_id=?', [tarea_id]);
+      await pool.query('DELETE FROM tareas_entregas WHERE tarea_id=?', [tarea_id]);
+
+      const [r] = await pool.query('DELETE FROM tareas WHERE id=?', [tarea_id]);
+      if (r.affectedRows === 0) return res.status(404).json({ error: 'Tarea no encontrada' });
       return res.status(200).json({ message: 'Tarea eliminada' });
     }
 
     return res.status(400).json({ error: 'Acción inválida o método no soportado' });
-  } catch (err) {
-    console.error('Error en tareas API:', err);
-    return res.status(500).json({ error: 'Error interno del servidor', details: err.message });
-  }
+    } catch (err) {
+      if (err?.code === 'ER_ROW_IS_REFERENCED_2') {
+        return res.status(409).json({ error: 'No se puede eliminar: hay entregas/comentarios asociados.' });
+      }
+      console.error('Error en tareas API:', err);
+      return res.status(500).json({ error: 'Error interno del servidor', details: err.message });
+    }
 }
