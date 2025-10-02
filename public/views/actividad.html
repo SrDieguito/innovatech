@@ -305,29 +305,25 @@
           <button id="btn-confirmar-accion" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
             Confirmar
           </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script>
     // Script para manejar animaciones de los modales
     document.addEventListener('DOMContentLoaded', function() {
-      // Animación para mostrar modales
-      function showModal(modalId) {
+      // Hacer las funcion globales para poder usarlas desde otros archivos
+      window.showModal = function(modalId) {
         const modal = document.getElementById(modalId);
         const innerModal = document.getElementById(modalId + 'Inner');
         
         modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
         
         setTimeout(() => {
           innerModal.classList.remove('scale-95', 'opacity-0');
           innerModal.classList.add('scale-100', 'opacity-100');
         }, 10);
-      }
+      };
       
       // Animación para ocultar modales
-      function hideModal(modalId) {
+      window.hideModal = function(modalId) {
         const modal = document.getElementById(modalId);
         const innerModal = document.getElementById(modalId + 'Inner');
         
@@ -336,13 +332,9 @@
         
         setTimeout(() => {
           modal.classList.add('hidden');
+          document.body.classList.remove('overflow-hidden');
         }, 300);
-      }
-      
-      // Asignar eventos a los botones de modales (deberías conectar estos con tus eventos existentes)
-      // Ejemplo:
-      // document.getElementById('btn-abrir-modal').addEventListener('click', () => showModal('modalCalificacion'));
-      // document.getElementById('btn-cancelar-calificacion').addEventListener('click', () => hideModal('modalCalificacion'));
+      };
     });
   </script>
 

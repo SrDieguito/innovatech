@@ -72,12 +72,12 @@ function mostrarConfirmacion(titulo, mensaje, callback) {
   document.getElementById('confirmacion-titulo').textContent = titulo;
   document.getElementById('confirmacion-mensaje').textContent = mensaje;
   confirmacionCallback = callback;
-  document.getElementById('modalConfirmacion').classList.remove('hidden');
+  window.showModal('modalConfirmacion');
 }
 
 // Función para ocultar modal de confirmación
 function ocultarConfirmacion() {
-  document.getElementById('modalConfirmacion').classList.add('hidden');
+  window.hideModal('modalConfirmacion');
   confirmacionCallback = null;
 }
 
@@ -294,12 +294,12 @@ function openEditarTarea(tarea) {
   document.getElementById('editar-puntos').value = tarea.puntos || tarea.points || 0;
   
   // Mostrar el modal
-  document.getElementById('modalEditarTarea').classList.remove('hidden');
+  window.showModal('modalEditarTarea');
 }
 
 // Función para cerrar modal de edición de tarea
 function closeEditarTarea() {
-  document.getElementById('modalEditarTarea').classList.add('hidden');
+  window.hideModal('modalEditarTarea');
 }
 
 // Función para guardar los cambios de la tarea
@@ -582,6 +582,8 @@ async function abrirModalCalificacion(studentName, entregaId, calificacionActual
   // Verificar permisos primero
   try {
     const perfil = await getPerfil();
+    
+    window.showModal('modalCalificacion');
     const tarea = await getTarea();
     
     if (!perfil || !tarea) {
@@ -615,7 +617,7 @@ async function abrirModalCalificacion(studentName, entregaId, calificacionActual
 }
 
 function cerrarModalCalificacion() {
-  document.getElementById('modalCalificacion').classList.add('hidden');
+  window.hideModal('modalCalificacion');
   document.getElementById('calificacion-input').value = '';
   document.getElementById('comentario-calificacion').value = '';
   entregaActualId = null;
