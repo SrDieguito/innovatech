@@ -692,29 +692,56 @@ async function eliminarTarea(tareaId, cursoId) {
 
     if (!confirmado) return;
 
-    const url = `/api/tareas?action=eliminar&tarea_id=${encodeURIComponent(tareaId)}`;
-    const resp = await fetch(url, {
+    // Enviar tanto en query string como en body para máxima compatibilidad
+    const url = `/api/tareas?action=eliminar&tarea_id=${encodeURIComponent(tareaId)}&id=${encodeURIComponent(tareaId)}`;
+    
+    // Configuración de la petición con soporte para override
+    const options = {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: tareaId, curso_id: cursoId })
-    });
+      headers: { 
+        'Content-Type': 'application/json',
+        // Agregar headers para diagnóstico
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ 
+        id: tareaId, 
+        tarea_id: tareaId,
+        curso_id: cursoId 
+      })
+    };
+
+    // Si hay algún proxy que bloquee DELETE, podemos usar el método alternativo
+    const useMethodOverride = false; // Cambiar a true si es necesario
+    if (useMethodOverride) {
+      options.method = 'POST';
+      options.headers['X-HTTP-Method-Override'] = 'DELETE';
+    }
+
+    const resp = await fetch(url, options);
 
     // Manejo de respuestas del servidor
     let data = null;
     try { 
       data = await resp.json(); 
-    } catch (_) { 
-      // Ignorar errores de parseo, data seguirá siendo null
+    } catch (e) { 
+      console.error('Error al parsear respuesta:', e);
+      if (!resp.ok) {
+        throw new Error(`Error ${resp.status} al procesar la respuesta`);
+      }
     }
 
     if (!resp.ok) {
-      const msg = (data && (data.error || data.message)) || `Error ${resp.status}`;
-      if (resp.status === 400) throw new Error(`Solicitud inválida: ${msg}`);
-      if (resp.status === 401) throw new Error(`No autenticado: ${msg}`);
-      if (resp.status === 403) throw new Error(`No autorizado: ${msg}`);
-      if (resp.status === 404) throw new Error('Tarea no encontrada');
-      if (resp.status === 409) throw new Error('No se puede eliminar: tiene entregas o comentarios relacionados');
-      throw new Error(`Error del servidor: ${msg}`);
+      const errorMsg = data?.error || data?.message || `Error ${resp.status}`;
+      const errorDetails = data?.details ? ` (${data.details})` : '';
+      
+      switch (resp.status) {
+        case 400: throw new Error(`Solicitud inválida: ${errorMsg}${errorDetails}`);
+        case 401: throw new Error(`No autenticado: ${errorMsg}`);
+        case 403: throw new Error(`No autorizado: ${errorMsg}`);
+        case 404: throw new Error(`Tarea no encontrada: ${errorMsg}`);
+        case 409: throw new Error(`No se puede eliminar: ${errorMsg || 'tiene entregas o comentarios relacionados'}`);
+        default: throw new Error(`Error del servidor (${resp.status}): ${errorMsg}${errorDetails}`);
+      }
     }
 
     // Éxito
@@ -728,6 +755,15 @@ async function eliminarTarea(tareaId, cursoId) {
   } catch (error) {
     console.error('Error al eliminar tarea:', error);
     showToast(error.message, false);
+    
+    // Mostrar más detalles en consola para depuración
+    if (error.response) {
+      console.error('Detalles de la respuesta de error:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      });
+    }
   }
 }
 

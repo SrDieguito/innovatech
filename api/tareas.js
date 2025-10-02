@@ -368,90 +368,140 @@ if (req.method === 'GET' && action === 'detalle') {
     }
 
     // ---------- ELIMINAR (profesor/admin del curso) ----------
-    if (req.method === 'DELETE' && action === 'eliminar') {
+    if ((req.method === 'DELETE' || 
+         (req.method === 'POST' && req.headers['x-http-method-override']?.toUpperCase() === 'DELETE')) && 
+        action === 'eliminar') {
+      
+      console.log('Solicitud de eliminación recibida:', {
+        method: req.method,
+        query: req.query,
+        body: req.body,
+        headers: req.headers
+      });
+
+      let conn;
       try {
-        // Acepta tarea_id desde query o body, con alias
+        // Acepta tarea_id o id desde query o body, con alias
         const q = req.query || {};
-        const b = (req.body && typeof req.body === 'object') ? req.body : {};
-        const tareaId = Number(q.tarea_id || q.id || b.tarea_id || b.id);
+        const b = parseJsonBody(req.body) || {};
+        const rawId = q.tarea_id || q.id || b.tarea_id || b.id || b.tareaId;
+        const tareaId = Number(rawId);
+
+        console.log('ID de tarea recibido:', { rawId, tareaId, query: q, body: b });
 
         if (!tareaId || Number.isNaN(tareaId) || tareaId <= 0) {
           return res.status(400).json({ 
             error: 'Parámetro inválido',
             details: 'Se requiere un ID de tarea válido (tarea_id o id)',
-            received: { query: q, body: b }
+            received: { 
+              query: q, 
+              body: b,
+              method: req.method,
+              headers: req.headers
+            }
           });
         }
 
         const user = await getUserId(req);
-        if (!user) return res.status(401).json({ 
-          error: 'No autenticado',
-          code: 'AUTH_REQUIRED'
-        });
+        if (!user) {
+          console.log('Usuario no autenticado');
+          return res.status(401).json({ 
+            error: 'No autenticado',
+            code: 'AUTH_REQUIRED'
+          });
+        }
 
         // Obtener el curso al que pertenece la tarea
+        console.log(`Buscando curso para tarea ${tareaId}...`);
         const cursoId = await getCursoIdByTarea(tareaId);
         if (!cursoId) {
+          console.log(`Tarea ${tareaId} no encontrada`);
           return res.status(404).json({ 
             error: 'Tarea no encontrada',
-            code: 'TASK_NOT_FOUND'
+            code: 'TASK_NOT_FOUND',
+            tareaId
           });
         }
 
         // Verificar permisos (solo profesor del curso o admin)
-        if (!await isProfesor(user.id, cursoId)) {
+        console.log(`Verificando permisos para usuario ${user.id} en curso ${cursoId}...`);
+        const esProfesor = await isProfesor(user.id, cursoId);
+        if (!esProfesor) {
+          console.log(`Usuario ${user.id} no autorizado para eliminar tarea ${tareaId}`);
           return res.status(403).json({ 
             error: 'No autorizado',
             details: 'Solo el profesor del curso puede eliminar tareas',
-            code: 'FORBIDDEN'
+            code: 'FORBIDDEN',
+            userId: user.id,
+            cursoId,
+            tareaId
           });
         }
 
         // Iniciar transacción para asegurar la integridad de los datos
-        const conn = await pool.getConnection();
-        try {
-          await conn.beginTransaction();
+        console.log(`Iniciando transacción para eliminar tarea ${tareaId}...`);
+        conn = await pool.getConnection();
+        await conn.beginTransaction();
 
+        try {
           // 1. Eliminar dependencias conocidas
-          // Verificar si las tablas existen antes de intentar borrar
+          console.log('Eliminando dependencias de la tarea...');
           const [tables] = await conn.query('SHOW TABLES');
           const tableNames = tables.map(t => Object.values(t)[0]);
           
-          if (tableNames.includes('tareas_entregas')) {
-            await conn.query('DELETE FROM tareas_entregas WHERE tarea_id = ?', [tareaId]);
-          }
-          
-          if (tableNames.includes('comentarios')) {
-            await conn.query('DELETE FROM comentarios WHERE tarea_id = ?', [tareaId]);
-          }
-          
-          if (tableNames.includes('recomendaciones')) {
-            await conn.query('DELETE FROM recomendaciones WHERE tarea_id = ?', [tareaId]);
+          // Lista de tablas que pueden tener referencias a tareas
+          const relatedTables = [
+            { name: 'tareas_entregas', column: 'tarea_id' },
+            { name: 'comentarios', column: 'tarea_id' },
+            { name: 'recomendaciones', column: 'tarea_id' },
+            // Agregar más tablas según sea necesario
+          ];
+
+          for (const { name, column } of relatedTables) {
+            if (tableNames.includes(name)) {
+              console.log(`Eliminando registros de ${name} para tarea ${tareaId}...`);
+              const [result] = await conn.query(`DELETE FROM ${name} WHERE ${column} = ?`, [tareaId]);
+              console.log(`Eliminados ${result.affectedRows} registros de ${name}`);
+            }
           }
 
           // 2. Eliminar la tarea
+          console.log(`Eliminando tarea ${tareaId}...`);
           const [result] = await conn.query('DELETE FROM tareas WHERE id = ? LIMIT 1', [tareaId]);
           
           if (result.affectedRows === 0) {
+            console.log(`Tarea ${tareaId} no encontrada en la base de datos`);
             await conn.rollback();
             return res.status(404).json({ 
-              error: 'Tarea no encontrada',
-              code: 'TASK_NOT_FOUND'
+              error: 'Tarea no encontrada en la base de datos',
+              code: 'TASK_NOT_FOUND',
+              tareaId
             });
           }
 
           await conn.commit();
-          return res.json({ 
+          console.log(`Tarea ${tareaId} eliminada exitosamente`);
+          
+          return res.status(200).json({ 
             success: true, 
             id: tareaId,
             message: 'Tarea eliminada correctamente'
           });
 
         } catch (err) {
-          await conn.rollback();
+          console.error('Error en transacción al eliminar tarea:', {
+            error: err.message,
+            code: err.code,
+            errno: err.errno,
+            sql: err.sql,
+            sqlMessage: err.sqlMessage,
+            stack: err.stack
+          });
+          
+          if (conn) await conn.rollback();
           
           // Manejo específico de errores de restricción de clave foránea
-          if (err.code === 'ER_ROW_IS_REFERENCED_2') {
+          if (err.code === 'ER_ROW_IS_REFERENCED_2' || err.errno === 1451) {
             return res.status(409).json({
               error: 'No se puede eliminar la tarea',
               details: 'Existen registros relacionados que impiden la eliminación',
@@ -460,18 +510,37 @@ if (req.method === 'GET' && action === 'detalle') {
             });
           }
           
-          console.error('Error en transacción al eliminar tarea:', err);
-          throw err; // Será manejado por el catch global
+          // Relanzar para el manejador de errores global
+          throw err;
           
         } finally {
-          conn.release();
+          if (conn) conn.release();
         }
 
       } catch (err) {
-        // Si el error no fue manejado específicamente, lo relanzamos
+        // Si el error no fue manejado específicamente, lo registramos
         if (!err.handled) {
-          console.error('Error no controlado al eliminar tarea:', err);
-          throw err; // Será manejado por el catch global
+          console.error('Error no controlado al eliminar tarea:', {
+            error: err.message,
+            stack: err.stack,
+            code: err.code,
+            errno: err.errno,
+            sql: err.sql,
+            sqlMessage: err.sqlMessage
+          });
+          
+          // Si es un error de base de datos conocido, devolver un mensaje más amigable
+          if (err.code && err.sqlMessage) {
+            return res.status(500).json({
+              error: 'Error de base de datos',
+              details: 'Ocurrió un error al procesar la solicitud',
+              code: 'DATABASE_ERROR',
+              sqlCode: err.code
+            });
+          }
+          
+          // Para otros errores, usar el manejador global
+          throw err;
         }
       }
     }
