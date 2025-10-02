@@ -727,7 +727,7 @@ async function initActividad() {
           "¿Seguro que quieres eliminar esta tarea? Esta acción no se puede deshacer.", 
           async () => {
             try {
-              const res = await fetch(`/api/tareas?action=eliminar&id=${tareaId}`, {
+              const res = await fetch(`/api/tareas?action=eliminar&tarea_id=${tareaId}`, {
                 method: 'DELETE',
                 credentials: 'include'
               });
