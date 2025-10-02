@@ -69,7 +69,13 @@ const cursoId = Number(params.get('id') || 0);
       // Configurar el evento click
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        window.location.href = `/profesor/nueva-tarea.html?curso_id=${cursoId}`;
+        const modalBtn = document.querySelector('#btnNuevaTarea');
+        if (modalBtn) {
+          modalBtn.click();           // dispara el openModal() que pone task.js
+        } else {
+          // fallback: si aún no está renderizado el botón, dispara un evento
+          document.dispatchEvent(new CustomEvent('tareas:openModal'));
+        }
       });
     }
   } catch (error) {

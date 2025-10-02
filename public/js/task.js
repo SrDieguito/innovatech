@@ -286,7 +286,7 @@
       });
     });
   }
-
+  document.addEventListener('tareas:openModal', () => openModal());
   function openModal(data = null) {
     const f = $("#formTarea");
     const dlg = $("#modalTarea");
