@@ -40,12 +40,26 @@ const pool = mysql.createPool({
   port: process.env.DB_PORT,
   connectionLimit: 10,
 });
+function readCookieFromHeader(req, name) {
+  const raw = req.headers?.cookie || '';
+  const parts = raw.split(/; */);
+  for (const p of parts) {
+    if (!p) continue;
+    const idx = p.indexOf('=');
+    if (idx < 0) continue;
+    const k = decodeURIComponent(p.slice(0, idx).trim());
+    const v = decodeURIComponent(p.slice(idx + 1).trim());
+    if (k === name) return v;
+  }
+  return '';
+}
 
 /* ===== Helpers ===== */
 async function getUserId(req) {
-  const id = Number(req.cookies?.user_id || req.headers['x-user-id'] || 0);
+  const cookieId = req.cookies?.user_id || readCookieFromHeader(req, 'user_id') || '';
+  const id = Number(cookieId || req.headers['x-user-id'] || 0);
   if (!Number.isFinite(id) || id <= 0) return null;
-  let rol = (req.cookies?.user_role || req.headers['x-user-role'] || '').toString().toLowerCase();
+  let rol = (req.cookies?.user_role || readCookieFromHeader(req, 'user_role') || req.headers['x-user-role'] || '').toString().toLowerCase();
   if (!rol) {
     const [[u]] = await pool.query('SELECT id, rol FROM usuarios WHERE id=?', [id]);
     if (!u) return null;
@@ -97,11 +111,15 @@ function normEstado(e) {
 }
 /* ===== Handler ===== */
 export default async function handler(req, res) {
-  const { action } = req.query;
+  const method = String(req.method || '').toUpperCase();
+  const action = String((req.query?.action || req.body?.action || '')).trim().toLowerCase();
+  // Permite testear desde URL: ?_method=DELETE
+  const override = String(req.query?._method || '').toUpperCase();
+  const effMethod = override ? override : method;
 
   try {
     // ---------- LISTAR ----------
-    if (req.method === 'GET' && action === 'listar') {
+    if (effMethod === 'GET' && action === 'listar') {
       const curso_id = resolveCursoId(req, { allowBody: false });
       if (!curso_id) return res.status(400).json({ error: 'curso_id requerido' });
 
@@ -334,7 +352,7 @@ if (req.method === 'GET' && action === 'detalle') {
     }
 
     // ---------- ELIMINAR (profesor/admin del curso) ----------
-    if (req.method === 'DELETE' && action === 'eliminar') {
+    if (effMethod === 'DELETE' && action === 'eliminar') {
       const user = await getUserId(req);
       if (!user) return res.status(401).json({ error: 'No autenticado' });
 
