@@ -256,8 +256,8 @@ if (req.method === 'GET' && action === 'detalle') {
   const tarea_id = req.query.id || req.query.tarea_id;
   if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
 
-  const userId = getUserId(req);
-  if (!userId) return res.status(401).json({ error: 'No autenticado' });
+  const user = await getUserId(req);
+  if (!user) return res.status(401).json({ error: 'No autenticado' });
 
   // Consulta actualizada para incluir la calificación y observación del estudiante desde tareas_entregas
   const [rows] = await pool.query(`
@@ -281,7 +281,7 @@ if (req.method === 'GET' && action === 'detalle') {
     LEFT JOIN usuarios u ON c.profesor_id = u.id
     LEFT JOIN tareas_entregas te ON t.id = te.tarea_id AND te.estudiante_id = ?
     WHERE t.id = ?
-  `, [userId, tarea_id]);
+  `, [user.id, tarea_id]);
 
   if (rows.length === 0) {
     return res.status(404).json({ error: 'Tarea no encontrada' });
@@ -324,15 +324,15 @@ if (req.method === 'GET' && action === 'detalle') {
 
     // ---------- EDITAR (profesor/admin del curso) ----------
     if (req.method === 'PUT' && action === 'editar') {
-      const userId = getUserId(req);
-      if (!userId) return res.status(401).json({ error: 'No autenticado' });
+      const user = await getUserId(req);
+      if (!user) return res.status(401).json({ error: 'No autenticado' });
 
       const { id, curso_id, titulo, descripcion, fecha_limite, puntos, estado } = req.body || {};
       if (!id) return res.status(400).json({ error: 'id requerido' });
 
       const cursoIdReal = curso_id ?? (await getCursoIdByTarea(id));
       if (!cursoIdReal) return res.status(404).json({ error: 'Tarea no encontrada' });
-      if (!await isProfesor(userId, cursoIdReal)) {
+      if (!await isProfesor(user.id, cursoIdReal)) {
         return res.status(403).json({ error: 'Solo el profesor puede editar tareas' });
       }
 
@@ -352,12 +352,15 @@ if (req.method === 'GET' && action === 'detalle') {
     }
 
     // ---------- ELIMINAR (profesor/admin del curso) ----------
-    if (effMethod === 'DELETE' && action === 'eliminar') {
+    if (req.method === 'DELETE' && action === 'eliminar') {
       const user = await getUserId(req);
       if (!user) return res.status(401).json({ error: 'No autenticado' });
 
       let { tarea_id, curso_id } = req.query;
-      if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
+      tarea_id = Number(tarea_id);
+      if (!Number.isFinite(tarea_id) || tarea_id <= 0) {
+        return res.status(400).json({ error: 'tarea_id requerido' });
+      }
 
       if (!curso_id) {
         curso_id = await getCursoIdByTarea(tarea_id);
