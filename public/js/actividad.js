@@ -306,12 +306,20 @@ function closeEditarTarea() {
 async function guardarCambiosTarea(e) {
   e.preventDefault();
   
+  const rawFecha = document.getElementById('editar-fecha-limite').value;
+  const fechaNorm = rawFecha && rawFecha.includes('T')
+    ? rawFecha                                     // "YYYY-MM-DDTHH:mm"
+    : rawFecha.replace(
+        /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/,
+        '$3-$2-$1T$4:$5'
+      );
+  
   const formData = {
-    id: document.getElementById('editar-tarea-id').value,
+    id: Number(document.getElementById('editar-tarea-id').value),
     titulo: document.getElementById('editar-titulo').value,
     descripcion: document.getElementById('editar-descripcion').value,
-    fecha_limite: document.getElementById('editar-fecha-limite').value,
-    puntos: document.getElementById('editar-puntos').value
+    fecha_limite: fechaNorm || null,
+    puntos: Number(document.getElementById('editar-puntos').value)
   };
   
   try {

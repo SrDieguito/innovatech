@@ -1,6 +1,37 @@
 import mysql from "mysql2/promise";
 
-// Crear el pool (puedes mover esto a un archivo separado si prefieres reutilizarlo)
+// Normalizador de fechas
+function toMySQLDateTime(input) {
+  if (input == null || input === '') return null;
+  // Si ya viene ISO de <input type="datetime-local">
+  if (typeof input === 'string' && input.includes('T')) {
+    // "2025-09-14T09:50" -> "2025-09-14 09:50:00"
+    const [d, t] = input.split('T');
+    return `${d} ${t.length === 5 ? t + ':00' : t}`;
+  }
+  // Si viene "DD/MM/YYYY HH:mm"
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/.exec(String(input).trim());
+  if (m) {
+    const [, dd, mm, yyyy, HH, MM] = m;
+    return `${yyyy}-${mm}-${dd} ${HH}:${MM}:00`;
+  }
+  // Último intento: Date parseable -> a "YYYY-MM-DD HH:mm:ss"
+  const d = new Date(input);
+  if (!isNaN(d)) {
+    const pad = (n) => String(n).padStart(2, '0');
+    const y = d.getFullYear();
+    const mo = pad(d.getMonth() + 1);
+    const da = pad(d.getDate());
+    const h = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    const s = pad(d.getSeconds());
+    return `${y}-${mo}-${da} ${h}:${mi}:${s}`;
+  }
+  // Inaceptable
+  throw new Error('Fecha inválida: ' + input);
+}
+
+// Crear el pool de conexiones a la base de datos
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -292,12 +323,10 @@ if (req.method === 'GET' && action === 'detalle') {
 
       if (cols.has('titulo')      && titulo      !== undefined) { setParts.push('titulo=?');       params.push(String(titulo).trim()); }
       if (cols.has('descripcion') && descripcion !== undefined) { setParts.push('descripcion=?');  params.push(descripcion); }
-      if (cols.has('fecha_limite')&& fecha_limite!== undefined) { setParts.push('fecha_limite=?'); params.push(fecha_limite ? new Date(fecha_limite) : null); }
-      if (cols.has('puntos')      && puntos      !== undefined) { setParts.push('puntos=?');       params.push(puntos); }
-      if (cols.has('estado')      && estado      !== undefined) { setParts.push('estado=?');       params.push(estado); }
-      if (cols.has('fecha_actualizacion')) { setParts.push('fecha_actualizacion=NOW()'); }
-
-      if (!setParts.length) return res.status(400).json({ error: 'Nada para actualizar' });
+      if (cols.has('fecha_limite') && fecha_limite !== undefined) { 
+        setParts.push('fecha_limite=?'); 
+        params.push(fecha_limite ? toMySQLDateTime(fecha_limite) : null); 
+      }
 
       params.push(id);
       await pool.query(`UPDATE tareas SET ${setParts.join(', ')} WHERE id = ?`, params);
@@ -315,6 +344,8 @@ if (req.method === 'GET' && action === 'detalle') {
       if (!curso_id) {
         curso_id = await getCursoIdByTarea(tarea_id);
         if (!curso_id) return res.status(404).json({ error: 'Tarea no encontrada' });
+      } else {
+        curso_id = Number(curso_id);
       }
       if (!await isProfesor(userId, curso_id)) {
         return res.status(403).json({ error: 'Solo el profesor puede eliminar tareas' });
