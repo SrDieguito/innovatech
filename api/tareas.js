@@ -335,8 +335,8 @@ if (req.method === 'GET' && action === 'detalle') {
 
     // ---------- ELIMINAR (profesor/admin del curso) ----------
     if (req.method === 'DELETE' && action === 'eliminar') {
-      const userId = getUserId(req);
-      if (!userId) return res.status(401).json({ error: 'No autenticado' });
+      const user = await getUserId(req);
+      if (!user) return res.status(401).json({ error: 'No autenticado' });
 
       let { tarea_id, curso_id } = req.query;
       if (!tarea_id) return res.status(400).json({ error: 'tarea_id requerido' });
@@ -347,7 +347,7 @@ if (req.method === 'GET' && action === 'detalle') {
       } else {
         curso_id = Number(curso_id);
       }
-      if (!await isProfesor(userId, curso_id)) {
+      if (!await isProfesor(user.id, curso_id)) {
         return res.status(403).json({ error: 'Solo el profesor puede eliminar tareas' });
       }
 
