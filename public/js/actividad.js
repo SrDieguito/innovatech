@@ -422,7 +422,7 @@ function updateStatusVisual(statusEl, estado) {
 // ---- Funciones de profesor ----
 async function getEntregasProfesor() {
   try {
-    const res = await fetch(`/api/entregas?action=listar_por_tarea_profesor&tareaId=${tareaId}`, {
+    const res = await fetch(`/api/entregas?action=listar_por_tarea_profesor&tarea_id=${tareaId}`, {
       credentials: 'include'
     });
     
