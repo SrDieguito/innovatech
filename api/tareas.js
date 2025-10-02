@@ -369,32 +369,111 @@ if (req.method === 'GET' && action === 'detalle') {
 
     // ---------- ELIMINAR (profesor/admin del curso) ----------
     if (req.method === 'DELETE' && action === 'eliminar') {
-      const user = await getUserId(req);
-      if (!user) return res.status(401).json({ error: 'No autenticado' });
+      try {
+        // Acepta tarea_id desde query o body, con alias
+        const q = req.query || {};
+        const b = (req.body && typeof req.body === 'object') ? req.body : {};
+        const tareaId = Number(q.tarea_id || q.id || b.tarea_id || b.id);
 
-      let { tarea_id, curso_id } = req.query;
-      tarea_id = Number(tarea_id);
-      if (!Number.isFinite(tarea_id) || tarea_id <= 0) {
-        return res.status(400).json({ error: 'tarea_id requerido' });
+        if (!tareaId || Number.isNaN(tareaId) || tareaId <= 0) {
+          return res.status(400).json({ 
+            error: 'Parámetro inválido',
+            details: 'Se requiere un ID de tarea válido (tarea_id o id)',
+            received: { query: q, body: b }
+          });
+        }
+
+        const user = await getUserId(req);
+        if (!user) return res.status(401).json({ 
+          error: 'No autenticado',
+          code: 'AUTH_REQUIRED'
+        });
+
+        // Obtener el curso al que pertenece la tarea
+        const cursoId = await getCursoIdByTarea(tareaId);
+        if (!cursoId) {
+          return res.status(404).json({ 
+            error: 'Tarea no encontrada',
+            code: 'TASK_NOT_FOUND'
+          });
+        }
+
+        // Verificar permisos (solo profesor del curso o admin)
+        if (!await isProfesor(user.id, cursoId)) {
+          return res.status(403).json({ 
+            error: 'No autorizado',
+            details: 'Solo el profesor del curso puede eliminar tareas',
+            code: 'FORBIDDEN'
+          });
+        }
+
+        // Iniciar transacción para asegurar la integridad de los datos
+        const conn = await pool.getConnection();
+        try {
+          await conn.beginTransaction();
+
+          // 1. Eliminar dependencias conocidas
+          // Verificar si las tablas existen antes de intentar borrar
+          const [tables] = await conn.query('SHOW TABLES');
+          const tableNames = tables.map(t => Object.values(t)[0]);
+          
+          if (tableNames.includes('tareas_entregas')) {
+            await conn.query('DELETE FROM tareas_entregas WHERE tarea_id = ?', [tareaId]);
+          }
+          
+          if (tableNames.includes('comentarios')) {
+            await conn.query('DELETE FROM comentarios WHERE tarea_id = ?', [tareaId]);
+          }
+          
+          if (tableNames.includes('recomendaciones')) {
+            await conn.query('DELETE FROM recomendaciones WHERE tarea_id = ?', [tareaId]);
+          }
+
+          // 2. Eliminar la tarea
+          const [result] = await conn.query('DELETE FROM tareas WHERE id = ? LIMIT 1', [tareaId]);
+          
+          if (result.affectedRows === 0) {
+            await conn.rollback();
+            return res.status(404).json({ 
+              error: 'Tarea no encontrada',
+              code: 'TASK_NOT_FOUND'
+            });
+          }
+
+          await conn.commit();
+          return res.json({ 
+            success: true, 
+            id: tareaId,
+            message: 'Tarea eliminada correctamente'
+          });
+
+        } catch (err) {
+          await conn.rollback();
+          
+          // Manejo específico de errores de restricción de clave foránea
+          if (err.code === 'ER_ROW_IS_REFERENCED_2') {
+            return res.status(409).json({
+              error: 'No se puede eliminar la tarea',
+              details: 'Existen registros relacionados que impiden la eliminación',
+              code: 'FOREIGN_KEY_CONSTRAINT',
+              sqlMessage: err.sqlMessage
+            });
+          }
+          
+          console.error('Error en transacción al eliminar tarea:', err);
+          throw err; // Será manejado por el catch global
+          
+        } finally {
+          conn.release();
+        }
+
+      } catch (err) {
+        // Si el error no fue manejado específicamente, lo relanzamos
+        if (!err.handled) {
+          console.error('Error no controlado al eliminar tarea:', err);
+          throw err; // Será manejado por el catch global
+        }
       }
-
-      if (!curso_id) {
-        curso_id = await getCursoIdByTarea(tarea_id);
-        if (!curso_id) return res.status(404).json({ error: 'Tarea no encontrada' });
-      } else {
-        curso_id = Number(curso_id);
-      }
-      if (!await isProfesor(user.id, curso_id)) {
-        return res.status(403).json({ error: 'Solo el profesor puede eliminar tareas' });
-      }
-
-      // limpiar dependencias directas
-      await pool.query('DELETE FROM comentarios WHERE tarea_id=?', [tarea_id]);
-      await pool.query('DELETE FROM tareas_entregas WHERE tarea_id=?', [tarea_id]);
-
-      const [r] = await pool.query('DELETE FROM tareas WHERE id=?', [tarea_id]);
-      if (r.affectedRows === 0) return res.status(404).json({ error: 'Tarea no encontrada' });
-      return res.status(200).json({ message: 'Tarea eliminada' });
     }
 
     return res.status(400).json({ error: 'Acción inválida o método no soportado' });

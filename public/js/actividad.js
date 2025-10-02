@@ -675,6 +675,62 @@ async function guardarCalificacion() {
 }
 
 
+// ---- Funciones de gestión de tareas ----
+async function eliminarTarea(tareaId, cursoId) {
+  try {
+    if (!tareaId) {
+      throw new Error('No se proporcionó un ID de tarea válido');
+    }
+
+    const confirmado = await new Promise((resolve) => {
+      mostrarConfirmacion(
+        'Eliminar tarea',
+        '¿Estás seguro de que deseas eliminar esta tarea? Esta acción no se puede deshacer.',
+        () => resolve(true)
+      );
+    });
+
+    if (!confirmado) return;
+
+    const url = `/api/tareas?action=eliminar&tarea_id=${encodeURIComponent(tareaId)}`;
+    const resp = await fetch(url, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: tareaId, curso_id: cursoId })
+    });
+
+    // Manejo de respuestas del servidor
+    let data = null;
+    try { 
+      data = await resp.json(); 
+    } catch (_) { 
+      // Ignorar errores de parseo, data seguirá siendo null
+    }
+
+    if (!resp.ok) {
+      const msg = (data && (data.error || data.message)) || `Error ${resp.status}`;
+      if (resp.status === 400) throw new Error(`Solicitud inválida: ${msg}`);
+      if (resp.status === 401) throw new Error(`No autenticado: ${msg}`);
+      if (resp.status === 403) throw new Error(`No autorizado: ${msg}`);
+      if (resp.status === 404) throw new Error('Tarea no encontrada');
+      if (resp.status === 409) throw new Error('No se puede eliminar: tiene entregas o comentarios relacionados');
+      throw new Error(`Error del servidor: ${msg}`);
+    }
+
+    // Éxito
+    showToast('Tarea eliminada correctamente');
+    
+    // Redirigir a la vista del curso después de un breve retraso
+    setTimeout(() => {
+      window.location.href = `/views/curso.html?id=${encodeURIComponent(cursoId)}`;
+    }, 1500);
+    
+  } catch (error) {
+    console.error('Error al eliminar tarea:', error);
+    showToast(error.message, false);
+  }
+}
+
 // ---- Inicialización principal ----
 async function initActividad() {
   if(!cursoId || !tareaId) {
@@ -729,33 +785,8 @@ async function initActividad() {
       const eliminar = document.createElement('button');
       eliminar.textContent = "Eliminar tarea";
       eliminar.className = "px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition";
-      eliminar.addEventListener('click', async () => {
-        mostrarConfirmacion(
-          "Eliminar tarea", 
-          "¿Seguro que quieres eliminar esta tarea? Esta acción no se puede deshacer.", 
-          async () => {
-            try {
-              const res = await fetch(`/api/tareas?action=eliminar&tarea_id=${tareaId}`, {
-                method: 'DELETE',
-                credentials: 'include'
-              });
-              
-              if (res.ok) {
-                showToast('Tarea eliminada correctamente');
-                // Redirigir a la página del curso después de eliminar
-                setTimeout(() => {
-                window.location.href = `/views/curso.html?id=${cursoId}`;
-                }, 1500);
-              } else {
-                const data = await res.json().catch(() => ({error: 'Error desconocido'}));
-                throw new Error(data.error || 'Error al eliminar la tarea');
-              }
-            } catch (error) {
-              console.error('Error al eliminar tarea:', error);
-              showToast('Error: ' + error.message, false);
-            }
-          }
-        );
+      eliminar.addEventListener('click', () => {
+        eliminarTarea(tareaId, cursoId);
       });
 
       holder.botones.appendChild(editar);
