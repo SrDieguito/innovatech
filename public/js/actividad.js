@@ -195,8 +195,9 @@ async function renderComentarios(){
     holder.comentarios.appendChild(divObservacion);
   }
   
-  if(!comentarios.length && (!tarea || !tarea.observacion)){
-    holder.comentarios.innerHTML=`<p class="text-gray-500 text-center">Sin comentarios aún</p>`;
+  // Solo mostrar 'Sin comentarios' si no hay comentarios ni observación
+  if(comentarios.length === 0 && (!tarea || !tarea.observacion)) {
+    holder.comentarios.innerHTML = `<p class="text-gray-500 text-center">Sin comentarios aún</p>`;
     return;
   }
   
