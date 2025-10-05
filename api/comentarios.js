@@ -27,7 +27,7 @@ export default async function handler(req, res) {
           t.fecha_creacion,
           u.nombre as usuario,
           u.rol as usuario_rol
-       FROM tareas t
+       FROM tareas_entrega t
        JOIN usuarios u ON t.profesor_id = u.id
        WHERE t.id = ? AND t.observacion IS NOT NULL
        ORDER BY t.fecha_creacion DESC`,
