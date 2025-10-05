@@ -20,29 +20,33 @@ export default async function handler(req, res) {
       });
     }
 
-    // Obtener observaciones como comentarios de la tabla tareas
-    const [comentarios] = await pool.query(
+    // Obtener observaciones de la tarea
+    const [tarea] = await pool.query(
       `SELECT 
-          t.observacion as texto,
-          t.fecha_creacion,
-          u.nombre as usuario,
-          u.rol as usuario_rol
-       FROM tareas_entrega t
-       JOIN usuarios u ON t.profesor_id = u.id
-       WHERE t.id = ? AND t.observacion IS NOT NULL
-       ORDER BY t.fecha_creacion DESC`,
+          observacion as texto,
+          fecha_creacion,
+          'Profesor' as usuario,
+          'profesor' as rol
+       FROM tareas_entrega
+       WHERE id = ? AND observacion IS NOT NULL
+       LIMIT 1`,
       [tareaIdFinal]
     );
 
-    // Formatear la respuesta para que coincida con la estructura esperada
-    const comentariosFormateados = comentarios.map(comentario => ({
-      texto: comentario.texto,
-      fecha: comentario.fecha_creacion,
-      usuario: comentario.usuario,
-      rol: comentario.usuario_rol
-    }));
+    // Si no hay tarea con observación, devolver array vacío
+    if (tarea.length === 0) {
+      return res.status(200).json([]);
+    }
 
-    return res.status(200).json(comentariosFormateados);
+    // Formatear la respuesta para que coincida con la estructura esperada
+    const comentarioFormateado = {
+      texto: tarea[0].texto,
+      fecha: tarea[0].fecha_creacion,
+      usuario: tarea[0].usuario,
+      rol: tarea[0].rol
+    };
+
+    return res.status(200).json([comentarioFormateado]);
 
   } catch (error) {
     console.error('Error al obtener comentarios:', error);
