@@ -769,6 +769,30 @@ async function eliminarTarea(tareaId, cursoId) {
 }
 
 // ---- Inicialización principal ----
+async function cargarCalificacion() {
+  try {
+    const res = await fetch(`/api/entregas?action=obtener_calificacion&tarea_id=${tareaId}`, {
+      credentials: 'include'
+    });
+    
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      console.error('Error al cargar calificación:', error);
+      return;
+    }
+    
+    const data = await res.json();
+    if (data.calificacion) {
+      holder.calificacion.innerHTML = `
+        <span class="text-2xl font-bold text-emerald-600">${data.calificacion.calificacion}</span> / 10
+        ${data.calificacion.observacion ? `<p class="text-sm text-gray-600 mt-2">${data.calificacion.observacion}</p>` : ''}
+      `;
+    }
+  } catch (error) {
+    console.error('Error al cargar calificación:', error);
+  }
+}
+
 async function initActividad() {
   if(!cursoId || !tareaId) {
     alert('Falta cursoId o tareaId');
@@ -884,7 +908,7 @@ async function initActividad() {
       holder.botones.appendChild(eliminarEntrega);
     }
     
-    // Solo cargar comentarios si no es profesor
+    // Solo cargar comentarios y calificación si no es profesor
     if (!esProfesor) {
       await renderComentarios();
       
@@ -892,6 +916,9 @@ async function initActividad() {
       if (window.loadRecsFor) {
         window.loadRecsFor(tareaId, cursoId);
       }
+      
+      // Cargar calificación
+      await cargarCalificacion();
     }
     
   } catch(err) {
