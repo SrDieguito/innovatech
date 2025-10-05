@@ -20,17 +20,29 @@ export default async function handler(req, res) {
       });
     }
 
-    // Obtener comentarios de la base de datos
+    // Obtener observaciones como comentarios de la tabla tareas
     const [comentarios] = await pool.query(
-      `SELECT c.*, u.nombre as usuario_nombre, u.rol as usuario_rol
-       FROM comentarios c
-       JOIN usuarios u ON c.usuario_id = u.id
-       WHERE c.tarea_id = ?
-       ORDER BY c.fecha_creacion DESC`,
+      `SELECT 
+          t.observacion as texto,
+          t.fecha_creacion,
+          u.nombre as usuario,
+          u.rol as usuario_rol
+       FROM tareas t
+       JOIN usuarios u ON t.profesor_id = u.id
+       WHERE t.id = ? AND t.observacion IS NOT NULL
+       ORDER BY t.fecha_creacion DESC`,
       [tareaIdFinal]
     );
 
-    return res.status(200).json(comentarios);
+    // Formatear la respuesta para que coincida con la estructura esperada
+    const comentariosFormateados = comentarios.map(comentario => ({
+      texto: comentario.texto,
+      fecha: comentario.fecha_creacion,
+      usuario: comentario.usuario,
+      rol: comentario.usuario_rol
+    }));
+
+    return res.status(200).json(comentariosFormateados);
 
   } catch (error) {
     console.error('Error al obtener comentarios:', error);
