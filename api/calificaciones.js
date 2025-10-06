@@ -43,30 +43,29 @@ export default async function handler(req, res) {
         t.id           AS tarea_id,
         t.titulo       AS tarea_titulo,
         t.fecha_limite AS tarea_fecha_limite,
-
+    
         u.id           AS estudiante_id,
-        COALESCE(NULLIF(CONCAT(u.nombres, ' ', u.apellidos), ' '), u.nombre, u.email) AS estudiante_nombre,
-
-        te.id          AS entrega_id,
-        te.nota        AS calificacion,               -- si tu campo se llama calificacion, mantén: te.calificacion AS calificacion
-        te.observaciones,
+        -- Evitar columnas que no existen: usa nombre o email
+        COALESCE(NULLIF(TRIM(u.nombre), ''), u.email) AS estudiante_nombre,
+    
+        te.id              AS entrega_id,
+        te.calificacion    AS calificacion,       -- ✔ existe en tu tabla
+        te.observacion     AS observaciones,      -- ✔ alias para no tocar el front
         te.fecha_entrega
-
+    
       FROM tareas t
       INNER JOIN cursos c ON c.id = t.curso_id
-      /* conjunto de alumnos del curso */
       INNER JOIN cursos_estudiantes ce ON ce.curso_id = c.id
       INNER JOIN usuarios u ON u.id = ce.usuario_id
-
-      /* unión opcional a la entrega de ese alumno para esa tarea */
       LEFT JOIN tareas_entregas te
         ON te.tarea_id = t.id AND te.estudiante_id = u.id
-
+    
       WHERE t.curso_id = ?
-      ORDER BY t.fecha_limite DESC, u.apellidos ASC, u.nombres ASC
+      ORDER BY t.fecha_limite DESC, u.id ASC
       `,
       [curso_id]
     );
+    
 
     // Si es estudiante y no tiene privilegios, filtramos a su propio id
     const filtered = (!puedeVerTodo && role === "estudiante")
