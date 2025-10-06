@@ -87,12 +87,20 @@
     </div>
   </div>
 
-  <!-- Calificaciones -->
-  <div x-show="tab==='calificaciones'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-    <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-graduation-cap mr-2"></i> Calificaciones</h2>
-    <p class="text-gray-700">Calificaciones del curso...</p>
+  <!-- Pestaña Calificaciones -->
+<div x-show="tab==='calificaciones'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-4">
+      <h2 class="text-2xl font-semibold mb-2 text-gray-800">
+        <i class="fas fa-star mr-2"></i> Calificaciones
+      </h2>
+      <p class="text-sm text-gray-500">Calificaciones del curso por tarea.</p>
+    </div>
+    <div id="calificaciones-panel" class="space-y-4">
+      <!-- Aquí se cargarán las calificaciones dinámicamente -->
+    </div>
   </div>
-
+</div>
 </main>
 
 <script src="/js/task.js"></script>
@@ -343,6 +351,10 @@
     }
   }
 </script>
+
+
+
 <script src="/js/curso.js"></script>
+<script src="/js/curso-calificaciones.js"></script>
 </body>
 </html>
