@@ -1,7 +1,34 @@
 // api/calificaciones.js
-import { pool } from "../_db.js";              // mismo pool que usas en otros endpoints
-import { getUserId, getUserRole } from "../_auth.js"; // helpers existentes
-import { isOwnerOrAdmin } from "../_perms.js"; // helper que ya usas en cursos/tareas
+import { pool } from "./db.js";
+import { authMiddleware } from "./middleware.js";
+
+// Helper functions
+function getUserId(req) {
+  return req.cookies?.user_id;
+}
+
+function getUserRole(req) {
+  return req.cookies?.user_role;
+}
+
+async function isOwnerOrAdmin(userId, cursoId) {
+  if (!userId || !cursoId) return false;
+  
+  const [[user]] = await pool.query(
+    "SELECT rol FROM usuarios WHERE id = ?",
+    [userId]
+  );
+  
+  if (!user) return false;
+  if (user.rol === 'admin') return true;
+  
+  const [[curso]] = await pool.query(
+    "SELECT 1 FROM cursos WHERE id = ? AND profesor_id = ?",
+    [cursoId, userId]
+  );
+  
+  return !!curso;
+}
 
 const json = (res, code, payload) => res.status(code).json(payload);
 
