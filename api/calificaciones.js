@@ -63,41 +63,44 @@ export default async function handler(req, res) {
     }
 
     // Consulta para obtener tareas del curso y sus entregas
-    const [rows] = await pool.query(
-      `
+    const query = `
       SELECT
-        t.id           AS tarea_id,
-        t.titulo       AS tarea_titulo,
-        t.fecha_limite AS tarea_fecha_limite,
-        u.id           AS estudiante_id,
+        t.id            AS tarea_id,
+        t.titulo        AS tarea_titulo,
+        t.fecha_limite  AS tarea_fecha_limite,
+        u.id            AS estudiante_id,
         COALESCE(NULLIF(TRIM(u.nombre), ''), u.email) AS estudiante_nombre,
-        te.id          AS entrega_id,
+        te.id           AS entrega_id,
         te.calificacion,
-        te.observacion AS observaciones,
-        te.fecha_entrega
+        te.observacion  AS observaciones,
+        te.fecha_entrega,
+        CASE
+          WHEN te.id IS NOT NULL THEN 'entregada'
+          WHEN NOW() > t.fecha_limite THEN 'vencida'
+          ELSE 'pendiente'
+        END AS estado
       FROM tareas t
       INNER JOIN cursos c ON c.id = t.curso_id
       INNER JOIN cursos_estudiantes ce ON ce.curso_id = c.id
       INNER JOIN usuarios u ON u.id = ce.usuario_id
-      LEFT JOIN tareas_entregas te
+      LEFT JOIN tareas_entregas te 
         ON te.tarea_id = t.id AND te.estudiante_id = u.id
-      WHERE t.curso_id = ?
-      ORDER BY t.fecha_limite DESC, u.id ASC
-      `,
-      [curso_id]
-    );
+      WHERE c.id = ?
+        ${!puedeVerTodo ? 'AND u.id = ?' : ''}
+      ORDER BY t.fecha_limite DESC, u.nombre ASC, t.id DESC
+    `;
+
+    const queryParams = [curso_id];
+    if (!puedeVerTodo) queryParams.push(userId);
+
+    const [rows] = await pool.query(query, queryParams);
     
     console.log('Datos obtenidos de la base de datos:', rows);
     
 
-    // Si es estudiante y no tiene privilegios, filtramos a su propio id
-    const filtered = (!puedeVerTodo && role === "estudiante")
-      ? rows.filter(r => r.estudiante_id === userId)
-      : rows;
-
     // Armar estructura por tarea
     const tareasMap = new Map();
-    for (const r of filtered) {
+    for (const r of rows) {
       if (!tareasMap.has(r.tarea_id)) {
         tareasMap.set(r.tarea_id, {
           id: r.tarea_id,
