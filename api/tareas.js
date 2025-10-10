@@ -489,13 +489,17 @@ if (req.method === 'GET' && action === 'detalle') {
           });
 
         } catch (err) {
-          console.error('Error en transacción al eliminar tarea:', {
-            error: err.message,
-            code: err.code,
-            errno: err.errno,
-            sql: err.sql,
-            sqlMessage: err.sqlMessage,
-            stack: err.stack
+          console.error('❌ ERROR en eliminar tarea:', {
+            code: err?.code,
+            errno: err?.errno,
+            message: err?.message,
+            sql: err?.sql,
+            sqlState: err?.sqlState,
+            sqlMessage: err?.sqlMessage,
+            stack: err?.stack,
+            tareaId,
+            userId: user?.id,
+            timestamp: new Date().toISOString()
           });
           
           if (conn) await conn.rollback();
