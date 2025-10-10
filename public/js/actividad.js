@@ -678,11 +678,19 @@ async function guardarCalificacion() {
 
 // ---- Funciones de gestión de tareas ----
 async function eliminarTarea(tareaId, cursoId) {
-  try {
-    if (!tareaId) {
-      throw new Error('No se proporcionó un ID de tarea válido');
-    }
+  // Input validation
+  if (!tareaId) {
+    showToast('No se proporcionó un ID de tarea válido', false);
+    return;
+  }
 
+  if (!cursoId) {
+    showToast('No se pudo determinar el curso', false);
+    return;
+  }
+
+  try {
+    // User confirmation
     const confirmado = await new Promise((resolve) => {
       mostrarConfirmacion(
         'Eliminar tarea',
@@ -693,15 +701,12 @@ async function eliminarTarea(tareaId, cursoId) {
 
     if (!confirmado) return;
 
-    // Enviar tanto en query string como en body para máxima compatibilidad
-    const url = `/api/tareas?action=eliminar&tarea_id=${encodeURIComponent(tareaId)}&id=${encodeURIComponent(tareaId)}`;
-    
-    // Configuración de la petición con soporte para override
+    // Prepare request
+    const url = `/api/tareas?action=eliminar&tarea_id=${encodeURIComponent(tareaId)}`;
     const options = {
       method: 'DELETE',
       headers: { 
         'Content-Type': 'application/json',
-        // Agregar headers para diagnóstico
         'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify({ 
@@ -711,24 +716,21 @@ async function eliminarTarea(tareaId, cursoId) {
       })
     };
 
-    // Si hay algún proxy que bloquee DELETE, podemos usar el método alternativo
-    const useMethodOverride = false; // Cambiar a true si es necesario
-    if (useMethodOverride) {
-      options.method = 'POST';
-      options.headers['X-HTTP-Method-Override'] = 'DELETE';
+    // Execute request
+    let resp;
+    try {
+      resp = await fetch(url, options);
+    } catch (networkError) {
+      console.error('Error de red:', networkError);
+      throw new Error('No se pudo conectar al servidor. Verifica tu conexión e intenta nuevamente.');
     }
 
-    const resp = await fetch(url, options);
-
-    // Manejo de respuestas del servidor
-    let data = null;
+    // Handle response
+    let data = {};
     try { 
-      data = await resp.json(); 
-    } catch (e) { 
-      console.error('Error al parsear respuesta:', e);
-      if (!resp.ok) {
-        throw new Error(`Error ${resp.status} al procesar la respuesta`);
-      }
+      data = await resp.json().catch(() => ({})); 
+    } catch (e) {
+      console.error('Error al procesar la respuesta:', e);
     }
 
     if (!resp.ok) {
@@ -737,34 +739,28 @@ async function eliminarTarea(tareaId, cursoId) {
       
       switch (resp.status) {
         case 400: throw new Error(`Solicitud inválida: ${errorMsg}${errorDetails}`);
-        case 401: throw new Error(`No autenticado: ${errorMsg}`);
-        case 403: throw new Error(`No autorizado: ${errorMsg}`);
-        case 404: throw new Error(`Tarea no encontrada: ${errorMsg}`);
+        case 401: 
+          window.location.href = '/login'; // Redirect to login if not authenticated
+          return;
+        case 403: throw new Error(`No tienes permiso para eliminar esta tarea.`);
+        case 404: throw new Error(`La tarea no existe o ya fue eliminada.`);
         case 409: throw new Error(`No se puede eliminar: ${errorMsg || 'tiene entregas o comentarios relacionados'}`);
-        default: throw new Error(`Error del servidor (${resp.status}): ${errorMsg}${errorDetails}`);
+        case 500: throw new Error(`Error del servidor: ${errorMsg}`);
+        default: throw new Error(`Error inesperado (${resp.status}): ${errorMsg}${errorDetails}`);
       }
     }
 
-    // Éxito
+    // Success
     showToast('Tarea eliminada correctamente');
     
-    // Redirigir a la vista del curso después de un breve retraso
+    // Redirect after a short delay
     setTimeout(() => {
       window.location.href = `/views/curso.html?id=${encodeURIComponent(cursoId)}`;
     }, 1500);
     
   } catch (error) {
     console.error('Error al eliminar tarea:', error);
-    showToast(error.message, false);
-    
-    // Mostrar más detalles en consola para depuración
-    if (error.response) {
-      console.error('Detalles de la respuesta de error:', {
-        status: error.response.status,
-        statusText: error.response.statusText,
-        data: error.response.data
-      });
-    }
+    showToast(error.message || 'Ocurrió un error al eliminar la tarea', false);
   }
 }
 
