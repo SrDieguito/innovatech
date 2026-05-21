@@ -1,0 +1,185 @@
+/* Activities Component - BEM Structure */
+
+/* Block */
+.actividades {
+    margin-left: 120px;
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 100px;
+}
+
+/* Elements */
+.actividades__dia {
+    margin-bottom: 20px;
+}
+
+.actividades__titulo-dia {
+    font-size: 50px;
+    color: rgb(193, 18, 31);
+    margin-bottom: 20px;
+    display: block;
+}
+
+.actividades__evento {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.actividades__categoria {
+    margin-bottom: 30px;
+}
+
+/* Inverted category modifier - add specific styles here if needed in the future */
+
+.actividades__cabecera {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.actividades__titulo-categoria {
+    font-size: 26px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.actividades__icono {
+    width: 50px;
+    height: 50px;
+}
+
+.actividades__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1 1 0%;
+}
+
+.actividades__item {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+}
+
+.actividades__descripcion {
+    font-size: 18px;
+    font-weight: 600;
+    flex: 1;
+}
+
+.actividades__hora {
+    white-space: nowrap;
+}
+
+/* Evento especial */
+.actividades__evento-especial {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+}
+
+.actividades__evento-titulo {
+    font-size: 25px;
+    margin: 0;
+}
+
+.actividades__evento-hora {
+    font-size: 15px;
+    margin-top: 2px;
+}
+
+/* Evento con descripción larga */
+.actividades__evento-largo {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+}
+
+.actividades__evento-descripcion {
+    font-weight: 600;
+    font-size: 18px;
+    max-width: 80%;
+    line-height: 1.4;
+}
+
+.actividades__evento-descripcion strong {
+    display: block;
+    margin-top: 4px;
+}
+
+/* Evento de cierre */
+.actividades__evento-especial--cierre {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 30px;
+    border-left: 4px solid #c1121f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.actividades__evento-especial--cierre .actividades__evento-descripcion {
+    font-size: 20px;
+    color: #212529;
+    max-width: 85%;
+}
+
+.actividades__evento-especial--cierre .actividades__evento-hora {
+    font-size: 16px;
+    font-weight: 600;
+    color: #c1121f;
+    white-space: nowrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .actividades {
+        margin-left: 20px;
+        margin-right: 20px;
+        gap: 60px;
+    }
+
+    .actividades__titulo-dia {
+        font-size: 36px;
+    }
+
+    .actividades__item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .actividades__evento-largo,
+    .actividades__evento-especial,
+    .actividades__evento-especial--cierre {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .actividades__evento-descripcion,
+    .actividades__evento-especial--cierre .actividades__evento-descripcion {
+        max-width: 100%;
+        font-size: 16px;
+    }
+    
+    .actividades__evento-especial--cierre {
+        padding: 15px;
+        margin-top: 20px;
+    }
+    
+    .actividades__evento-hora,
+    .actividades__evento-especial--cierre .actividades__evento-hora {
+        font-size: 14px;
+    }
+}

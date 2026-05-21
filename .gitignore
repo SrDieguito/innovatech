@@ -1,0 +1,20 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (nunca subir al repo)
+.env
+.env.local
+.env.*.local
+
+# Vercel
+.vercel
+
+# Sesiones y archivos temporales
+*.session
+
+# Carpeta del proyecto anidada (ya se movió todo al root)
+innovatech-main/
+
+# OS
+.DS_Store
+Thumbs.db

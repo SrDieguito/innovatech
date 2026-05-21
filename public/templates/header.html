@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnovaTech - Plataforma Educativa</title>
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'>
+    <link
+        href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+        rel='stylesheet'>
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" href="/styles/style2.css">
+</head>
+
+<body>
+    <div class="page">
+        <header class="header">
+            <div class="header__container">
+                <div class="header__logo">
+                    <a href="/" class="header__logo-link">
+                        <img src="/imagenes/UTM-logo.gif" alt="UTM Logo" class="header__logo-image">
+                    </a>
+                </div>
+                
+                <div class="header__auth header__auth--desktop">
+                    <button type="button" class="button button--primary"
+                        onclick="window.location.href='/auth/login.html'">
+                        Iniciar sesión
+                    </button>
+                </div>
+                
+                <div class="header__auth header__auth--tablet">
+                    <button type="button" class="button button--primary"
+                        onclick="window.location.href='/auth/login.html'">
+                        Iniciar sesión
+                    </button>
+                </div>
+                
+                <div class="header__menu-toggle header__menu-toggle--tablet">
+                    <button type="button" class="menu-button" aria-label="Abrir menú de navegación">
+                        <span class="menu-button__icon"></span>
+                        <span class="menu-button__icon"></span>
+                        <span class="menu-button__icon"></span>
+                    </button>
+                </div>
+                
+                <div class="header__menu-toggle header__menu-toggle--mobile">
+                    <button type="button" class="menu-button" aria-label="Abrir menú de navegación">
+                        <span class="menu-button__icon"></span>
+                        <span class="menu-button__icon"></span>
+                        <span class="menu-button__icon"></span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <nav class="main-nav">
+            <div class="main-nav__container">
+                <ul class="main-nav__list">
+                    <li class="main-nav__item">
+                        <a href="/views/index.html" class="main-nav__link main-nav__link--active" id="btnNav_Inicio">
+                            Inicio
+                        </a>
+                    </li>
+                    <li class="main-nav__item">
+                        <a href="/views/metodologias.html" class="main-nav__link" id="btnNav_Metodologia">
+                            ¿Quiénes somos?
+                        </a>
+                    </li>
+                    <li class="main-nav__item">
+                        <a href="/views/retos.html" class="main-nav__link" id="btnNav_Retos">
+                            ¿Cómo funciona?
+                        </a>
+                    </li>
+                    <li class="main-nav__item">
+                        <a href="/views/" class="main-nav__link" id="btnNav_Actividades">
+                            Actividades
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        // JavaScript para el menú móvil
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuButtons = document.querySelectorAll('.menu-button');
+            const nav = document.querySelector('.main-nav');
+            
+            menuButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    nav.classList.toggle('main-nav--active');
+                    document.body.classList.toggle('no-scroll');
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

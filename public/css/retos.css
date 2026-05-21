@@ -1,0 +1,116 @@
+/* Retos component styles */
+.retos {
+    margin-top: 200px;
+    background-color: rgb(255, 255, 255);
+    gap: 40px;
+    margin-inline: 120px;
+    display: flex;
+    flex-direction: column;
+}
+
+.retos__container {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 30px;
+    align-items: center;
+    border: 1px solid rgba(0, 0, 0, 0.4);
+    box-shadow: 0px 0px 5px rgba(0, 73, 119, 0.327);
+    border-radius: 20px;
+    padding: 30px 40px;
+}
+
+.retos__content {
+    flex: 1;
+}
+
+.retos__header {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: flex-end;
+    min-width: 350px;
+    position: relative;
+}
+
+.retos__number {
+    font-size: 120px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.retos__title {
+    font-weight: bold;
+    font-size: 40px;
+    position: relative;
+    top: -30px;
+    text-transform: capitalize;
+    margin: 0;
+    line-height: 1;
+}
+
+.retos__description {
+    margin-top: 15px;
+    line-height: 1.5;
+}
+
+.retos__image {
+    width: 500px;
+    height: 500px;
+    border-radius: 15px;
+    object-fit: cover;
+}
+
+/* Animation classes */
+.fade-in-left {
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Responsive styles */
+@media (max-width: 1200px) {
+    .retos {
+        margin-inline: 40px;
+    }
+    
+    .retos__container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .retos__header {
+        justify-content: center;
+    }
+    
+    .retos__image {
+        width: 100%;
+        height: auto;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .retos {
+        margin-top: 100px;
+        margin-inline: 20px;
+    }
+    
+    .retos__container {
+        padding: 20px;
+    }
+    
+    .retos__number {
+        font-size: 80px;
+    }
+    
+    .retos__title {
+        font-size: 30px;
+        top: -20px;
+    }
+}

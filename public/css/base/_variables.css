@@ -1,0 +1,45 @@
+/* Base Variables */
+:root {
+  /* Colors */
+  --color-primary: #c1121f;
+  --color-secondary: #003049;
+  --color-text: #232323;
+  --color-text-light: #6c757d;
+  --color-border: #dee2e6;
+  --color-background: #ffffff;
+  
+  /* Typography */
+  --font-primary: 'Noto Sans', sans-serif;
+  --font-secondary: 'Lora', serif;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  
+  /* Borders */
+  --border-radius-sm: 0.25rem;
+  --border-radius: 0.5rem;
+  --border-radius-lg: 1rem;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  
+  /* Layout */
+  --header-height: 72px;
+  --header-height-desktop: 80px;
+  --container-max-width: 1200px;
+  
+  /* Z-index */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+}

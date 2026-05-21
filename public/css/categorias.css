@@ -1,0 +1,75 @@
+/* Bloque principal */
+.categorias {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* 8px */
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Elemento de categoría */
+.categoria {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.625rem; /* 10px */
+    margin-bottom: 0.5rem; /* 8px */
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.categoria:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+    transform: translateX(0.25rem);
+}
+
+/* Elementos dentro de la categoría */
+.categoria__titulo {
+    font-size: 1.625rem; /* 26px */
+    font-weight: 700;
+    margin: 0;
+    color: #333;
+    line-height: 1.2;
+}
+
+.categoria__icono {
+    width: 3.125rem; /* 50px */
+    height: 3.125rem; /* 50px */
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* Modificadores para diferentes categorías */
+.categoria--videojuegos .categoria__titulo {
+    color: #6c5ce7;
+}
+
+.categoria--ideacion .categoria__titulo {
+    color: #00b894;
+}
+
+.categoria--prototipo .categoria__titulo {
+    color: #e84393;
+}
+
+.categoria--conferencias .categoria__titulo {
+    color: #0984e3;
+}
+
+/* Versión responsive */
+@media (max-width: 768px) {
+    .categoria {
+        padding: 0.75rem;
+    }
+    
+    .categoria__titulo {
+        font-size: 1.25rem;
+    }
+    
+    .categoria__icono {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}

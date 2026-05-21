@@ -1,0 +1,120 @@
+/* Activities Component */
+.activities {
+  margin-top: var(--spacing-lg);
+}
+
+.activities__day {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  border-bottom: 2px solid var(--color-text);
+  padding-inline: var(--spacing-sm);
+  padding-block: var(--spacing-lg);
+}
+
+.activities__header {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-md);
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.activities__day-number {
+  font-size: 1.875rem;
+  color: var(--color-primary);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.activities__day-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.activities__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.activity {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+  position: relative;
+}
+
+.activity__time {
+  font-size: 0.875rem;
+  width: 200px;
+  text-align: left;
+  font-weight: 300;
+  flex-shrink: 0;
+}
+
+.activity__event {
+  font-weight: 600;
+  max-width: 700px;
+  font-size: 0.875rem;
+  position: relative;
+  display: inline-block;
+  padding-left: var(--spacing-md);
+  flex-grow: 1;
+}
+
+.activity__event::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--color-text);
+  background-color: transparent;
+  border-radius: 50%;
+}
+
+.activity__event--highlight::before {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Responsive Activities */
+@media (max-width: 767.98px) {
+  .activity {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+  
+  .activity__time {
+    width: 100%;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .activity__event {
+    padding-left: var(--spacing-md);
+  }
+}
+
+/* Activity Modifiers */
+.activity--past {
+  opacity: 0.7;
+}
+
+.activity--current {
+  background-color: rgba(193, 18, 31, 0.05);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm);
+  margin-left: calc(-1 * var(--spacing-sm));
+  margin-right: calc(-1 * var(--spacing-sm));
+}
+
+.activity--current .activity__event {
+  font-weight: 700;
+}

@@ -1,0 +1,9 @@
+/* Main CSS File - BEM Methodology */
+@import 'base/variables.css';
+@import 'base/typography.css';
+@import 'base/utilities.css';
+@import 'components/button.css';
+@import 'components/header.css';
+@import 'components/navigation.css';
+@import 'components/activities.css';
+@import 'components/retos.css';

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tareas del Curso - Innovatech</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link href="/css/estilos.css" rel="stylesheet">
+    <link href="/css/animacion.css" rel="stylesheet">
+    <link href="/css/tareas_curso.css" rel="stylesheet">
+</head>
+<body class="tareas-curso">
+    <!-- Header -->
+    <div id="header-placeholder"></div>
+
+    <main class="container">
+        <header class="tareas-curso__header">
+            <h1 class="tareas-curso__title">
+                <i class="bi bi-journal-text"></i> Tareas del Curso
+            </h1>
+            <div class="tareas-curso__actions">
+                <a href="#" id="btn-nueva-tarea" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nueva Tarea
+                </a>
+                <a href="#" id="btn-volver" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver al Curso
+                </a>
+            </div>
+        </header>
+
+        <div class="row">
+            <!-- Filtros -->
+            <aside class="col-md-3">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h2 class="h5 mb-0">Filtros</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="tareas-curso__filtro-grupo">
+                            <label class="tareas-curso__filtro-label">Estado</label>
+                            <div class="form-check">
+                                <input class="form-check-input filtro-estado" type="checkbox" value="pendientes" id="filtro-pendientes" checked>
+                                <label class="form-check-label" for="filtro-pendientes">Pendientes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input filtro-estado" type="checkbox" value="completadas" id="filtro-completadas" checked>
+                                <label class="form-check-label" for="filtro-completadas">Completadas</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input filtro-estado" type="checkbox" value="vencidas" id="filtro-vencidas" checked>
+                                <label class="form-check-label" for="filtro-vencidas">Vencidas</label>
+                            </div>
+                        </div>
+                        <div class="tareas-curso__filtro-grupo">
+                            <label for="filtro-fecha" class="tareas-curso__filtro-label">Fecha límite</label>
+                            <select class="form-select" id="filtro-fecha">
+                                <option value="todas">Todas las fechas</option>
+                                <option value="hoy">Hoy</option>
+                                <option value="semana">Esta semana</option>
+                                <option value="mes">Este mes</option>
+                            </select>
+                        </div>
+                        <button id="btn-aplicar-filtros" class="btn btn-sm btn-primary w-100 mt-3">
+                            Aplicar Filtros
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Lista de tareas -->
+            <div class="col-md-9">
+                <div id="sin-tareas" class="tareas-curso__empty" style="display: none;">
+                    <i class="bi bi-journal-x tareas-curso__empty-icon"></i>
+                    <p>No hay tareas para mostrar con los filtros actuales</p>
+                </div>
+                <div id="lista-tareas">
+                    <!-- Las tareas se cargarán aquí dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para confirmar eliminación -->
+    <div class="modal fade" id="modalEliminarTarea" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que deseas eliminar esta tarea? Esta acción no se puede deshacer.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" id="btn-confirmar-eliminar">
+                        <i class="bi bi-trash me-1"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/headers.js"></script>
+    <script src="/js/tareas_curso.js"></script>
+    <!-- Scripts de inicialización -->
+    <script>
+        // Cargar el header y footer
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Cargar el header y footer
+            await loadHeader();
+            loadFooter();
+        });
+    </script>
+</body>
+</html>
