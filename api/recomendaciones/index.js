@@ -105,6 +105,7 @@ async function buscarWikipedia(query) {
       tipo: 'articulo',
       nivel: 'todos',
       fuente: 'wikipedia',
+      legible: true,
     }));
   } catch { return []; }
 }
