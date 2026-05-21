@@ -1,13 +1,16 @@
-import pg from 'pg';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const { Pool } = pg;
+// WebSocket required for Node.js (browser has it natively)
+neonConfig.webSocketConstructor = ws;
+
+const isVercel = !!process.env.VERCEL;
 
 const _pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-  max: 10,
+  max: isVercel ? 1 : 10,
 });
 
 // Converts MySQL ? placeholders to PostgreSQL $1, $2, ...
@@ -42,8 +45,10 @@ export const pool = {
   },
 };
 
-_pool.query('SELECT 1').then(() => {
-  console.log('✅ Conectado a PostgreSQL (Neon)');
-}).catch(err => {
-  console.error('❌ Error conectando a PostgreSQL:', err.message);
-});
+if (!isVercel) {
+  _pool.query('SELECT 1').then(() => {
+    console.log('✅ Conectado a PostgreSQL (Neon)');
+  }).catch(err => {
+    console.error('❌ Error conectando a PostgreSQL:', err.message);
+  });
+}
