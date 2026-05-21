@@ -43,10 +43,10 @@
         <span x-show="alerta?.nivel === 'alerta'"> Te recomendamos reforzar los temas con los recursos de apoyo.</span>
       </p>
     </div>
-    <button @click="tab = 'recursos'"
+    <button @click="tab = 'actividades'"
             class="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition whitespace-nowrap"
             :class="alerta?.nivel === 'peligro' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'">
-      <i class="fas fa-lightbulb mr-1"></i>Ver recursos
+      <i class="fas fa-tasks mr-1"></i>Ver tareas
     </button>
   </div>
 
@@ -255,12 +255,16 @@
             </template>
             <!-- Acciones estudiante -->
             <template x-if="!esProfesor">
-              <div class="ml-3">
-                <button @click="abrirEntrega(t)"
-                  :class="t.estado_calculado === 'completada' ? 'bg-green-100 text-green-700' : 'bg-green-600 text-white hover:bg-green-700'"
-                  class="px-3 py-1.5 rounded-lg text-xs transition">
+              <div class="ml-3 flex items-center gap-1.5 shrink-0">
+                <button @click.stop="abrirEntrega(t)"
+                  :class="t.estado_calculado === 'completada' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-green-600 text-white hover:bg-green-700'"
+                  class="px-3 py-1.5 rounded-lg text-xs font-medium transition">
                   <i :class="t.estado_calculado === 'completada' ? 'fas fa-check' : 'fas fa-upload'" class="mr-1"></i>
-                  <span x-text="t.estado_calculado === 'completada' ? 'Entregado' : 'Entregar'"></span>
+                  <span x-text="t.estado_calculado === 'completada' ? 'Ver entrega' : 'Entregar'"></span>
+                </button>
+                <button @click.stop="verDetalleTarea(t)"
+                  class="bg-yellow-50 text-yellow-700 border border-yellow-200 hover:bg-yellow-100 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                  <i class="fas fa-lightbulb mr-1"></i>Recursos
                 </button>
               </div>
             </template>
@@ -331,138 +335,196 @@
   </div>
 
   <!-- ═══ RECURSOS ═══ -->
-  <div x-show="tab === 'recursos'">
-    <!-- Spinner -->
-    <div x-show="recursosLoading" class="bg-white rounded-2xl shadow-md p-12 text-center text-gray-400">
-      <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
-      <p>Buscando recursos...</p>
-    </div>
+  <!-- ═══ CALIFICACIONES ═══ -->
+  <div x-show="tab === 'calificaciones'" class="bg-white rounded-2xl shadow-md p-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-star mr-2 text-green-600"></i>Calificaciones</h2>
+    <div id="calificaciones-panel"></div>
+  </div>
 
-    <div x-show="!recursosLoading">
-      <!-- Contexto -->
-      <div class="bg-white rounded-2xl shadow-md p-5 mb-4">
-        <div class="flex items-center gap-2 mb-1">
-          <i class="fas fa-lightbulb text-yellow-500"></i>
-          <h2 class="font-bold text-gray-800">Recursos de apoyo</h2>
+  <!-- ═══ MODAL DETALLE DE TAREA + RECURSOS ═══ -->
+  <div x-show="tareaActiva"
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       @keydown.escape.window="tareaActiva = null"
+       @click.self="tareaActiva = null"
+       class="fixed inset-0 bg-black/60 flex items-start justify-center z-40 pt-8 pb-6 px-4 overflow-y-auto">
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl" @click.stop>
+
+      <!-- Cabecera -->
+      <div class="flex items-start justify-between p-6 border-b">
+        <div class="flex-1 pr-4">
+          <h2 class="text-xl font-bold text-gray-800 leading-snug" x-text="tareaActiva?.title"></h2>
+          <div class="flex flex-wrap gap-3 mt-2 text-sm">
+            <span x-show="tareaActiva?.due_at" class="text-gray-500">
+              <i class="fas fa-calendar-alt mr-1"></i>
+              <span x-text="formatFecha(tareaActiva?.due_at)"></span>
+            </span>
+            <span x-show="tareaActiva?.points > 0" class="text-yellow-600 font-medium">
+              <i class="fas fa-star mr-1"></i>
+              <span x-text="tareaActiva?.points + ' puntos'"></span>
+            </span>
+            <span class="font-semibold capitalize"
+                  :class="{
+                    'text-green-600':  tareaActiva?.estado_calculado === 'completada',
+                    'text-red-600':    tareaActiva?.estado_calculado === 'vencida',
+                    'text-yellow-600': tareaActiva?.estado_calculado === 'pendiente'
+                  }"
+                  x-text="tareaActiva?.estado_calculado"></span>
+          </div>
         </div>
-        <p class="text-sm text-gray-500">
-          Materiales seleccionados según el tema del curso.
-          <span x-show="alerta?.nivel === 'peligro'" class="text-red-600 font-medium"> Prioriza los materiales básicos para reforzar los fundamentos.</span>
-          <span x-show="alerta?.nivel === 'alerta'" class="text-yellow-700 font-medium"> Estos recursos te ayudarán a subir tu promedio.</span>
-        </p>
-      </div>
-
-      <!-- Filtros -->
-      <div x-show="recursos.length > 0" class="flex flex-wrap gap-2 mb-4">
-        <button @click="filtroRecursos = 'todos'"
-                :class="filtroRecursos === 'todos' ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 border hover:bg-gray-50'"
-                class="px-3 py-1.5 rounded-full text-xs font-semibold transition">
-          Todos
-          <span class="ml-1 opacity-70" x-text="recursos.length"></span>
-        </button>
-        <button x-show="recursos.some(r => r.fuente === 'youtube')"
-                @click="filtroRecursos = 'youtube'"
-                :class="filtroRecursos === 'youtube' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-200 hover:bg-red-50'"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition">
-          <i class="fab fa-youtube"></i> Videos
-          <span class="opacity-70" x-text="recursos.filter(r => r.fuente === 'youtube').length"></span>
-        </button>
-        <button x-show="recursos.some(r => r.fuente === 'khanacademy')"
-                @click="filtroRecursos = 'khanacademy'"
-                :class="filtroRecursos === 'khanacademy' ? 'bg-green-600 text-white' : 'bg-white text-green-700 border border-green-200 hover:bg-green-50'"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition">
-          <i class="fas fa-graduation-cap"></i> Khan Academy
-          <span class="opacity-70" x-text="recursos.filter(r => r.fuente === 'khanacademy').length"></span>
-        </button>
-        <button x-show="recursos.some(r => r.fuente === 'academico')"
-                @click="filtroRecursos = 'academico'"
-                :class="filtroRecursos === 'academico' ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border border-blue-200 hover:bg-blue-50'"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition">
-          <i class="fas fa-globe"></i> Recursos académicos
-          <span class="opacity-70" x-text="recursos.filter(r => r.fuente === 'academico').length"></span>
+        <button @click="tareaActiva = null"
+                class="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-100 transition shrink-0">
+          <i class="fas fa-times text-lg"></i>
         </button>
       </div>
 
-      <!-- Tarjetas de recursos -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <template x-for="r in recursos.filter(r => filtroRecursos === 'todos' || r.fuente === filtroRecursos)" :key="r.url">
-          <a :href="r.url" target="_blank" rel="noopener noreferrer"
-             class="bg-white rounded-2xl shadow-md overflow-hidden border border-transparent hover:border-green-300 hover:shadow-lg transition-all group">
-            <!-- Thumbnail (YouTube) -->
-            <template x-if="r.thumbnail">
-              <div class="relative w-full aspect-video overflow-hidden bg-gray-100">
-                <img :src="r.thumbnail" :alt="r.titulo"
-                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                <div class="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div class="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center">
-                    <i class="fas fa-play text-white text-lg ml-1"></i>
+      <!-- Descripción -->
+      <div class="px-6 py-4 border-b">
+        <p x-show="tareaActiva?.description"
+           class="text-gray-700 leading-relaxed whitespace-pre-line"
+           x-text="tareaActiva?.description"></p>
+        <p x-show="!tareaActiva?.description"
+           class="text-gray-400 italic text-sm">Sin descripción adicional.</p>
+      </div>
+
+      <!-- Botón entregar -->
+      <div class="px-6 py-4 border-b">
+        <button @click="abrirEntregaDesdeDetalle()"
+                :class="tareaActiva?.estado_calculado === 'completada'
+                  ? 'bg-green-50 text-green-700 border border-green-300 hover:bg-green-100'
+                  : 'bg-green-600 text-white hover:bg-green-700'"
+                class="w-full py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+          <i :class="tareaActiva?.estado_calculado === 'completada' ? 'fas fa-check-circle' : 'fas fa-upload'"></i>
+          <span x-text="tareaActiva?.estado_calculado === 'completada' ? 'Ver entrega / Reenviar' : 'Entregar tarea'"></span>
+        </button>
+      </div>
+
+      <!-- Sección Recursos -->
+      <div class="p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <i class="fas fa-lightbulb text-yellow-500 text-lg"></i>
+          <h3 class="font-bold text-gray-800">Recursos para esta tarea</h3>
+          <span x-show="!tareaRecursosLoading && tareaRecursos.length > 0"
+                class="ml-auto text-xs text-gray-400"
+                x-text="tareaRecursos.length + ' recurso' + (tareaRecursos.length !== 1 ? 's' : '')"></span>
+        </div>
+
+        <!-- Spinner -->
+        <div x-show="tareaRecursosLoading" class="text-center py-10 text-gray-400">
+          <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+          <p class="text-sm">Buscando recursos...</p>
+        </div>
+
+        <!-- Filtros -->
+        <div x-show="!tareaRecursosLoading && tareaRecursos.length > 0" class="flex flex-wrap gap-2 mb-4">
+          <button @click="filtroTareaRec = 'todos'"
+                  :class="filtroTareaRec === 'todos' ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 border hover:bg-gray-50'"
+                  class="px-3 py-1.5 rounded-full text-xs font-semibold transition">
+            Todos <span class="ml-1 opacity-60" x-text="tareaRecursos.length"></span>
+          </button>
+          <button x-show="tareaRecursos.some(r => r.fuente === 'youtube')"
+                  @click="filtroTareaRec = 'youtube'"
+                  :class="filtroTareaRec === 'youtube' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-200 hover:bg-red-50'"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition">
+            <i class="fab fa-youtube"></i> Videos
+            <span class="opacity-70" x-text="tareaRecursos.filter(r => r.fuente === 'youtube').length"></span>
+          </button>
+          <button x-show="tareaRecursos.some(r => r.fuente === 'wikipedia')"
+                  @click="filtroTareaRec = 'wikipedia'"
+                  :class="filtroTareaRec === 'wikipedia' ? 'bg-slate-700 text-white' : 'bg-white text-slate-600 border hover:bg-slate-50'"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition">
+            <i class="fab fa-wikipedia-w"></i> Wikipedia
+            <span class="opacity-70" x-text="tareaRecursos.filter(r => r.fuente === 'wikipedia').length"></span>
+          </button>
+          <button x-show="tareaRecursos.some(r => r.fuente === 'scholar')"
+                  @click="filtroTareaRec = 'scholar'"
+                  :class="filtroTareaRec === 'scholar' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition">
+            <i class="fas fa-graduation-cap"></i> Académico
+          </button>
+          <button x-show="tareaRecursos.some(r => r.fuente === 'khanacademy')"
+                  @click="filtroTareaRec = 'khanacademy'"
+                  :class="filtroTareaRec === 'khanacademy' ? 'bg-green-600 text-white' : 'bg-white text-green-700 border border-green-200 hover:bg-green-50'"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition">
+            <i class="fas fa-book"></i> Khan Academy
+            <span class="opacity-70" x-text="tareaRecursos.filter(r => r.fuente === 'khanacademy').length"></span>
+          </button>
+        </div>
+
+        <!-- Cards de recursos -->
+        <div x-show="!tareaRecursosLoading" class="space-y-2">
+          <template x-for="r in tareaRecursos.filter(r => filtroTareaRec === 'todos' || r.fuente === filtroTareaRec)" :key="r.url">
+            <a :href="r.url" target="_blank" rel="noopener noreferrer"
+               class="flex gap-3 bg-gray-50 rounded-xl p-3 hover:bg-white hover:shadow-md border border-transparent hover:border-green-200 transition group">
+
+              <!-- Thumbnail YouTube -->
+              <template x-if="r.thumbnail">
+                <div class="relative w-28 h-16 rounded-lg overflow-hidden bg-gray-200 shrink-0">
+                  <img :src="r.thumbnail" :alt="r.titulo" class="w-full h-full object-cover">
+                  <div class="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                    <i class="fas fa-play text-white text-sm"></i>
                   </div>
                 </div>
-                <span class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
-                  <i class="fab fa-youtube mr-1"></i><span x-text="r.canal || 'YouTube'"></span>
-                </span>
-              </div>
-            </template>
+              </template>
 
-            <div class="p-4 flex items-start gap-3">
-              <!-- Ícono (cuando no hay thumbnail) -->
+              <!-- Icono fuente -->
               <template x-if="!r.thumbnail">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0"
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-base"
                      :class="{
-                       'bg-red-100 text-red-600':      r.tipo === 'video',
-                       'bg-orange-100 text-orange-600': r.tipo === 'ejercicios',
+                       'bg-slate-100 text-slate-600':   r.fuente === 'wikipedia',
+                       'bg-indigo-100 text-indigo-600': r.fuente === 'scholar',
+                       'bg-green-100 text-green-700':   r.fuente === 'khanacademy',
+                       'bg-orange-100 text-orange-600': r.tipo === 'ejercicios' && !['wikipedia','scholar','khanacademy'].includes(r.fuente),
                        'bg-purple-100 text-purple-600': r.tipo === 'curso',
-                       'bg-blue-100 text-blue-600':    r.tipo === 'articulo',
-                       'bg-gray-100 text-gray-600':    r.tipo === 'herramienta'
+                       'bg-blue-100 text-blue-600':     r.tipo === 'articulo' && !['wikipedia','scholar'].includes(r.fuente),
+                       'bg-gray-100 text-gray-500':     r.tipo === 'herramienta'
                      }">
                   <i :class="{
-                    'fas fa-play-circle':    r.tipo === 'video',
-                    'fas fa-dumbbell':       r.tipo === 'ejercicios',
-                    'fas fa-graduation-cap':r.tipo === 'curso',
-                    'fas fa-book-open':     r.tipo === 'articulo',
-                    'fas fa-tools':         r.tipo === 'herramienta'
+                    'fab fa-wikipedia-w':    r.fuente === 'wikipedia',
+                    'fas fa-graduation-cap': r.fuente === 'scholar',
+                    'fas fa-book-open':      r.fuente === 'khanacademy',
+                    'fas fa-dumbbell':       r.tipo === 'ejercicios' && !['khanacademy','scholar'].includes(r.fuente),
+                    'fas fa-laptop-code':    r.tipo === 'curso',
+                    'fas fa-file-alt':       r.tipo === 'articulo' && !['wikipedia','scholar'].includes(r.fuente),
+                    'fas fa-tools':          r.tipo === 'herramienta'
                   }"></i>
                 </div>
               </template>
 
               <!-- Texto -->
               <div class="flex-1 min-w-0">
-                <p class="font-semibold text-sm text-gray-800 group-hover:text-green-700 transition-colors leading-snug" x-text="r.titulo"></p>
-                <p class="text-xs text-gray-500 mt-0.5 leading-relaxed line-clamp-2" x-text="r.desc"></p>
-                <div class="flex items-center gap-2 mt-2 flex-wrap">
-                  <span x-show="!r.thumbnail" class="text-xs px-2 py-0.5 rounded-full font-medium"
-                        :class="{
-                          'bg-green-100 text-green-700':   r.nivel === 'basico',
-                          'bg-yellow-100 text-yellow-700': r.nivel === 'intermedio',
-                          'bg-red-100 text-red-700':       r.nivel === 'avanzado',
-                          'bg-blue-100 text-blue-700':     r.nivel === 'todos'
-                        }"
-                        x-text="({basico:'Básico', intermedio:'Intermedio', avanzado:'Avanzado', todos:'Todos los niveles'})[r.nivel] || r.nivel"></span>
-                  <span x-show="!r.thumbnail" class="text-xs text-gray-400 capitalize" x-text="r.tipo"></span>
-                </div>
+                <p class="font-semibold text-sm text-gray-800 group-hover:text-green-700 transition leading-snug line-clamp-2"
+                   x-text="r.titulo"></p>
+                <p class="text-xs text-gray-500 mt-0.5 line-clamp-2" x-text="r.desc"></p>
+                <span class="inline-block mt-1 text-xs font-medium"
+                      :class="{
+                        'text-slate-500':   r.fuente === 'wikipedia',
+                        'text-indigo-600':  r.fuente === 'scholar',
+                        'text-green-700':   r.fuente === 'khanacademy',
+                        'text-red-500':     r.fuente === 'youtube',
+                        'text-blue-600':    !['wikipedia','scholar','khanacademy','youtube'].includes(r.fuente)
+                      }"
+                      x-text="({wikipedia:'Wikipedia',scholar:'Google Scholar',khanacademy:'Khan Academy',youtube:r.canal||'YouTube',academico:'Recurso académico'})[r.fuente] || r.fuente"></span>
               </div>
-              <i x-show="!r.thumbnail" class="fas fa-external-link-alt text-xs text-gray-300 group-hover:text-green-500 transition-colors shrink-0 mt-1"></i>
-            </div>
-          </a>
-        </template>
 
-        <!-- Empty state -->
-        <div x-show="recursos.filter(r => filtroRecursos === 'todos' || r.fuente === filtroRecursos).length === 0" class="col-span-2 bg-white rounded-2xl shadow-md p-8 text-center text-gray-400">
-          <i class="fas fa-search text-3xl mb-3"></i>
-          <p>No encontramos recursos para este curso.</p>
-          <a href="https://es.khanacademy.org/" target="_blank" rel="noopener noreferrer"
-             class="inline-block mt-3 text-sm text-green-700 hover:underline">
-            Explorar Khan Academy <i class="fas fa-external-link-alt text-xs"></i>
-          </a>
+              <i class="fas fa-external-link-alt text-xs text-gray-300 group-hover:text-green-500 transition shrink-0 self-center"></i>
+            </a>
+          </template>
+
+          <div x-show="!tareaRecursosLoading && tareaRecursos.filter(r => filtroTareaRec === 'todos' || r.fuente === filtroTareaRec).length === 0"
+               class="text-center py-6 text-gray-400">
+            <i class="fas fa-search text-2xl mb-2"></i>
+            <p class="text-sm">No hay recursos para este filtro.</p>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- ═══ CALIFICACIONES ═══ -->
-  <div x-show="tab === 'calificaciones'" class="bg-white rounded-2xl shadow-md p-6">
-    <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-star mr-2 text-green-600"></i>Calificaciones</h2>
-    <div id="calificaciones-panel"></div>
+    </div>
   </div>
 
 </main>
@@ -515,12 +577,12 @@ function cursoPag() {
     noMatriculados: [],
     noMatriculadosLoading: false,
     busqNoMat: '',
-    // alertas y recursos
+    // alertas + detalle de tarea
     alerta: null,
-    recursos: [],
-    recursosLoading: false,
-    recursosFuente: 'curado',
-    filtroRecursos: 'todos',
+    tareaActiva: null,
+    tareaRecursos: [],
+    tareaRecursosLoading: false,
+    filtroTareaRec: 'todos',
 
     get noMatFiltrados() {
       const q = this.busqNoMat.toLowerCase();
@@ -547,9 +609,7 @@ function cursoPag() {
           (perfil.rol === 'profesor' && cursoDat.profesor_id === perfil.id);
       }
 
-      // Tab Recursos solo para estudiantes
       if (!this.esProfesor) {
-        this.tabs.push({ id: 'recursos', label: 'Recursos', icon: 'fas fa-lightbulb' });
         this.cargarAlerta(); // no bloquea
       }
 
@@ -565,7 +625,6 @@ function cursoPag() {
       if (this.tab === 'actividades'   && !this.tareas.length)        this.cargarTareas();
       if (this.tab === 'participantes' && !this.participantes.length) this.cargarParticipantes();
       if (this.tab === 'calificaciones') this.cargarCalificaciones();
-      if (this.tab === 'recursos'      && !this.recursos.length)      this.cargarRecursos();
     },
 
     // ── Presentación ──
@@ -813,27 +872,30 @@ function cursoPag() {
       } catch {}
     },
 
-    // ── Recursos de apoyo ──
-    async cargarRecursos() {
-      this.recursosLoading = true;
+    // ── Detalle de tarea + Recursos ──
+    async verDetalleTarea(t) {
+      this.tareaActiva = t;
+      this.tareaRecursos = [];
+      this.filtroTareaRec = 'todos';
+      this.tareaRecursosLoading = true;
       try {
-        // Load tasks if not yet loaded (to build a better search query)
-        if (!this.tareas.length) await this.cargarTareas();
-
         const params = new URLSearchParams();
-        params.set('nombre', this.curso.nombre || '');
-        if (this.alerta?.promedio) params.set('promedio', this.alerta.promedio);
-        // Send first 4 task titles for context
-        this.tareas.slice(0, 4).forEach(t => params.append('tareas', t.title || t.titulo || ''));
-
+        params.set('tarea_id', t.id);
+        params.set('titulo', t.title || '');
+        if (t.description) params.set('descripcion', t.description);
         const r = await fetch(`/api/recomendaciones?${params}`, { credentials: 'include' });
         if (r.ok) {
           const d = await r.json();
-          this.recursos = d.items || [];
-          this.recursosFuente = d.fuente || 'curado'; // 'youtube' or 'curado'
+          this.tareaRecursos = d.items || [];
         }
       } catch {}
-      this.recursosLoading = false;
+      this.tareaRecursosLoading = false;
+    },
+
+    abrirEntregaDesdeDetalle() {
+      const t = this.tareaActiva;
+      this.tareaActiva = null;
+      requestAnimationFrame(() => this.abrirEntrega(t));
     },
 
     // ── Helpers ──
