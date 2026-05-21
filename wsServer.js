@@ -1,5 +1,5 @@
 // wsServer.js
-import WebSocket from 'ws';
+import { WebSocketServer, WebSocket } from 'ws';
 
 /* ====================
    Inicialización WS
@@ -8,7 +8,7 @@ let wss;
 const conexiones = new Map(); // Map de tarea_id -> lista de sockets
 
 export function initWebSocket(server) {
-  wss = new WebSocket.Server({ server, path: '/ws/tareas' });
+  wss = new WebSocketServer({ server, path: '/ws/tareas' });
 
   wss.on('connection', (ws, req) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
