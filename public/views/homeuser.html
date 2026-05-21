@@ -58,6 +58,37 @@
     </div>
   </div>
 
+  <!-- Alertas académicas -->
+  <div x-show="alertas.length > 0" class="fade-in">
+    <div class="flex items-center gap-2 mb-2">
+      <i class="fas fa-exclamation-triangle text-orange-500 text-sm"></i>
+      <h2 class="font-bold text-gray-900 text-sm">Alertas académicas</h2>
+    </div>
+    <div class="space-y-2">
+      <template x-for="a in alertas" :key="a.curso_id">
+        <a :href="`/views/curso.html?id=${a.curso_id}`"
+           class="flex items-center gap-3 p-3 rounded-xl border transition-all"
+           :class="a.nivel === 'peligro' ? 'bg-red-50 border-red-200 hover:border-red-400' : 'bg-yellow-50 border-yellow-200 hover:border-yellow-400'">
+          <i class="text-lg shrink-0"
+             :class="a.nivel === 'peligro' ? 'fas fa-exclamation-circle text-red-500' : 'fas fa-exclamation-triangle text-yellow-500'"></i>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm truncate"
+               :class="a.nivel === 'peligro' ? 'text-red-800' : 'text-yellow-900'"
+               x-text="a.curso_nombre"></p>
+            <p class="text-xs"
+               :class="a.nivel === 'peligro' ? 'text-red-600' : 'text-yellow-700'">
+              Promedio: <span class="font-medium" x-text="a.promedio + '/10'"></span>
+              <span x-show="a.nivel === 'peligro'"> · En riesgo de perder el curso</span>
+              <span x-show="a.nivel === 'alerta'"> · Necesitas mejorar</span>
+            </p>
+          </div>
+          <i class="fas fa-chevron-right text-xs shrink-0"
+             :class="a.nivel === 'peligro' ? 'text-red-400' : 'text-yellow-500'"></i>
+        </a>
+      </template>
+    </div>
+  </div>
+
   <!-- Tarjetas resumen -->
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 fade-in">
     <div class="stat-card p-5 flex items-center gap-4">
@@ -225,6 +256,7 @@ function dashboard() {
     proximasEntregar: '—',
     cursos: [],
     tareasProximas: [],
+    alertas: [],
     cargando: true,
     calendar: [],
     monthYear: '',
@@ -251,10 +283,21 @@ function dashboard() {
         this.cursosActivos = this.cursos.length;
       } catch {}
 
-      // Cargar tareas pendientes de todos los cursos
+      // Cargar tareas y alertas en paralelo (alertas no bloquea el render)
       await this.cargarTareas();
+      this.cargarAlertas();
 
       this.cargando = false;
+    },
+
+    async cargarAlertas() {
+      try {
+        const r = await fetch('/api/alertas', { credentials: 'include' });
+        if (r.ok) {
+          const d = await r.json();
+          this.alertas = d.alertas || [];
+        }
+      } catch {}
     },
 
     setFechaHoy() {

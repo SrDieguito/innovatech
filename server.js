@@ -26,6 +26,8 @@ import procesarFormularioHandler from './api/procesarformulario.js';
 import actualizarHandler from './api/actualizar.js';
 import cambiarContraHandler from './api/cambiar_contra.js';
 import materialesHandler from './api/materiales.js';
+import alertasHandler from './api/alertas.js';
+import recomendacionesHandler from './api/recomendaciones/index.js';
 
 dotenv.config();
 
@@ -71,6 +73,8 @@ app.post('/api/procesarformulario', wrap(procesarFormularioHandler));
 app.post('/api/actualizar',       wrap(actualizarHandler));
 app.use('/api/cambiar_contra',    wrap(cambiarContraHandler));
 app.use('/api/materiales',        wrap(materialesHandler));
+app.use('/api/alertas',           wrap(alertasHandler));
+app.use('/api/recomendaciones',   wrap(recomendacionesHandler));
 
 // Login
 app.post('/api/procesarlogin', async (req, res) => {
