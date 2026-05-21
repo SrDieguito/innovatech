@@ -124,8 +124,17 @@ async function buscarYouTube(query) {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) return [];
   try {
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=4&relevanceLanguage=es&safeSearch=strict&key=${apiKey}`;
-    const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    const params = new URLSearchParams({
+      part: 'snippet',
+      q: query.slice(0, 200),
+      type: 'video',
+      maxResults: '4',
+      relevanceLanguage: 'es',
+      safeSearch: 'strict',
+      videoDuration: 'medium',   // excluye Shorts (< 4 min)
+      key: apiKey,
+    });
+    const r = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`, { signal: AbortSignal.timeout(6000) });
     if (!r.ok) return [];
     const data = await r.json();
     return (data.items || []).map(item => ({
@@ -167,19 +176,36 @@ export default async function handler(req, res) {
     const materia = detectarMateria(texto);
     const curados = materia ? CURADO[materia].items : GENERAL;
 
-    const searchQuery = titulo || texto.slice(0, 100) || 'educacion';
+    // Build a meaningful search topic:
+    // If the title is generic ("tarea 1", "actividad 3", etc.) use the description instead
+    const esGenerico = /^(tarea|actividad|ejercicio|practica|trabajo|clase|examen|quiz)\s*\d*$/i.test(titulo.trim());
+    const primeraLineaDesc = (descripcion || '').split('\n')[0].trim().slice(0, 120);
+    const topico = !esGenerico && titulo.length > 5
+      ? titulo
+      : (primeraLineaDesc.length > 8 ? primeraLineaDesc : texto.slice(0, 100));
+
+    // Wikipedia: search the real topic
+    const searchQuery = topico || 'educacion';
+
+    // YouTube: add materia as context anchor + use "explicación" (not "tutorial")
+    const nombreMateria = {
+      matematicas: 'matemáticas', fisica: 'física', quimica: 'química',
+      biologia: 'biología', programacion: 'programación', ingles: 'inglés',
+      historia: 'historia', economia: 'economía', literatura: 'lengua y literatura',
+    }[materia] || '';
+    const ytQuery = `${nombreMateria} ${topico} explicación`.trim();
 
     const [wiki, videos] = await Promise.all([
       buscarWikipedia(searchQuery),
       process.env.YOUTUBE_API_KEY
-        ? buscarYouTube(`${searchQuery} tutorial explicacion`)
+        ? buscarYouTube(ytQuery)
         : Promise.resolve([]),
     ]);
 
     const items = [
       ...videos,
       ...wiki,
-      scholarItem(searchQuery),
+      scholarItem(topico),
       ...curados,
     ];
 
