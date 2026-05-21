@@ -763,7 +763,9 @@ function cursoPag() {
     async cargarRecursos() {
       this.recursosLoading = true;
       try {
-        const r = await fetch(`/api/recomendaciones?curso_id=${this.cursoId}`, { credentials: 'include' });
+        const nombre = encodeURIComponent(this.curso.nombre || '');
+        const promedio = this.alerta?.promedio ?? '';
+        const r = await fetch(`/api/recomendaciones?nombre=${nombre}&promedio=${promedio}`, { credentials: 'include' });
         if (r.ok) {
           const d = await r.json();
           this.recursos = d.items || [];
