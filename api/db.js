@@ -1,27 +1,49 @@
-import mysql from "mysql2/promise";
+import pg from 'pg';
+import dotenv from 'dotenv';
+dotenv.config();
 
-export const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  port: Number(process.env.DB_PORT) || 3306,
-  connectionLimit: 10,
-  waitForConnections: true,
-  queueLimit: 0,
-  ssl: { rejectUnauthorized: false }
+const { Pool } = pg;
+
+const _pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  max: 10,
 });
 
-// Test connection
-async function testConnection() {
-  try {
-    const connection = await pool.getConnection();
-    console.log('✅ Successfully connected to the database');
-    connection.release();
-  } catch (error) {
-    console.error('❌ Error connecting to the database:', error);
-  }
+// Converts MySQL ? placeholders to PostgreSQL $1, $2, ...
+function toPgSQL(sql) {
+  let i = 0;
+  return sql.replace(/\?/g, () => `$${++i}`);
 }
 
-// Test the connection when this module is loaded
-testConnection();
+// Runs a query and returns [rows] with rows.affectedRows (compat with mysql2 pattern)
+async function execQuery(client, sql, params = []) {
+  const result = await client.query(toPgSQL(sql), params);
+  const rows = result.rows;
+  rows.affectedRows = result.rowCount;
+  return [rows];
+}
+
+export const pool = {
+  query:   (sql, params) => execQuery(_pool, sql, params),
+  execute: (sql, params) => execQuery(_pool, sql, params),
+
+  async getConnection() {
+    const client = await _pool.connect();
+    return {
+      query:   (sql, params) => execQuery(client, sql, params),
+      execute: (sql, params) => execQuery(client, sql, params),
+      async beginTransaction() { await client.query('BEGIN'); },
+      async commit()           { await client.query('COMMIT'); },
+      async rollback()         { await client.query('ROLLBACK'); },
+      release()                { client.release(); },
+      async end()              { client.release(); },
+    };
+  },
+};
+
+_pool.query('SELECT 1').then(() => {
+  console.log('✅ Conectado a PostgreSQL (Neon)');
+}).catch(err => {
+  console.error('❌ Error conectando a PostgreSQL:', err.message);
+});

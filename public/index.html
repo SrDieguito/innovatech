@@ -1,105 +1,468 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plataforma EduTech</title>
-
-  <!-- Tailwind CSS -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduTech — Plataforma Educativa</title>
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Tipografía -->
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet" />
-
-  <!-- Bootstrap (solo si realmente lo necesitas) -->
-  <!-- <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet"> -->
-
-  <!-- Font Awesome -->
-  <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
-
-  <!-- Tus estilos (cuidado si alguno sobrescribe cosas de Tailwind) -->
-  <link rel="stylesheet" href="/css/style.css" />
-  <link rel="stylesheet" href="/css/animacion.css" />
-
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Open Sans', sans-serif;
+    :root { --green: #00983d; --green-dark: #007d32; --green-light: #f0fdf4; }
+    * { font-family: 'Inter', sans-serif; }
+
+    /* Navbar scroll effect */
+    #navbar { transition: box-shadow 0.3s, background 0.3s; }
+    #navbar.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,.1); background: rgba(255,255,255,.98) !important; }
+
+    /* Animations */
+    .fade-up { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .fade-up-delay-1 { transition-delay: .1s; }
+    .fade-up-delay-2 { transition-delay: .2s; }
+    .fade-up-delay-3 { transition-delay: .3s; }
+    .fade-up-delay-4 { transition-delay: .4s; }
+    .fade-up-delay-5 { transition-delay: .5s; }
+    .fade-up-delay-6 { transition-delay: .6s; }
+
+    /* Hero gradient */
+    .hero-bg {
+      background: linear-gradient(135deg, #00983d 0%, #007d32 40%, #005a24 100%);
     }
+
+    /* Feature cards */
+    .feature-card {
+      background: #fff; border: 1.5px solid #e5e7eb; border-radius: 1rem;
+      transition: border-color .2s, box-shadow .2s, transform .2s;
+    }
+    .feature-card:hover { border-color: #86efac; box-shadow: 0 8px 30px rgba(0,152,61,.12); transform: translateY(-4px); }
+
+    /* Step connector */
+    .step-line::after {
+      content: ''; position: absolute; top: 50%; left: 100%;
+      transform: translateY(-50%); width: 100%; height: 2px;
+      background: linear-gradient(90deg, #86efac, #dcfce7);
+    }
+
+    /* CTA gradient */
+    .cta-bg { background: linear-gradient(135deg, #00983d 0%, #00b347 100%); }
+
+    /* Stat card */
+    .stat-card { transition: transform .2s; }
+    .stat-card:hover { transform: scale(1.04); }
+
+    /* Mobile menu */
+    #mobile-menu { display: none; }
+    #mobile-menu.open { display: block; }
+
+    /* Testimonial */
+    .testimonial-card { background: #fff; border-left: 4px solid var(--green); }
+
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,152,61,.4); }
+      50% { box-shadow: 0 0 0 12px rgba(0,152,61,0); }
+    }
+    .btn-pulse { animation: pulse-green 2.5s infinite; }
   </style>
 </head>
+<body class="bg-white text-gray-900 overflow-x-hidden">
 
-<body>
-    <!-- Header dinámico -->
-    <div id="header" class=""></div>
+<!-- ═══════════════════════════════════ NAVBAR ═══════════════════════════════════ -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <!-- Logo -->
+    <a href="/index.html" class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:#00983d;">
+        <i class="fas fa-graduation-cap text-white text-base"></i>
+      </div>
+      <span class="text-xl font-extrabold text-gray-900">Edu<span style="color:#00983d;">Tech</span></span>
+    </a>
 
-    <div class="mt-24 px-4 max-w-[1100px] mx-auto p-8 rounded-3xl Card__Container-sc-10h519i-0 lokgCi sc-abc067c5-0 kqdPN container actividades1" style="margin: 100px auto 0 auto;">
-
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div class="text-center mb-20 animate-fade-in">
-            <img src="/imagenes/cintillo_web_innovatech.gif" alt="Tiempo de Estudio" class="w-[500px] mx-auto rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-300">
-            <p class="text-2xl mt-6 text-gray-700 font-medium">¿Cansado de que estudiar sea tan difícil?</p>
-        </div>
-
-     <div class="relative mb-24 rounded-2xl overflow-hidden group">
-    <div class="relative w-full aspect-video rounded-2xl shadow-2xl overflow-hidden">
-        <iframe 
-            class="w-full h-full"
-            src="https://www.youtube.com/embed/-fPTdIruJUU"
-            title="YouTube video player"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen>
-        </iframe>
-    </div>
-</div>
-        </div>
-
-        <div class="text-center mb-24">
-            <button class="hover:bg-[#e0b800] bg-[#00983d] text-white px-10 py-5 rounded-[15px] text-2xl font-bold hover:scale-105 hover:shadow-xl transition-all transform duration-300 animate-pulse">
-                ¡Comienza a Aprender Hoy!
-            </button>
-            <p class="mt-4 text-gray-600">Únete a miles de estudiantes satisfechos</p>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-10 mb-24">
-            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3" alt="Estudiante 1" class="w-20 h-20 rounded-full mx-auto mb-6 border-4 border-green-100">
-                <p class="italic text-gray-700 mb-6 text-lg">"¡Esta plataforma es muy intuitiva y ayudó a que mis estudiantes aprendieran con herramientas fascinantes!"</p>
-                <p class="font-bold text-lg">Sara Martínez</p>
-                <p class="text-md text-gray-500">Porfesora de la Universidad tecnica de Manabi</p>
-            </div>
-            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3" alt="Estudiante 2" class="w-20 h-20 rounded-full mx-auto mb-6 border-4 border-green-100">
-                <p class="italic text-gray-700 mb-6 text-lg">"¡Las lecciones interactivas hacen que aprender sea divertido y entretenido!"</p>
-                <p class="font-bold text-lg">Miguel García</p>
-                <p class="text-md text-gray-500">Estudiante de Ciencia de Datos</p>
-            </div>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-8">
-            <div class="group relative cursor-pointer overflow-hidden rounded-2xl">
-                <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3" alt="Panel de Control" class="rounded-2xl transform group-hover:scale-110 transition-transform duration-500">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                    <p class="text-white font-semibold text-lg">Panel de Control Intuitivo</p>
-                </div>
-            </div>
-            <div class="group relative cursor-pointer overflow-hidden rounded-2xl">
-                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3" alt="Vista del Curso" class="rounded-2xl transform group-hover:scale-110 transition-transform duration-500">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                    <p class="text-white font-semibold text-lg">Cursos Interactivos</p>
-                </div>
-            </div>
-            <div class="group relative cursor-pointer overflow-hidden rounded-2xl">
-                <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3" alt="Interfaz de Aprendizaje" class="rounded-2xl transform group-hover:scale-110 transition-transform duration-500">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                    <p class="text-white font-semibold text-lg">Interfaz Moderna</p>
-                </div>
-            </div>
-        </div>
+    <!-- Desktop nav -->
+    <div class="hidden md:flex items-center gap-8">
+      <a href="#caracteristicas" class="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors">Características</a>
+      <a href="#como-funciona" class="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors">Cómo funciona</a>
+      <a href="#testimonios" class="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors">Testimonios</a>
     </div>
 
-    <!-- Scripts -->
-    <script src="/js/headers.js"></script>
+    <!-- CTA buttons -->
+    <div class="flex items-center gap-3">
+      <a href="/auth/login.html"
+         class="hidden sm:inline-flex text-sm font-semibold text-green-700 hover:text-green-800 transition-colors">
+        Iniciar sesión
+      </a>
+      <a href="/auth/login.html"
+         class="inline-flex items-center gap-1.5 text-sm font-semibold text-white px-4 py-2 rounded-lg transition-all hover:opacity-90 active:scale-95"
+         style="background:#00983d;">
+        <i class="fas fa-rocket text-xs"></i> Comenzar
+      </a>
+      <!-- Mobile hamburger -->
+      <button id="mobile-toggle" class="md:hidden text-gray-600 p-1">
+        <i class="fas fa-bars text-lg"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="md:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-3">
+    <a href="#caracteristicas" class="block text-sm font-medium text-gray-700 py-2">Características</a>
+    <a href="#como-funciona" class="block text-sm font-medium text-gray-700 py-2">Cómo funciona</a>
+    <a href="#testimonios" class="block text-sm font-medium text-gray-700 py-2">Testimonios</a>
+    <a href="/auth/login.html" class="block text-sm font-semibold text-green-700 py-2">Iniciar sesión →</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════ HERO ═══════════════════════════════════ -->
+<section class="hero-bg min-h-screen flex items-center pt-16">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-20 md:py-28">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <!-- Left: text -->
+      <div class="text-white">
+        <span class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
+          <span class="w-2 h-2 rounded-full bg-green-300 animate-pulse"></span>
+          Plataforma educativa profesional
+        </span>
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6">
+          El aula virtual<br>
+          que <span class="text-green-300">transforma</span><br>
+          el aprendizaje
+        </h1>
+        <p class="text-lg text-green-100 mb-8 leading-relaxed max-w-lg">
+          EduTech centraliza cursos, materiales, tareas y calificaciones en una sola plataforma. Diseñada para profesores y estudiantes que quieren más.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <a href="/auth/login.html"
+             class="btn-pulse inline-flex items-center gap-2 bg-white font-bold px-6 py-3 rounded-xl text-sm transition-all hover:bg-green-50 active:scale-95"
+             style="color:#00983d;">
+            <i class="fas fa-play-circle"></i> Comenzar ahora — es gratis
+          </a>
+          <a href="#como-funciona"
+             class="inline-flex items-center gap-2 border-2 border-white/40 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-all hover:bg-white/10">
+            <i class="fas fa-play text-xs"></i> Ver cómo funciona
+          </a>
+        </div>
+        <!-- Social proof -->
+        <div class="flex items-center gap-6 mt-10 pt-8 border-t border-white/20">
+          <div class="text-center">
+            <p class="text-2xl font-extrabold">500+</p>
+            <p class="text-xs text-green-200 mt-0.5">Estudiantes</p>
+          </div>
+          <div class="w-px h-10 bg-white/20"></div>
+          <div class="text-center">
+            <p class="text-2xl font-extrabold">50+</p>
+            <p class="text-xs text-green-200 mt-0.5">Cursos activos</p>
+          </div>
+          <div class="w-px h-10 bg-white/20"></div>
+          <div class="text-center">
+            <p class="text-2xl font-extrabold">30+</p>
+            <p class="text-xs text-green-200 mt-0.5">Docentes</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: mockup card -->
+      <div class="hidden md:block">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 ml-8">
+          <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:#00983d;">
+              <i class="fas fa-book text-white"></i>
+            </div>
+            <div>
+              <p class="font-bold text-gray-900 text-sm">Programación Web</p>
+              <p class="text-xs text-gray-400">Prof. María García</p>
+            </div>
+            <span class="ml-auto text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">Activo</span>
+          </div>
+          <!-- Mini task list -->
+          <div class="space-y-3 mb-5">
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-lg bg-green-100 flex items-center justify-center shrink-0"><i class="fas fa-check text-green-600 text-xs"></i></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium text-gray-700 truncate">Tarea 1: HTML y CSS</p>
+                <div class="w-full bg-gray-100 rounded-full h-1 mt-1"><div class="h-1 rounded-full" style="width:100%;background:#00983d;"></div></div>
+              </div>
+              <span class="text-xs font-bold text-green-700">9.5</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center shrink-0"><i class="fas fa-clock text-orange-500 text-xs"></i></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium text-gray-700 truncate">Tarea 2: JavaScript Básico</p>
+                <div class="w-full bg-gray-100 rounded-full h-1 mt-1"><div class="h-1 rounded-full" style="width:60%;background:#f97316;"></div></div>
+              </div>
+              <span class="text-xs text-gray-400">—</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center shrink-0"><i class="fas fa-file-alt text-blue-500 text-xs"></i></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium text-gray-700 truncate">Tarea 3: React Intro</p>
+                <div class="w-full bg-gray-100 rounded-full h-1 mt-1"><div class="h-1 rounded-full bg-gray-200" style="width:0%;"></div></div>
+              </div>
+              <span class="text-xs text-gray-400 text-xs bg-gray-100 px-1.5 py-0.5 rounded">Próx.</span>
+            </div>
+          </div>
+          <!-- Fake grade -->
+          <div class="bg-green-50 rounded-xl p-3 flex items-center gap-3">
+            <i class="fas fa-star text-yellow-500"></i>
+            <div>
+              <p class="text-xs text-gray-500">Calificación promedio</p>
+              <p class="text-lg font-extrabold" style="color:#00983d;">9.5 / 10</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ CARACTERÍSTICAS ═══════════════════════════════════ -->
+<section id="caracteristicas" class="py-20 bg-gray-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-14 fade-up">
+      <span class="text-xs font-bold uppercase tracking-widest" style="color:#00983d;">Características</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-2">Todo lo que necesitas para enseñar y aprender</h2>
+      <p class="text-gray-500 mt-3 max-w-xl mx-auto">Una plataforma completa que conecta docentes y estudiantes con las herramientas correctas.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Card 1 -->
+      <div class="feature-card p-6 fade-up fade-up-delay-1">
+        <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:#dcfce7;">
+          <i class="fas fa-book-open text-xl" style="color:#00983d;"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-2">Cursos organizados</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">Accede a todos tus cursos en un solo lugar. Navega entre materiales, actividades y participantes sin esfuerzo.</p>
+      </div>
+      <!-- Card 2 -->
+      <div class="feature-card p-6 fade-up fade-up-delay-2">
+        <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:#dbeafe;">
+          <i class="fas fa-tasks text-xl text-blue-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-2">Gestión de tareas</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">Entrega actividades, adjunta archivos de hasta 2 MB, y recibe retroalimentación directa de tu docente.</p>
+      </div>
+      <!-- Card 3 -->
+      <div class="feature-card p-6 fade-up fade-up-delay-3">
+        <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:#fef9c3;">
+          <i class="fas fa-star text-xl text-yellow-500"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-2">Calificaciones en tiempo real</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">Consulta tus notas al instante. Los profesores califican con observaciones detalladas para cada entrega.</p>
+      </div>
+      <!-- Card 4 -->
+      <div class="feature-card p-6 fade-up fade-up-delay-4">
+        <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:#fce7f3;">
+          <i class="fas fa-folder-open text-xl text-pink-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-2">Materiales centralizados</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">Sube y descarga archivos PDF, documentos Word, o comparte enlaces externos directamente en el curso.</p>
+      </div>
+      <!-- Card 5 -->
+      <div class="feature-card p-6 fade-up fade-up-delay-5">
+        <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:#ede9fe;">
+          <i class="fas fa-users text-xl text-purple-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-2">Gestión de participantes</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">Los profesores matriculan y desmatriculan estudiantes. Administradores gestionan toda la institución.</p>
+      </div>
+      <!-- Card 6 -->
+      <div class="feature-card p-6 fade-up fade-up-delay-6">
+        <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:#ffedd5;">
+          <i class="fas fa-file-excel text-xl text-orange-500"></i>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-2">Exportar reportes</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">Descarga calificaciones en Excel con un clic. Reportes detallados por tarea, curso y estudiante.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ CÓMO FUNCIONA ═══════════════════════════════════ -->
+<section id="como-funciona" class="py-20 bg-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-14 fade-up">
+      <span class="text-xs font-bold uppercase tracking-widest" style="color:#00983d;">Proceso</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-2">¿Cómo funciona EduTech?</h2>
+      <p class="text-gray-500 mt-3 max-w-xl mx-auto">En tres simples pasos, profesores y estudiantes están conectados y productivos.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Step 1 -->
+      <div class="text-center fade-up fade-up-delay-1">
+        <div class="relative inline-flex">
+          <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-lg mb-5" style="background:linear-gradient(135deg,#00983d,#007d32);">
+            <i class="fas fa-user-plus text-white text-2xl"></i>
+          </div>
+          <span class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-green-100 text-green-800 text-xs font-extrabold flex items-center justify-center border-2 border-white">1</span>
+        </div>
+        <h3 class="font-bold text-gray-900 text-lg mb-2">Regístrate</h3>
+        <p class="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">El administrador crea tu cuenta de profesor o estudiante. Un único inicio de sesión para acceder a todo.</p>
+      </div>
+      <!-- Connector -->
+      <div class="hidden md:flex items-start justify-center pt-10">
+        <div class="flex-1 border-t-2 border-dashed border-green-200 mt-1"></div>
+      </div>
+      <!-- Step 2 (needs special layout for connector) -->
+      <div class="text-center fade-up fade-up-delay-2 md:-ml-16">
+        <div class="relative inline-flex">
+          <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-lg mb-5" style="background:linear-gradient(135deg,#00983d,#007d32);">
+            <i class="fas fa-book text-white text-2xl"></i>
+          </div>
+          <span class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-green-100 text-green-800 text-xs font-extrabold flex items-center justify-center border-2 border-white">2</span>
+        </div>
+        <h3 class="font-bold text-gray-900 text-lg mb-2">Accede a tus cursos</h3>
+        <p class="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">Explora materiales, descarga recursos y revisa las actividades pendientes de cada uno de tus cursos.</p>
+      </div>
+    </div>
+
+    <!-- Separate step 3 centered -->
+    <div class="mt-8 text-center fade-up fade-up-delay-3">
+      <div class="relative inline-flex">
+        <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-lg mb-5" style="background:linear-gradient(135deg,#00983d,#007d32);">
+          <i class="fas fa-check-circle text-white text-2xl"></i>
+        </div>
+        <span class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-green-100 text-green-800 text-xs font-extrabold flex items-center justify-center border-2 border-white">3</span>
+      </div>
+      <h3 class="font-bold text-gray-900 text-lg mb-2">Entrega, califica, progresa</h3>
+      <p class="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">Estudiantes entregan tareas y reciben calificaciones con observaciones. Todo en tiempo real.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ STATS ═══════════════════════════════════ -->
+<section class="py-16" style="background:linear-gradient(135deg,#00983d,#005a24);">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-white text-center">
+      <div class="stat-card fade-up">
+        <p class="text-4xl font-extrabold">500+</p>
+        <p class="text-green-200 text-sm mt-1 font-medium">Estudiantes activos</p>
+      </div>
+      <div class="stat-card fade-up fade-up-delay-1">
+        <p class="text-4xl font-extrabold">50+</p>
+        <p class="text-green-200 text-sm mt-1 font-medium">Cursos disponibles</p>
+      </div>
+      <div class="stat-card fade-up fade-up-delay-2">
+        <p class="text-4xl font-extrabold">30+</p>
+        <p class="text-green-200 text-sm mt-1 font-medium">Docentes expertos</p>
+      </div>
+      <div class="stat-card fade-up fade-up-delay-3">
+        <p class="text-4xl font-extrabold">98%</p>
+        <p class="text-green-200 text-sm mt-1 font-medium">Satisfacción</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ TESTIMONIOS ═══════════════════════════════════ -->
+<section id="testimonios" class="py-20 bg-gray-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-14 fade-up">
+      <span class="text-xs font-bold uppercase tracking-widest" style="color:#00983d;">Testimonios</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-2">Lo que dicen nuestros usuarios</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="testimonial-card rounded-2xl p-6 shadow-sm fade-up fade-up-delay-1">
+        <div class="flex items-center gap-4 mb-4">
+          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face" alt="Sara Martínez" class="w-14 h-14 rounded-full object-cover border-2 border-green-100">
+          <div>
+            <p class="font-bold text-gray-900">Sara Martínez</p>
+            <p class="text-xs text-gray-500">Docente — Universidad Técnica de Manabí</p>
+            <div class="flex gap-0.5 mt-1">
+              <i class="fas fa-star text-yellow-400 text-xs"></i>
+              <i class="fas fa-star text-yellow-400 text-xs"></i>
+              <i class="fas fa-star text-yellow-400 text-xs"></i>
+              <i class="fas fa-star text-yellow-400 text-xs"></i>
+              <i class="fas fa-star text-yellow-400 text-xs"></i>
+            </div>
+          </div>
+        </div>
+        <p class="text-gray-700 text-sm leading-relaxed italic">"EduTech es muy intuitiva y ha transformado la manera en que mis estudiantes aprenden. Organizar tareas y materiales nunca fue tan sencillo."</p>
+      </div>
+
+      <div class="testimonial-card rounded-2xl p-6 shadow-sm fade-up fade-up-delay-2">
+        <div class="flex items-center gap-4 mb-4">
+          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face" alt="Miguel García" class="w-14 h-14 rounded-full object-cover border-2 border-green-100">
+          <div>
+            <p class="font-bold text-gray-900">Miguel García</p>
+            <p class="text-xs text-gray-500">Estudiante — Ciencias de la Computación</p>
+            <div class="flex gap-0.5 mt-1">
+              <i class="fas fa-star text-yellow-400 text-xs"></i>
+              <i class="fas fa-star text-yellow-400 text-xs"></i>
+              <i class="fas fa-star text-yellow-400 text-xs"></i>
+              <i class="fas fa-star text-yellow-400 text-xs"></i>
+              <i class="fas fa-star-half-alt text-yellow-400 text-xs"></i>
+            </div>
+          </div>
+        </div>
+        <p class="text-gray-700 text-sm leading-relaxed italic">"Ver mis calificaciones al instante y recibir observaciones de mis profesores directamente en la plataforma hace que aprender sea mucho más motivador."</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ CTA ═══════════════════════════════════ -->
+<section class="py-20 cta-bg">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 text-center fade-up">
+    <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">¿Listo para transformar tu experiencia educativa?</h2>
+    <p class="text-green-100 text-lg mb-8">Únete a cientos de docentes y estudiantes que ya usan EduTech.</p>
+    <a href="/auth/login.html"
+       class="inline-flex items-center gap-2 bg-white font-bold px-8 py-4 rounded-xl text-base transition-all hover:shadow-2xl hover:-translate-y-1 active:scale-95"
+       style="color:#00983d;">
+      <i class="fas fa-graduation-cap"></i> Acceder a la plataforma
+    </a>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ FOOTER ═══════════════════════════════════ -->
+<footer class="bg-gray-900 text-gray-400 py-12">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+      <!-- Brand -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#00983d;">
+          <i class="fas fa-graduation-cap text-white text-sm"></i>
+        </div>
+        <span class="text-white font-extrabold text-lg">EduTech</span>
+      </div>
+      <!-- Links -->
+      <div class="flex gap-6 text-sm">
+        <a href="#caracteristicas" class="hover:text-white transition-colors">Características</a>
+        <a href="#como-funciona" class="hover:text-white transition-colors">Cómo funciona</a>
+        <a href="/auth/login.html" class="hover:text-white transition-colors">Ingresar</a>
+      </div>
+      <!-- Copyright -->
+      <p class="text-xs text-center">&copy; 2025 EduTech. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Navbar scroll effect
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  // Mobile menu toggle
+  document.getElementById('mobile-toggle').addEventListener('click', () => {
+    document.getElementById('mobile-menu').classList.toggle('open');
+  });
+
+  // Smooth scroll for anchors
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('mobile-menu').classList.remove('open');
+    });
+  });
+
+  // Scroll-triggered animations
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+    { threshold: 0.12 }
+  );
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
 </body>
 </html>

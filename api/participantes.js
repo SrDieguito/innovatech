@@ -1,14 +1,4 @@
-// api/participantes.js
-import mysql from 'mysql2/promise';
-
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-  connectionLimit: 10
-});
+import { pool } from './db.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -17,16 +7,11 @@ export default async function handler(req, res) {
 
   try {
     const userId = req.cookies?.user_id;
-    if (!userId) {
-      return res.status(401).json({ message: 'No autorizado' });
-    }
+    if (!userId) return res.status(401).json({ message: 'No autorizado' });
 
     const cursoId = req.query?.id;
-    if (!cursoId) {
-      return res.status(400).json({ message: 'Falta id de curso' });
-    }
+    if (!cursoId) return res.status(400).json({ message: 'Falta id de curso' });
 
-    // Traemos todos los estudiantes inscritos en el curso
     const [rows] = await pool.query(
       `SELECT u.id, u.nombre, u.email, u.rol, u.imagen_perfil
        FROM usuarios u

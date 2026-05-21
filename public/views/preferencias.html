@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preferencias — EduTech</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root { --green: #00983d; }
+    .btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      font-weight: 600; font-size: .875rem; border-radius: .5rem;
+      padding: .5rem 1rem; transition: all .2s; cursor: pointer; border: none;
+    }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: #007d32; box-shadow: 0 4px 12px rgba(0,152,61,.3); }
+    .btn-primary:active { transform: scale(.97); }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-outline { background: #fff; color: var(--green); border: 1.5px solid var(--green); }
+    .btn-outline:hover { background: #f0fdf4; }
+
+    .input-field {
+      width: 100%; border: 1.5px solid #d1d5db; border-radius: .5rem;
+      padding: .5rem .75rem; font-size: .875rem;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .input-field:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,152,61,.12); }
+
+    .card { background: #fff; border-radius: .875rem; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+    /* Toggle switch */
+    .toggle-track {
+      width: 44px; height: 24px; border-radius: 9999px; background: #d1d5db;
+      position: relative; cursor: pointer; transition: background .2s;
+    }
+    .toggle-track.on { background: var(--green); }
+    .toggle-thumb {
+      width: 18px; height: 18px; border-radius: 50%; background: #fff;
+      position: absolute; top: 3px; left: 3px;
+      transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+    .toggle-track.on .toggle-thumb { transform: translateX(20px); }
+
+    .page-enter { animation: fadeIn .4s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    .tab-btn { transition: all .15s; }
+    .tab-btn.active { background: var(--green); color: #fff; }
+    .tab-btn:not(.active) { background: #f3f4f6; color: #6b7280; }
+    .tab-btn:not(.active):hover { background: #e5e7eb; color: #374151; }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+
+<div id="header-container"></div>
+
+<main class="max-w-2xl mx-auto px-4 py-8 page-enter">
+  <div class="mb-6">
+    <h1 class="text-2xl font-extrabold text-gray-900">Preferencias</h1>
+    <p class="text-sm text-gray-500 mt-1">Configura tu cuenta y experiencia en EduTech.</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-2 mb-6">
+    <button class="tab-btn active text-sm font-semibold px-4 py-2 rounded-lg" onclick="switchTab('cuenta', this)">
+      <i class="fas fa-user mr-1.5"></i>Mi cuenta
+    </button>
+    <button class="tab-btn text-sm font-semibold px-4 py-2 rounded-lg" onclick="switchTab('seguridad', this)">
+      <i class="fas fa-lock mr-1.5"></i>Seguridad
+    </button>
+    <button class="tab-btn text-sm font-semibold px-4 py-2 rounded-lg" onclick="switchTab('notificaciones', this)">
+      <i class="fas fa-bell mr-1.5"></i>Notificaciones
+    </button>
+  </div>
+
+  <!-- ═══ TAB: CUENTA ═══ -->
+  <div id="tab-cuenta">
+    <div class="card p-6 space-y-5">
+      <h2 class="font-bold text-gray-900 flex items-center gap-2 text-base">
+        <i class="fas fa-user-circle text-green-600"></i> Información personal
+      </h2>
+
+      <div id="cuenta-msg" class="hidden text-sm px-4 py-3 rounded-lg flex items-center gap-2"></div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+        <input type="text" id="pref-nombre" class="input-field" placeholder="Tu nombre">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
+        <input type="email" id="pref-email" class="input-field" placeholder="tu@correo.com">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono <span class="text-gray-400 font-normal">(opcional)</span></label>
+        <input type="tel" id="pref-telefono" class="input-field" placeholder="+593 99 000 0000">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción <span class="text-gray-400 font-normal">(opcional)</span></label>
+        <textarea id="pref-descripcion" rows="3" class="input-field resize-none" placeholder="Cuéntanos sobre ti..."></textarea>
+      </div>
+      <button onclick="guardarCuenta()" class="btn btn-primary" id="btn-guardar-cuenta">
+        <i class="fas fa-save"></i> Guardar cambios
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: SEGURIDAD ═══ -->
+  <div id="tab-seguridad" class="hidden">
+    <div class="card p-6 space-y-5">
+      <h2 class="font-bold text-gray-900 flex items-center gap-2 text-base">
+        <i class="fas fa-lock text-green-600"></i> Cambiar contraseña
+      </h2>
+
+      <div id="seg-msg" class="hidden text-sm px-4 py-3 rounded-lg flex items-center gap-2"></div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña actual</label>
+        <div class="relative">
+          <input type="password" id="seg-actual" class="input-field pr-10" placeholder="••••••••">
+          <button type="button" onclick="togglePwd('seg-actual', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <i class="fas fa-eye text-sm"></i>
+          </button>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+        <div class="relative">
+          <input type="password" id="seg-nueva" class="input-field pr-10" placeholder="Mínimo 6 caracteres">
+          <button type="button" onclick="togglePwd('seg-nueva', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <i class="fas fa-eye text-sm"></i>
+          </button>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar nueva contraseña</label>
+        <div class="relative">
+          <input type="password" id="seg-confirmar" class="input-field pr-10" placeholder="Repite la nueva contraseña">
+          <button type="button" onclick="togglePwd('seg-confirmar', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <i class="fas fa-eye text-sm"></i>
+          </button>
+        </div>
+      </div>
+      <button onclick="cambiarPassword()" class="btn btn-primary" id="btn-cambiar-pwd">
+        <i class="fas fa-key"></i> Actualizar contraseña
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: NOTIFICACIONES ═══ -->
+  <div id="tab-notificaciones" class="hidden">
+    <div class="card p-6 space-y-5">
+      <h2 class="font-bold text-gray-900 flex items-center gap-2 text-base">
+        <i class="fas fa-bell text-green-600"></i> Preferencias de notificación
+      </h2>
+      <p class="text-sm text-gray-500">Controla qué eventos te generan avisos dentro de la plataforma.</p>
+
+      <div class="space-y-4">
+        <div class="flex items-center justify-between py-2 border-b border-gray-100">
+          <div>
+            <p class="text-sm font-medium text-gray-800">Nuevas tareas</p>
+            <p class="text-xs text-gray-400">Cuando el profesor publique una nueva actividad</p>
+          </div>
+          <div class="toggle-track on" onclick="toggleSwitch(this)" data-key="notif_tareas">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-gray-100">
+          <div>
+            <p class="text-sm font-medium text-gray-800">Calificación recibida</p>
+            <p class="text-xs text-gray-400">Cuando el profesor califique tu entrega</p>
+          </div>
+          <div class="toggle-track on" onclick="toggleSwitch(this)" data-key="notif_calificaciones">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-gray-100">
+          <div>
+            <p class="text-sm font-medium text-gray-800">Nuevos materiales</p>
+            <p class="text-xs text-gray-400">Cuando se suba un archivo o enlace al curso</p>
+          </div>
+          <div class="toggle-track" onclick="toggleSwitch(this)" data-key="notif_materiales">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between py-2">
+          <div>
+            <p class="text-sm font-medium text-gray-800">Recordatorios de entrega</p>
+            <p class="text-xs text-gray-400">24 horas antes de la fecha límite</p>
+          </div>
+          <div class="toggle-track on" onclick="toggleSwitch(this)" data-key="notif_recordatorios">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="notif-msg" class="hidden text-sm text-green-700 bg-green-50 border border-green-200 px-4 py-2 rounded-lg flex items-center gap-2">
+        <i class="fas fa-check-circle"></i> Preferencias guardadas
+      </div>
+
+      <button onclick="guardarNotificaciones()" class="btn btn-primary">
+        <i class="fas fa-save"></i> Guardar preferencias
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── Tabs ──
+function switchTab(id, btn) {
+  ['cuenta','seguridad','notificaciones'].forEach(t => {
+    document.getElementById('tab-'+t).classList.add('hidden');
+  });
+  document.getElementById('tab-'+id).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Show message helper ──
+function showMsg(id, msg, type = 'error') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'flex';
+  el.classList.remove('hidden');
+  if (type === 'ok') {
+    el.className = 'text-sm px-4 py-3 rounded-lg flex items-center gap-2 text-green-700 bg-green-50 border border-green-200';
+    el.innerHTML = `<i class="fas fa-check-circle shrink-0"></i><span>${msg}</span>`;
+  } else {
+    el.className = 'text-sm px-4 py-3 rounded-lg flex items-center gap-2 text-red-700 bg-red-50 border border-red-200';
+    el.innerHTML = `<i class="fas fa-exclamation-circle shrink-0"></i><span>${msg}</span>`;
+  }
+  setTimeout(() => el.classList.add('hidden'), 4000);
+}
+
+// ── Load profile ──
+async function cargarPerfil() {
+  try {
+    const r = await fetch('/api/perfil', { credentials: 'include' });
+    if (!r.ok) { window.location.href = '/auth/login.html'; return; }
+    const p = await r.json();
+    document.getElementById('pref-nombre').value = p.nombre || '';
+    document.getElementById('pref-email').value = p.email || '';
+    document.getElementById('pref-telefono').value = p.telefono || '';
+    document.getElementById('pref-descripcion').value = p.descripcion || '';
+  } catch(e) { console.error(e); }
+}
+
+// ── Save account ──
+async function guardarCuenta() {
+  const btn = document.getElementById('btn-guardar-cuenta');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+  const body = {
+    nombre:      document.getElementById('pref-nombre').value.trim(),
+    email:       document.getElementById('pref-email').value.trim(),
+    telefono:    document.getElementById('pref-telefono').value.trim(),
+    descripcion: document.getElementById('pref-descripcion').value.trim(),
+  };
+
+  try {
+    const r = await fetch('/api/perfil', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    if (r.ok) showMsg('cuenta-msg', '✓ Cambios guardados correctamente', 'ok');
+    else showMsg('cuenta-msg', d.message || 'Error al guardar', 'error');
+  } catch { showMsg('cuenta-msg', 'Error de conexión', 'error'); }
+  finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-save"></i> Guardar cambios';
+  }
+}
+
+// ── Change password ──
+function togglePwd(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  btn.querySelector('i').className = show ? 'fas fa-eye-slash text-sm' : 'fas fa-eye text-sm';
+}
+
+async function cambiarPassword() {
+  const actual    = document.getElementById('seg-actual').value;
+  const nueva     = document.getElementById('seg-nueva').value;
+  const confirmar = document.getElementById('seg-confirmar').value;
+
+  if (!actual || !nueva || !confirmar) {
+    showMsg('seg-msg', 'Todos los campos son obligatorios', 'error'); return;
+  }
+  if (nueva.length < 6) {
+    showMsg('seg-msg', 'La nueva contraseña debe tener mínimo 6 caracteres', 'error'); return;
+  }
+  if (nueva !== confirmar) {
+    showMsg('seg-msg', 'Las contraseñas no coinciden', 'error'); return;
+  }
+
+  const btn = document.getElementById('btn-cambiar-pwd');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+
+  try {
+    const r = await fetch('/api/cambiar_contra', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ contrasena_actual: actual, nueva_contrasena: nueva }),
+    });
+    const d = await r.json();
+    if (r.ok) {
+      showMsg('seg-msg', '✓ Contraseña actualizada correctamente', 'ok');
+      ['seg-actual','seg-nueva','seg-confirmar'].forEach(id => document.getElementById(id).value = '');
+    } else {
+      showMsg('seg-msg', d.error || d.message || 'Error al cambiar contraseña', 'error');
+    }
+  } catch { showMsg('seg-msg', 'Error de conexión', 'error'); }
+  finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-key"></i> Actualizar contraseña';
+  }
+}
+
+// ── Toggle switches ──
+function toggleSwitch(el) {
+  el.classList.toggle('on');
+}
+
+function guardarNotificaciones() {
+  // Save to localStorage (no backend for this, UI only)
+  document.querySelectorAll('.toggle-track[data-key]').forEach(t => {
+    localStorage.setItem(t.dataset.key, t.classList.contains('on') ? '1' : '0');
+  });
+  const msg = document.getElementById('notif-msg');
+  msg.classList.remove('hidden');
+  setTimeout(() => msg.classList.add('hidden'), 3000);
+}
+
+function loadNotifPrefs() {
+  document.querySelectorAll('.toggle-track[data-key]').forEach(t => {
+    const val = localStorage.getItem(t.dataset.key);
+    if (val === '0') t.classList.remove('on');
+    else if (val === '1') t.classList.add('on');
+  });
+}
+
+// Load header
+fetch('/views/header.html').then(r => r.text()).then(html => {
+  const c = document.getElementById('header-container');
+  c.innerHTML = html;
+  c.querySelectorAll('script').forEach(s => {
+    const ns = document.createElement('script');
+    if (s.src) ns.src = s.src; else ns.textContent = s.textContent;
+    document.body.appendChild(ns);
+    s.remove();
+  });
+});
+
+cargarPerfil();
+loadNotifPrefs();
+</script>
+</body>
+</html>

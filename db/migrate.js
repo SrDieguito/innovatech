@@ -1,89 +1,68 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import mysql from 'mysql2/promise';
-
-// Create a direct connection for migrations
-const pool = mysql.createPool({
-  host: 'switchback.proxy.rlwy.net',
-  user: 'root',
-  password: 'VPTjMcHjgqcmTVgYffQRpCIcUavFGRjB',
-  database: 'railway',
-  port: 42185,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
+import pg from 'pg';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
+const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
+
 async function runMigrations() {
-  const connection = await pool.getConnection();
-  
+  const client = await pool.connect();
   try {
-    // Create migrations table if it doesn't exist
-    await connection.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS migrations (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        run_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        id     SERIAL PRIMARY KEY,
+        name   VARCHAR(255) NOT NULL UNIQUE,
+        run_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
 
-    // Get already run migrations
-    const [rows] = await connection.query('SELECT name FROM migrations');
-    const completedMigrations = new Set(rows.map(row => row.name));
+    const { rows } = await client.query('SELECT name FROM migrations');
+    const completed = new Set(rows.map(r => r.name));
 
-    // Get all migration files
     const migrationsDir = path.join(__dirname, 'migrations');
-    const migrationFiles = fs.readdirSync(migrationsDir)
-      .filter(file => file.endsWith('.sql'))
+    const files = fs.readdirSync(migrationsDir)
+      .filter(f => f.endsWith('.sql'))
       .sort();
 
-    console.log('Checking for new migrations...');
-    let newMigrations = 0;
+    console.log('Verificando migraciones pendientes...');
+    let applied = 0;
 
-    // Run new migrations
-    for (const file of migrationFiles) {
-      if (!completedMigrations.has(file)) {
-        console.log(`Running migration: ${file}`);
-        const migrationPath = path.join(migrationsDir, file);
-        const sql = fs.readFileSync(migrationPath, 'utf8');
-        
-        // Run each statement separately
-        const statements = sql.split(';').filter(statement => statement.trim() !== '');
-        
-        for (const statement of statements) {
-          if (statement.trim() !== '') {
-            await connection.query(statement);
-          }
-        }
+    for (const file of files) {
+      if (completed.has(file)) continue;
 
-        // Record migration
-        await connection.query('INSERT INTO migrations (name) VALUES (?)', [file]);
-        console.log(`✓ Applied migration: ${file}`);
-        newMigrations++;
+      console.log(`Aplicando: ${file}`);
+      const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
+
+      await client.query('BEGIN');
+      try {
+        await client.query(sql);
+        await client.query('INSERT INTO migrations (name) VALUES ($1)', [file]);
+        await client.query('COMMIT');
+        console.log(`✓ ${file}`);
+        applied++;
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
       }
     }
 
-    if (newMigrations === 0) {
-      console.log('No new migrations to run.');
-    } else {
-      console.log(`\nSuccessfully applied ${newMigrations} migration(s).`);
-    }
-  } catch (error) {
-    console.error('Error running migrations:', error);
+    console.log(applied === 0 ? 'Sin migraciones nuevas.' : `\n${applied} migración(es) aplicada(s).`);
+  } catch (err) {
+    console.error('Error en migración:', err);
     process.exit(1);
   } finally {
-    connection.release();
-    process.exit(0);
+    client.release();
+    await pool.end();
   }
 }
 

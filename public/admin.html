@@ -2,292 +2,756 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Panel de Administración Edutech</title>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduTech — Admin</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root { --green: #00983d; --green-dark: #007d32; }
+  * { font-family: system-ui, -apple-system, sans-serif; }
+
+  .sidebar { width: 260px; min-height: 100vh; background: #0f172a; flex-shrink: 0; }
+  .sidebar-logo { color: #00983d; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.625rem 1rem; border-radius: 0.625rem;
+    font-size: 0.875rem; font-weight: 500; color: #94a3b8;
+    cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+    transition: background .15s, color .15s;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.06); color: #f1f5f9; }
+  .nav-item.active { background: rgba(0,152,61,.2); color: #4ade80; }
+  .nav-item .icon { width: 20px; text-align: center; font-size: 0.875rem; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-weight: 600; font-size: 0.875rem; border-radius: 0.5rem;
+    padding: 0.5rem 1rem; transition: all 0.2s; cursor: pointer; border: none;
+  }
+  .btn-primary { background: var(--green); color: #fff; }
+  .btn-primary:hover { background: var(--green-dark); box-shadow: 0 4px 12px rgba(0,152,61,.3); }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-danger { background: #dc2626; color: #fff; }
+  .btn-danger:hover { background: #b91c1c; }
+  .btn-warning { background: #d97706; color: #fff; }
+  .btn-warning:hover { background: #b45309; }
+  .btn-blue { background: #2563eb; color: #fff; }
+  .btn-blue:hover { background: #1d4ed8; }
+  .btn-ghost { background: transparent; color: var(--green); border: 1.5px solid #d1fae5; }
+  .btn-ghost:hover { background: #f0fdf4; }
+
+  .input-field {
+    width: 100%; border: 1.5px solid #d1d5db; border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem; font-size: 0.875rem; background: #fff;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .input-field:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,152,61,.12); }
+
+  .card { background: #fff; border-radius: 0.875rem; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+  .stat-card { background: #fff; border-radius: 0.875rem; border: 1px solid #e5e7eb; transition: transform .2s, box-shadow .2s; }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    z-index: 100; align-items: center; justify-content: center; padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .section-content { display: none; }
+  .section-content.active { display: block; animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+</style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans">
-  <div class="flex min-h-screen">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-white shadow-lg p-6 flex flex-col justify-between">
-      <div>
-        <h2 class="text-2xl font-bold mb-6 text-green-700">Admin Edutech</h2>
-        <nav class="space-y-3">
-          <button onclick="mostrarSeccion('crear')" class="w-full text-left px-4 py-2 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition">Crear Curso</button>
-          <button onclick="mostrarSeccion('ver')" class="w-full text-left px-4 py-2 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition">Ver Cursos</button>
-        </nav>
+<body class="bg-gray-50 text-gray-900 flex min-h-screen">
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<aside class="sidebar flex flex-col">
+  <!-- Brand -->
+  <div class="px-5 py-5 border-b border-white/10">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:#00983d;">
+        <i class="fas fa-graduation-cap text-white text-sm"></i>
       </div>
       <div>
-        <a id="logout-link" href="/logout" class="block w-full px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition">Cerrar Sesión</a>
+        <p class="text-white font-extrabold text-base leading-none">EduTech</p>
+        <p class="text-slate-400 text-xs mt-0.5">Panel Admin</p>
       </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 p-8">
-      <h1 class="text-3xl font-bold mb-6 text-green-700">Panel de Administración</h1>
-
-      <!-- Crear curso -->
-      <div id="crear" class="hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-lg">
-          <h2 class="text-2xl font-semibold mb-6 px-4 py-2 rounded-lg bg-green-600 text-white">Crear Curso</h2>
-          <form id="form-curso" class="space-y-4">
-            <div>
-              <label class="block font-medium mb-1">Nombre del curso</label>
-              <input type="text" id="nombre" class="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-green-300 focus:outline-none">
-            </div>
-            <div>
-              <label class="block font-medium mb-1">Descripción</label>
-              <textarea id="descripcion" class="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-green-300 focus:outline-none"></textarea>
-            </div>
-            <div>
-              <label class="block font-medium mb-1">Profesor Tutor</label>
-              <select id="profesor" class="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-green-300 focus:outline-none"></select>
-            </div>
-            <div>
-              <label class="block font-medium mb-1">Lista de Estudiantes (Excel)</label>
-              <input type="file" id="archivo-excel" accept=".xlsx, .xls" class="w-full border border-gray-300 p-2 rounded-lg">
-            </div>
-            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Crear Curso</button>
-          </form>
-        </div>
-      </div>
-
-      <!-- Ver cursos -->
-      <div id="ver" class="hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-lg">
-          <h2 class="text-2xl font-semibold mb-6 px-4 py-2 rounded-lg bg-green-600 text-white">Cursos Creados</h2>
-          <div id="lista-cursos" class="space-y-4"></div>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <!-- SCRIPT -->
-  <script>
-    let windowEstudiantes = [];
-    let windowCursoActivo = null;
-
-    function mostrarSeccion(id) {
-      document.getElementById('crear').classList.add('hidden');
-      document.getElementById('ver').classList.add('hidden');
-      document.getElementById(id).classList.remove('hidden');
-
-      if (id === 'ver') cargarCursos();
-      if (id === 'crear') cargarProfesores();
-    }
-
-    async function cargarProfesores() {
-      const res = await fetch('/api/cursos?action=profesores');
-      const data = await res.json();
-      const select = document.getElementById('profesor');
-      select.innerHTML = data.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
-    }
-
-    // Leer Excel
-    document.getElementById('archivo-excel').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const data = new Uint8Array(event.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet);
-        windowEstudiantes = json.map(e => ({ nombre: e.nombre || e.Nombre, email: e.email || e.Email }));
-      };
-      reader.readAsArrayBuffer(file);
-    });
-
-    // Crear curso
-    document.getElementById('form-curso').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const nombre = document.getElementById('nombre').value;
-      const descripcion = document.getElementById('descripcion').value;
-      const profesor_id = document.getElementById('profesor').value;
-
-      const res = await fetch('/api/cursos?action=crear', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, descripcion, profesor_id, estudiantes: windowEstudiantes })
-      });
-
-      if (res.ok) {
-        alert('Curso creado exitosamente');
-        e.target.reset();
-        windowEstudiantes = [];
-      } else {
-        alert('Error al crear curso');
-      }
-    });
-
-    async function cargarCursos() {
-      const res = await fetch('/api/cursos?action=obtener');
-      const cursos = await res.json();
-      const contenedor = document.getElementById('lista-cursos');
-      contenedor.innerHTML = '';
-
-      for (const curso of cursos) {
-        const div = document.createElement('div');
-        div.className = 'border p-4 rounded';
-        div.innerHTML = `
-          <h3 class="font-bold">${curso.nombre}</h3>
-          <p>${curso.descripcion}</p>
-          <p class="text-sm">Profesor: ${curso.profesor}</p>
-          <div class="mt-2 space-x-2">
-            <button class="bg-indigo-600 text-white px-2 py-1 rounded" onclick="verEstudiantes(${curso.id})">Ver Estudiantes</button>
-            <button class="bg-yellow-500 text-white px-2 py-1 rounded" onclick="mostrarFormularioEdicion(${curso.id})">Editar</button>
-            <button class="bg-red-600 text-white px-2 py-1 rounded" onclick="eliminarCurso(${curso.id})">Eliminar</button>
-          </div>
-          <div id="estudiantes-${curso.id}" class="mt-4 hidden"></div>
-          <div id="editar-${curso.id}" class="mt-4 hidden"></div>
-        `;
-        contenedor.appendChild(div);
-      }
-    }
-
-    async function verEstudiantes(cursoId) {
-      const div = document.getElementById(`estudiantes-${cursoId}`);
-      if (!div.classList.contains('hidden')) {
-        div.classList.add('hidden');
-        return;
-      }
-
-      windowCursoActivo = cursoId;
-      const res = await fetch(`/api/cursos?action=estudiantes&curso_id=${cursoId}`);
-      const estudiantes = await res.json();
-
-      const noMatriculados = await fetch(`/api/cursos?action=no-matriculados&curso_id=${cursoId}`).then(r => r.json());
-
-      div.classList.remove('hidden');
-div.innerHTML = `
-  <h4 class="font-semibold">Estudiantes Matriculados</h4>
-  <input type="text" placeholder="Buscar por nombre o email" oninput="filtrarEstudiantes(${cursoId})" class="border p-1 w-full mb-2 rounded" id="filtro-${cursoId}">
-
-  <div id="lista-estudiantes-${cursoId}">
-    ${estudiantes.map(e => `
-      <div class="flex justify-between border-b py-1 estudiante" data-nombre="${e.nombre.toLowerCase()}" data-email="${e.email.toLowerCase()}">
-        <span>${e.nombre} (${e.email})</span>
-        <button onclick="desmatricular(${cursoId}, ${e.id})" class="text-red-600">Desmatricular</button>
-      </div>
-    `).join('')}
-  </div>
-
-  <h4 class="font-semibold mt-4">No Matriculados</h4>
-  ${noMatriculados.map(e => `
-    <div class="flex justify-between border-b py-1">
-      <span>${e.nombre} (${e.email})</span>
-      <button onclick="matricular(${cursoId}, ${e.id})" class="text-blue-600">Matricular</button>
     </div>
-  `).join('')}
-`;
+  </div>
 
+  <!-- Navigation -->
+  <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+    <p class="text-slate-500 text-xs font-semibold uppercase tracking-widest px-3 mb-2">Dashboard</p>
+    <button class="nav-item" onclick="mostrarSeccion('inicio')">
+      <span class="icon"><i class="fas fa-home"></i></span> Inicio
+    </button>
+
+    <p class="text-slate-500 text-xs font-semibold uppercase tracking-widest px-3 mt-4 mb-2">Gestión</p>
+    <button class="nav-item" onclick="mostrarSeccion('profesores-crear')">
+      <span class="icon"><i class="fas fa-user-plus"></i></span> Nuevo profesor
+    </button>
+    <button class="nav-item" onclick="mostrarSeccion('profesores-ver')">
+      <span class="icon"><i class="fas fa-chalkboard-teacher"></i></span> Profesores
+    </button>
+    <button class="nav-item" onclick="mostrarSeccion('cursos-crear')">
+      <span class="icon"><i class="fas fa-plus-circle"></i></span> Nuevo curso
+    </button>
+    <button class="nav-item" onclick="mostrarSeccion('cursos-ver')">
+      <span class="icon"><i class="fas fa-book"></i></span> Cursos
+    </button>
+  </nav>
+
+  <!-- User + logout -->
+  <div class="px-4 py-4 border-t border-white/10">
+    <div class="flex items-center gap-3 mb-3">
+      <div id="admin-avatar" class="w-9 h-9 rounded-full bg-green-700 flex items-center justify-center text-white font-bold text-sm shrink-0">A</div>
+      <div class="min-w-0">
+        <p class="text-white text-sm font-medium truncate" id="admin-nombre">Admin</p>
+        <p class="text-slate-500 text-xs truncate" id="admin-email">admin@edutech.com</p>
+      </div>
+    </div>
+    <button id="logout-btn"
+      class="w-full flex items-center gap-2 justify-center px-3 py-2 rounded-lg text-sm font-semibold text-red-400 hover:bg-red-900/20 transition">
+      <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════ MAIN CONTENT ═══════ -->
+<main class="flex-1 overflow-auto">
+  <!-- Top bar -->
+  <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+    <h1 class="text-base font-bold text-gray-900" id="topbar-titulo">Dashboard</h1>
+    <div class="flex items-center gap-2 text-sm text-gray-500">
+      <i class="fas fa-circle text-green-500 text-xs"></i>
+      Sistema operativo
+    </div>
+  </div>
+
+  <div class="p-6 max-w-5xl">
+
+    <!-- ═══ INICIO / DASHBOARD ═══ -->
+    <div id="inicio" class="section-content active">
+      <div class="mb-6">
+        <h2 class="text-2xl font-extrabold text-gray-900">Bienvenido al panel</h2>
+        <p class="text-gray-500 text-sm mt-1">Resumen general del sistema EduTech</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="stat-card p-5 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background:#dcfce7;">
+            <i class="fas fa-chalkboard-teacher text-xl" style="color:#00983d;"></i>
+          </div>
+          <div>
+            <p class="text-2xl font-extrabold text-gray-900" id="stat-profesores">—</p>
+            <p class="text-sm text-gray-500">Profesores</p>
+          </div>
+        </div>
+        <div class="stat-card p-5 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-blue-100">
+            <i class="fas fa-book text-xl text-blue-600"></i>
+          </div>
+          <div>
+            <p class="text-2xl font-extrabold text-gray-900" id="stat-cursos">—</p>
+            <p class="text-sm text-gray-500">Cursos activos</p>
+          </div>
+        </div>
+        <div class="stat-card p-5 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-purple-100">
+            <i class="fas fa-users text-xl text-purple-600"></i>
+          </div>
+          <div>
+            <p class="text-2xl font-extrabold text-gray-900" id="stat-estudiantes">—</p>
+            <p class="text-sm text-gray-500">Estudiantes</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="card p-5 mb-6">
+        <h3 class="font-bold text-gray-800 mb-4">Acciones rápidas</h3>
+        <div class="flex flex-wrap gap-3">
+          <button onclick="mostrarSeccion('profesores-crear')" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> Nuevo profesor
+          </button>
+          <button onclick="mostrarSeccion('cursos-crear')" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Nuevo curso
+          </button>
+          <button onclick="mostrarSeccion('cursos-ver')" class="btn btn-ghost">
+            <i class="fas fa-book"></i> Ver todos los cursos
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent courses preview -->
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-gray-800">Últimos cursos</h3>
+          <button onclick="mostrarSeccion('cursos-ver')" class="text-xs text-green-700 hover:underline font-medium">Ver todos</button>
+        </div>
+        <div id="inicio-cursos" class="space-y-3">
+          <p class="text-gray-400 text-sm"><i class="fas fa-spinner fa-spin mr-1"></i> Cargando...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ REGISTRAR PROFESOR ═══ -->
+    <div id="profesores-crear" class="section-content max-w-2xl">
+      <div class="mb-6">
+        <h2 class="text-2xl font-extrabold text-gray-900">Registrar nuevo profesor</h2>
+        <p class="text-gray-500 text-sm mt-1">Crea una cuenta de acceso para el docente.</p>
+      </div>
+      <div class="card p-6 space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo *</label>
+            <input id="p-nombre" type="text" class="input-field" placeholder="Ej: María García">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico *</label>
+            <input id="p-email" type="email" class="input-field" placeholder="profesor@email.com">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label>
+            <input id="p-password" type="password" class="input-field" placeholder="Mín. 6 caracteres">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+            <input id="p-telefono" type="tel" class="input-field" placeholder="+593 99 999 9999">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Departamento / Organización</label>
+            <input id="p-organizacion" type="text" class="input-field" placeholder="Ej: Facultad de Ingeniería">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Descripción / Biografía</label>
+          <textarea id="p-descripcion" rows="3" class="input-field resize-none" placeholder="Especialidades, experiencia..."></textarea>
+        </div>
+        <div id="p-error" class="hidden text-sm text-red-700 bg-red-50 border border-red-200 px-4 py-3 rounded-lg flex items-center gap-2">
+          <i class="fas fa-exclamation-circle shrink-0"></i><span></span>
+        </div>
+        <div id="p-ok" class="hidden text-sm text-green-700 bg-green-50 border border-green-200 px-4 py-3 rounded-lg flex items-center gap-2">
+          <i class="fas fa-check-circle shrink-0"></i><span></span>
+        </div>
+        <button onclick="registrarProfesor()" class="btn btn-primary w-full justify-center">
+          <i class="fas fa-save"></i> Registrar profesor
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ VER PROFESORES ═══ -->
+    <div id="profesores-ver" class="section-content">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-gray-900">Profesores registrados</h2>
+          <p class="text-gray-500 text-sm mt-1" id="profesores-count"></p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="cargarProfesoresList()" class="btn btn-ghost">
+            <i class="fas fa-sync-alt"></i> Actualizar
+          </button>
+          <button onclick="mostrarSeccion('profesores-crear')" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nuevo
+          </button>
+        </div>
+      </div>
+      <div id="profesores-list" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+    </div>
+
+    <!-- ═══ CREAR CURSO ═══ -->
+    <div id="cursos-crear" class="section-content max-w-2xl">
+      <div class="mb-6">
+        <h2 class="text-2xl font-extrabold text-gray-900">Crear nuevo curso</h2>
+        <p class="text-gray-500 text-sm mt-1">Asigna un profesor y define el contenido del curso.</p>
+      </div>
+      <div class="card p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del curso *</label>
+          <input id="c-nombre" type="text" class="input-field" placeholder="Ej: Cálculo I — 2025">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+          <textarea id="c-descripcion" rows="3" class="input-field resize-none" placeholder="Objetivos, contenido, metodología..."></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Profesor asignado *</label>
+          <select id="c-profesor" class="input-field">
+            <option value="">— Selecciona un profesor —</option>
+          </select>
+          <p class="text-xs text-gray-400 mt-1">¿No aparece el profesor? Regístralo primero.</p>
+        </div>
+        <div id="c-error" class="hidden text-sm text-red-700 bg-red-50 border border-red-200 px-4 py-3 rounded-lg flex items-center gap-2">
+          <i class="fas fa-exclamation-circle shrink-0"></i><span></span>
+        </div>
+        <div id="c-ok" class="hidden text-sm text-green-700 bg-green-50 border border-green-200 px-4 py-3 rounded-lg flex items-center gap-2">
+          <i class="fas fa-check-circle shrink-0"></i><span></span>
+        </div>
+        <button onclick="crearCurso()" class="btn btn-primary w-full justify-center">
+          <i class="fas fa-save"></i> Crear curso
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ VER CURSOS ═══ -->
+    <div id="cursos-ver" class="section-content">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-gray-900">Cursos</h2>
+          <p class="text-gray-500 text-sm mt-1" id="cursos-count"></p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="cargarCursos()" class="btn btn-ghost">
+            <i class="fas fa-sync-alt"></i> Actualizar
+          </button>
+          <button onclick="mostrarSeccion('cursos-crear')" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nuevo
+          </button>
+        </div>
+      </div>
+      <!-- Search -->
+      <div class="relative mb-4">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+        <input type="text" id="buscar-curso" oninput="filtrarCursos()" placeholder="Buscar por nombre o profesor..."
+               class="input-field pl-9">
+      </div>
+      <div id="cursos-list" class="space-y-3"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ═══ MODAL EDITAR CURSO ═══ -->
+<div id="modal-editar" class="modal-overlay">
+  <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-lg font-bold text-gray-900">Editar curso</h3>
+      <button onclick="cerrarModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+    </div>
+    <input type="hidden" id="edit-id">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+        <input id="edit-nombre" type="text" class="input-field" placeholder="Nombre del curso">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+        <textarea id="edit-descripcion" rows="3" class="input-field resize-none" placeholder="Descripción"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Profesor</label>
+        <select id="edit-profesor" class="input-field"></select>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button onclick="guardarEdicion()" class="btn btn-primary flex-1 justify-center">Guardar</button>
+      <button onclick="cerrarModal()" class="btn flex-1 justify-center bg-gray-100 text-gray-700 hover:bg-gray-200">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL ESTUDIANTES ═══ -->
+<div id="modal-estudiantes" class="modal-overlay">
+  <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl max-h-[88vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-lg font-bold text-gray-900">Gestionar estudiantes</h3>
+      <button onclick="cerrarModalEst()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+    </div>
+    <div id="modal-est-contenido"></div>
+  </div>
+</div>
+
+<script>
+let cursoActivoId = null;
+let profesoresCache = [];
+let cursosCache = [];
+
+/* ───── UTILS ───── */
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showMsg(id, msg, type = 'error') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.querySelector('span').textContent = msg;
+  el.classList.remove('hidden');
+  if (type === 'ok') { el.style.display = 'flex'; }
+}
+function hideMsg(id) { const el = document.getElementById(id); if (el) el.classList.add('hidden'); }
+
+/* ───── NAVEGACIÓN ───── */
+const sections = ['inicio','profesores-crear','profesores-ver','cursos-crear','cursos-ver'];
+const sectionTitles = {
+  'inicio': 'Dashboard',
+  'profesores-crear': 'Nuevo profesor',
+  'profesores-ver': 'Profesores',
+  'cursos-crear': 'Nuevo curso',
+  'cursos-ver': 'Cursos',
+};
+
+function mostrarSeccion(id) {
+  sections.forEach(s => document.getElementById(s)?.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  document.getElementById('topbar-titulo').textContent = sectionTitles[id] || 'Admin';
+
+  // Update nav active state
+  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    if (btn.getAttribute('onclick')?.includes(`'${id}'`)) btn.classList.add('active');
+  });
+
+  if (id === 'profesores-ver') cargarProfesoresList();
+  if (id === 'cursos-crear')   cargarSelectProfesores();
+  if (id === 'cursos-ver')     cargarCursos();
+  if (id === 'inicio')         cargarDashboard();
+}
+
+/* ───── DASHBOARD ───── */
+async function cargarDashboard() {
+  const [profRes, cursosRes] = await Promise.all([
+    fetch('/api/usuarios?action=profesores', { credentials: 'include' }).then(r => r.json()).catch(() => []),
+    fetch('/api/cursos?action=obtener', { credentials: 'include' }).then(r => r.json()).catch(() => []),
+  ]);
+
+  document.getElementById('stat-profesores').textContent = Array.isArray(profRes) ? profRes.length : '—';
+  document.getElementById('stat-cursos').textContent = Array.isArray(cursosRes) ? cursosRes.length : '—';
+
+  // Count total enrolled students across all courses
+  if (Array.isArray(cursosRes)) {
+    cursosCache = cursosRes;
+    // Unique student estimate from courses (just show total enrollments)
+    const totalEst = cursosRes.reduce((acc, c) => acc + (c.total_estudiantes || 0), 0);
+    document.getElementById('stat-estudiantes').textContent = totalEst || '—';
+
+    // Preview last 4 courses
+    const cont = document.getElementById('inicio-cursos');
+    if (!cursosRes.length) {
+      cont.innerHTML = '<p class="text-gray-400 text-sm">No hay cursos creados todavía.</p>';
+      return;
     }
+    cont.innerHTML = cursosRes.slice(0,4).map(c => `
+      <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition">
+        <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+          <i class="fas fa-book text-green-700 text-sm"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-sm text-gray-800 truncate">${esc(c.nombre)}</p>
+          <p class="text-xs text-gray-400 truncate"><i class="fas fa-chalkboard-teacher mr-1"></i>${esc(c.profesor || 'Sin profesor')}</p>
+        </div>
+        <button onclick="abrirModalEst(${c.id})" class="text-xs text-blue-600 hover:underline font-medium shrink-0">
+          Estudiantes
+        </button>
+      </div>
+    `).join('');
+  }
+}
 
-    async function desmatricular(cursoId, estudianteId) {
-      const res = await fetch(`/api/cursos?action=desmatricular&curso_id=${cursoId}&estudiante_id=${estudianteId}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        alert('Estudiante desmatriculado');
-        verEstudiantes(cursoId);
-      } else {
-        alert('Error al desmatricular');
-      }
-    }
+/* ───── PROFESORES ───── */
+async function cargarSelectProfesores() {
+  const res = await fetch('/api/usuarios?action=profesores', { credentials: 'include' });
+  profesoresCache = await res.json();
+  const sel = document.getElementById('c-profesor');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Selecciona un profesor —</option>' +
+    profesoresCache.map(p => `<option value="${p.id}">${esc(p.nombre)} (${esc(p.email)})</option>`).join('');
+}
 
-    async function matricular(cursoId, estudianteId) {
-      const res = await fetch('/api/cursos?action=matricular-manual', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ curso_id: cursoId, estudiante_id: estudianteId })
-      });
-      if (res.ok) {
-        alert('Estudiante matriculado');
-        verEstudiantes(cursoId);
-      } else {
-        alert('Error al matricular');
-      }
-    }
+async function registrarProfesor() {
+  const nombre      = document.getElementById('p-nombre').value.trim();
+  const email       = document.getElementById('p-email').value.trim();
+  const password    = document.getElementById('p-password').value;
+  const telefono    = document.getElementById('p-telefono').value.trim();
+  const descripcion = document.getElementById('p-descripcion').value.trim();
+  const organizacion = document.getElementById('p-organizacion').value.trim();
 
-    async function mostrarFormularioEdicion(cursoId) {
-      const div = document.getElementById(`editar-${cursoId}`);
-      const curso = await obtenerCursoPorId(cursoId);
-      const profesores = await fetch('/api/cursos?action=profesores').then(r => r.json());
+  hideMsg('p-error'); hideMsg('p-ok');
+  if (!nombre || !email || !password) {
+    showMsg('p-error', 'Nombre, email y contraseña son obligatorios.');
+    return;
+  }
 
-      div.classList.toggle('hidden');
-      div.innerHTML = `
-        <input type="text" id="edit-nombre-${cursoId}" class="border p-1 rounded w-full mb-2" value="${curso.nombre}">
-        <textarea id="edit-desc-${cursoId}" class="border p-1 rounded w-full mb-2">${curso.descripcion}</textarea>
-        <select id="edit-profesor-${cursoId}" class="border p-1 rounded w-full mb-2">
-          ${profesores.map(p => `<option value="${p.id}" ${p.nombre === curso.profesor ? 'selected' : ''}>${p.nombre}</option>`).join('')}
-        </select>
-        <button class="bg-green-600 text-white px-3 py-1 rounded" onclick="guardarEdicion(${cursoId})">Guardar</button>
-      `;
-    }
+  const res = await fetch('/api/usuarios?action=crear-profesor', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ nombre, email, password, telefono, descripcion, organizacion })
+  });
+  const data = await res.json();
+  if (!res.ok) { showMsg('p-error', data.error || 'Error al registrar'); return; }
+  showMsg('p-ok', `Profesor "${nombre}" registrado correctamente.`, 'ok');
+  ['p-nombre','p-email','p-password','p-telefono','p-descripcion','p-organizacion']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+}
 
-    async function obtenerCursoPorId(id) {
-      const cursos = await fetch('/api/cursos?action=obtener').then(r => r.json());
-      return cursos.find(c => c.id === id);
-    }
+async function cargarProfesoresList() {
+  const cont = document.getElementById('profesores-list');
+  cont.innerHTML = '<p class="text-gray-400 text-sm col-span-full"><i class="fas fa-spinner fa-spin mr-1"></i> Cargando...</p>';
+  const res = await fetch('/api/usuarios?action=profesores', { credentials: 'include' });
+  const profesores = await res.json();
+  const countEl = document.getElementById('profesores-count');
+  if (countEl) countEl.textContent = `${profesores.length} profesor${profesores.length !== 1 ? 'es' : ''} registrado${profesores.length !== 1 ? 's' : ''}`;
+  if (!profesores.length) {
+    cont.innerHTML = '<p class="text-gray-400 col-span-full text-sm">No hay profesores registrados todavía.</p>';
+    return;
+  }
+  cont.innerHTML = profesores.map(p => `
+    <div class="card p-5 flex items-start gap-4">
+      <div class="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0" style="background:#00983d;">
+        ${p.nombre[0].toUpperCase()}
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-gray-900 truncate">${esc(p.nombre)}</p>
+        <p class="text-sm text-gray-500 truncate">${esc(p.email)}</p>
+        ${p.organizacion ? `<p class="text-xs text-gray-400 truncate mt-0.5"><i class="fas fa-building mr-1"></i>${esc(p.organizacion)}</p>` : ''}
+      </div>
+      <button onclick="eliminarProfesor(${p.id}, '${esc(p.nombre)}')"
+        class="text-red-400 hover:text-red-600 transition p-1 shrink-0" title="Eliminar">
+        <i class="fas fa-trash text-sm"></i>
+      </button>
+    </div>
+  `).join('');
+}
 
-    async function guardarEdicion(id) {
-      const nombre = document.getElementById(`edit-nombre-${id}`).value;
-      const descripcion = document.getElementById(`edit-desc-${id}`).value;
-      const profesor_id = document.getElementById(`edit-profesor-${id}`).value;
+async function eliminarProfesor(id, nombre) {
+  if (!confirm(`¿Eliminar al profesor "${nombre}"? Sus cursos quedarán sin tutor asignado.`)) return;
+  const res = await fetch(`/api/usuarios?action=eliminar-profesor&id=${id}`, { method: 'DELETE', credentials: 'include' });
+  if (res.ok) cargarProfesoresList();
+  else alert('Error al eliminar el profesor');
+}
 
-      const res = await fetch('/api/cursos?action=editar', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ curso_id: id, nombre, descripcion, profesor_id })
-      });
+/* ───── CURSOS ───── */
+async function crearCurso() {
+  const nombre      = document.getElementById('c-nombre').value.trim();
+  const descripcion = document.getElementById('c-descripcion').value.trim();
+  const profesor_id = document.getElementById('c-profesor').value;
+  hideMsg('c-error'); hideMsg('c-ok');
 
-      if (res.ok) {
-        alert('Curso actualizado');
-        cargarCursos();
-      } else {
-        alert('Error al actualizar curso');
-      }
-    }
+  if (!nombre || !profesor_id) {
+    showMsg('c-error', 'El nombre del curso y el profesor son obligatorios.');
+    return;
+  }
 
-    async function eliminarCurso(id) {
-      if (!confirm("¿Estás seguro de que deseas eliminar este curso?")) return;
-      const res = await fetch(`/api/cursos?action=eliminar&curso_id=${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        alert('Curso eliminado');
-        cargarCursos();
-      } else {
-        alert('Error al eliminar curso');
-      }
-      
-    }
+  const res = await fetch('/api/cursos?action=crear', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ nombre, descripcion, profesor_id })
+  });
+  const data = await res.json();
+  if (!res.ok) { showMsg('c-error', data.error || 'Error al crear curso'); return; }
+  showMsg('c-ok', `Curso "${nombre}" creado correctamente.`, 'ok');
+  document.getElementById('c-nombre').value = '';
+  document.getElementById('c-descripcion').value = '';
+  document.getElementById('c-profesor').value = '';
+}
 
-    function filtrarEstudiantes(cursoId) {
-  const filtro = document.getElementById(`filtro-${cursoId}`).value.toLowerCase();
-  const estudiantes = document.querySelectorAll(`#lista-estudiantes-${cursoId} .estudiante`);
+let todosLosCursos = [];
+async function cargarCursos() {
+  const cont = document.getElementById('cursos-list');
+  cont.innerHTML = '<p class="text-gray-400 text-sm"><i class="fas fa-spinner fa-spin mr-1"></i> Cargando...</p>';
+  const res = await fetch('/api/cursos?action=obtener', { credentials: 'include' });
+  const cursos = await res.json();
+  todosLosCursos = Array.isArray(cursos) ? cursos : [];
+  const countEl = document.getElementById('cursos-count');
+  if (countEl) countEl.textContent = `${todosLosCursos.length} curso${todosLosCursos.length !== 1 ? 's' : ''}`;
+  renderCursos(todosLosCursos);
+}
 
-  estudiantes.forEach(est => {
-    const nombre = est.getAttribute('data-nombre');
-    const email = est.getAttribute('data-email');
-    if (nombre.includes(filtro) || email.includes(filtro)) {
-      est.classList.remove('hidden');
-    } else {
-      est.classList.add('hidden');
-    }
+function filtrarCursos() {
+  const q = document.getElementById('buscar-curso')?.value.toLowerCase() || '';
+  const filtrados = q
+    ? todosLosCursos.filter(c => c.nombre.toLowerCase().includes(q) || (c.profesor||'').toLowerCase().includes(q))
+    : todosLosCursos;
+  renderCursos(filtrados);
+}
+
+function renderCursos(cursos) {
+  const cont = document.getElementById('cursos-list');
+  if (!cursos.length) {
+    cont.innerHTML = '<div class="text-center py-12 text-gray-400"><i class="fas fa-book text-4xl mb-3"></i><p>No se encontraron cursos.</p></div>';
+    return;
+  }
+  cont.innerHTML = cursos.map(c => `
+    <div class="card p-5 hover:shadow-md transition">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-start gap-4 min-w-0">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:#dcfce7;">
+            <i class="fas fa-book" style="color:#00983d;"></i>
+          </div>
+          <div class="min-w-0">
+            <h3 class="font-bold text-gray-900 truncate">${esc(c.nombre)}</h3>
+            <p class="text-sm text-gray-500 truncate mt-0.5">${esc(c.descripcion || 'Sin descripción')}</p>
+            <p class="text-xs font-medium mt-1" style="color:#00983d;">
+              <i class="fas fa-chalkboard-teacher mr-1"></i>${esc(c.profesor || 'Sin profesor asignado')}
+            </p>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 shrink-0">
+          <button onclick="abrirModalEst(${c.id})" class="btn btn-blue text-xs">
+            <i class="fas fa-users"></i> Estudiantes
+          </button>
+          <button onclick="abrirModalEditar(${c.id}, '${esc(c.nombre)}', '${esc(c.descripcion||'')}', '${esc(c.profesor||'')}')"
+            class="btn btn-warning text-xs">
+            <i class="fas fa-edit"></i> Editar
+          </button>
+          <button onclick="eliminarCurso(${c.id})" class="btn btn-danger text-xs">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function eliminarCurso(id) {
+  if (!confirm('¿Eliminar este curso? Esta acción no se puede deshacer.')) return;
+  const res = await fetch(`/api/cursos?action=eliminar&curso_id=${id}`, { method: 'DELETE', credentials: 'include' });
+  if (res.ok) cargarCursos();
+  else alert('Error al eliminar el curso');
+}
+
+/* ───── MODAL EDITAR CURSO ───── */
+async function abrirModalEditar(id, nombre, descripcion) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-nombre').value = nombre;
+  document.getElementById('edit-descripcion').value = descripcion;
+
+  const res = await fetch('/api/usuarios?action=profesores', { credentials: 'include' });
+  const profs = await res.json();
+  document.getElementById('edit-profesor').innerHTML = profs.map(p =>
+    `<option value="${p.id}">${esc(p.nombre)} (${esc(p.email)})</option>`
+  ).join('');
+  document.getElementById('modal-editar').classList.add('open');
+}
+
+function cerrarModal() { document.getElementById('modal-editar').classList.remove('open'); }
+
+async function guardarEdicion() {
+  const id          = document.getElementById('edit-id').value;
+  const nombre      = document.getElementById('edit-nombre').value.trim();
+  const descripcion = document.getElementById('edit-descripcion').value.trim();
+  const profesor_id = document.getElementById('edit-profesor').value;
+
+  const res = await fetch('/api/cursos?action=editar', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ curso_id: id, nombre, descripcion, profesor_id })
+  });
+  if (res.ok) { cerrarModal(); cargarCursos(); }
+  else alert('Error al actualizar el curso');
+}
+
+/* ───── MODAL ESTUDIANTES ───── */
+async function abrirModalEst(cursoId) {
+  cursoActivoId = cursoId;
+  document.getElementById('modal-estudiantes').classList.add('open');
+  await recargarModalEst();
+}
+
+function cerrarModalEst() {
+  document.getElementById('modal-estudiantes').classList.remove('open');
+  cursoActivoId = null;
+}
+
+async function recargarModalEst() {
+  document.getElementById('modal-est-contenido').innerHTML = '<p class="text-gray-400 text-sm py-4"><i class="fas fa-spinner fa-spin mr-1"></i> Cargando...</p>';
+  const [resEst, resNoEst] = await Promise.all([
+    fetch(`/api/cursos?action=estudiantes&curso_id=${cursoActivoId}`, { credentials: 'include' }).then(r => r.json()),
+    fetch(`/api/cursos?action=no-matriculados&curso_id=${cursoActivoId}`, { credentials: 'include' }).then(r => r.json())
+  ]);
+
+  document.getElementById('modal-est-contenido').innerHTML = `
+    <div class="mb-5">
+      <h4 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+        <span class="w-6 h-6 rounded-full bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center">${resEst.length}</span>
+        Matriculados
+      </h4>
+      ${resEst.length ? `<div class="space-y-2">${resEst.map(e => `
+        <div class="flex justify-between items-center p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition">
+          <div>
+            <p class="text-sm font-medium text-gray-800">${esc(e.nombre)}</p>
+            <p class="text-xs text-gray-400">${esc(e.email)}</p>
+          </div>
+          <button onclick="desmatricular(${e.id})" class="text-red-500 hover:text-red-700 text-xs font-semibold hover:underline transition">
+            Desmatricular
+          </button>
+        </div>
+      `).join('')}</div>` : '<p class="text-gray-400 text-sm bg-gray-50 rounded-xl p-4 text-center">Ningún estudiante matriculado.</p>'}
+    </div>
+    <div class="border-t pt-4">
+      <h4 class="font-bold text-gray-800 mb-3">Agregar estudiantes</h4>
+      ${resNoEst.length ? `
+        <input type="text" id="filtro-nomat" placeholder="Buscar por nombre o email..." oninput="filtrarNoMat()"
+               class="input-field mb-3">
+        <div id="lista-nomat" class="space-y-2 max-h-60 overflow-y-auto">
+          ${resNoEst.map(e => `
+            <div class="flex justify-between items-center p-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition nomat-row" data-busca="${(e.nombre+' '+e.email).toLowerCase()}">
+              <div>
+                <p class="text-sm font-medium text-gray-800">${esc(e.nombre)}</p>
+                <p class="text-xs text-gray-400">${esc(e.email)}</p>
+              </div>
+              <button onclick="matricular(${e.id})" class="text-blue-600 hover:text-blue-800 text-xs font-semibold hover:underline transition">
+                Matricular
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      ` : '<p class="text-gray-400 text-sm bg-gray-50 rounded-xl p-4 text-center">Todos los usuarios ya están matriculados.</p>'}
+    </div>
+  `;
+}
+
+function filtrarNoMat() {
+  const q = document.getElementById('filtro-nomat')?.value.toLowerCase() || '';
+  document.querySelectorAll('.nomat-row').forEach(r => {
+    r.classList.toggle('hidden', !r.dataset.busca.includes(q));
   });
 }
 
-  const logoutLink = document.getElementById('logout-link');
-  if (logoutLink) {
-    logoutLink.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const response = await fetch('/api/logout', { method: 'POST', credentials: 'include' });
-      if (response.ok) {
-        window.location.href = '/auth/login.html';
-      } else {
-        alert('Error al cerrar sesión');
-      }
-    });
-  }
+async function desmatricular(estudianteId) {
+  const res = await fetch(`/api/cursos?action=desmatricular&curso_id=${cursoActivoId}&estudiante_id=${estudianteId}`, {
+    method: 'DELETE', credentials: 'include'
+  });
+  if (res.ok) await recargarModalEst();
+  else alert('Error al desmatricular');
+}
 
-  </script>
+async function matricular(estudianteId) {
+  const res = await fetch('/api/cursos?action=matricular-manual', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ curso_id: cursoActivoId, estudiante_id: estudianteId })
+  });
+  if (res.ok) await recargarModalEst();
+  else alert('Error al matricular');
+}
+
+/* ───── LOGOUT ───── */
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  const r = await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+  if (r.ok) location.href = '/auth/login.html';
+  else alert('Error al cerrar sesión');
+});
+
+/* ───── LOAD USER ───── */
+fetch('/api/perfil', { credentials: 'include' })
+  .then(r => r.ok ? r.json() : null)
+  .then(p => {
+    if (!p) return;
+    const nombre = p.nombre || 'Admin';
+    document.getElementById('admin-nombre').textContent = nombre;
+    document.getElementById('admin-email').textContent = p.email || '';
+    document.getElementById('admin-avatar').textContent = nombre[0].toUpperCase();
+  });
+
+/* Init */
+mostrarSeccion('inicio');
+</script>
 </body>
 </html>

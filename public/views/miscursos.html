@@ -3,145 +3,175 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mis cursos</title>
+  <title>Mis Cursos</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root { --green: #00983d; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-weight: 600; font-size: 0.875rem; border-radius: 0.5rem;
+      padding: 0.5rem 1rem; transition: all 0.2s; cursor: pointer; border: none;
+    }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: #007d32; box-shadow: 0 4px 12px rgba(0,152,61,.3); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .input-field {
+      border: 1.5px solid #d1d5db; border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem; font-size: 0.875rem;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .input-field:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,152,61,.12); }
+
+    .course-card {
+      background: #fff; border: 1.5px solid #e5e7eb; border-radius: 0.875rem;
+      transition: border-color .2s, box-shadow .2s, transform .2s;
+    }
+    .course-card:hover { border-color: #86efac; box-shadow: 0 6px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
+
+    .fade-in { animation: fadeIn .4s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  </style>
 </head>
-<body class="bg-gradient-to-b from-green-50 to-white text-gray-900 font-sans min-h-screen flex flex-col">
+<body class="min-h-screen bg-gray-50">
 
-  <!-- Header -->
-  <div id="header-container"></div>
+<div id="header-container"></div>
 
-  <main class="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8" x-data="cursosPage()">
-    <h1 class="text-3xl sm:text-4xl font-extrabold mb-2 text-green-700">Mis cursos</h1>
-    <p class="text-gray-700 mb-6">Vista general de los cursos en los que estás matriculado</p>
+<main class="max-w-5xl mx-auto px-4 py-8" x-data="cursosPage()">
+  <div class="mb-6 fade-in">
+    <h1 class="text-2xl font-extrabold text-gray-900">Mis cursos</h1>
+    <p class="text-sm text-gray-500 mt-1">Vista general de todos tus cursos</p>
+  </div>
 
-    <!-- Filtros -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-      <div class="flex gap-2 flex-wrap">
-        <select x-model="filtro" class="border border-gray-300 rounded px-3 py-2" @change="aplicarFiltros()">
-          <option value="todos">Todos</option>
-          <option value="activos">Activos</option>
-          <option value="finalizados">Finalizados</option>
-        </select>
-        <input type="text" x-model="busqueda" placeholder="Buscar por nombre"
-               class="border border-gray-300 rounded px-3 py-2 w-full md:w-64"
-               @input="aplicarFiltros()" />
-      </div>
-      <select x-model="orden" class="border border-gray-300 rounded px-3 py-2" @change="aplicarFiltros()">
-        <option value="nombre">Ordenar por nombre</option>
-        <option value="ultimoAcceso">Ordenar por último acceso</option>
-      </select>
+  <!-- Barra de búsqueda y filtro de rol -->
+  <div class="flex flex-col sm:flex-row gap-3 mb-6 fade-in">
+    <div class="relative flex-1">
+      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+      <input type="text" x-model="busqueda" @input="aplicarFiltros()"
+             placeholder="Buscar curso..."
+             class="input-field w-full pl-9 pr-4 bg-white">
     </div>
+    <select x-model="filtroRol" @change="aplicarFiltros()" class="input-field bg-white pr-8">
+      <option value="todos">Todos los roles</option>
+      <option value="estudiante">Como estudiante</option>
+      <option value="profesor">Como profesor</option>
+    </select>
+  </div>
 
-    <!-- Contenedor de cursos -->
-    <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Mensaje de carga -->
-      <template x-if="loading">
-        <div class="col-span-full text-center py-12 animate-pulse">
-          <i class="fas fa-spinner fa-spin text-4xl text-green-600 mb-4"></i>
-          <p class="text-gray-600">Cargando sus cursos...</p>
+  <!-- Loading -->
+  <template x-if="loading">
+    <div class="text-center py-16 text-gray-400">
+      <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
+      <p>Cargando cursos...</p>
+    </div>
+  </template>
+
+  <!-- Error -->
+  <template x-if="!loading && error">
+    <div class="text-center py-12 bg-red-50 border border-red-200 rounded-2xl">
+      <i class="fas fa-exclamation-circle text-3xl text-red-500 mb-3"></i>
+      <p class="font-semibold text-red-700 mb-1">Error al cargar los cursos</p>
+      <p class="text-sm text-red-500 mb-4" x-text="error"></p>
+      <button @click="cargarCursos()" class="btn btn-primary">
+        <i class="fas fa-sync-alt"></i> Reintentar
+      </button>
+    </div>
+  </template>
+
+  <!-- Sin resultados -->
+  <template x-if="!loading && !error && cursosFiltrados.length === 0">
+    <div class="text-center py-16 text-gray-400">
+      <i class="fas fa-graduation-cap text-4xl mb-3"></i>
+      <p class="font-semibold text-gray-600 mb-1">No se encontraron cursos</p>
+      <p class="text-sm" x-show="busqueda || filtroRol !== 'todos'">Intenta con otro filtro o búsqueda.</p>
+      <p class="text-sm" x-show="!busqueda && filtroRol === 'todos'">Aún no estás inscrito en ningún curso.</p>
+    </div>
+  </template>
+
+  <!-- Grid de cursos -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" x-show="!loading && !error && cursosFiltrados.length > 0">
+    <template x-for="c in cursosFiltrados" :key="c.id">
+      <div class="course-card p-5 flex flex-col gap-3">
+        <div class="flex items-start gap-3">
+          <div class="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center shrink-0">
+            <i class="fas fa-book text-lg"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-bold text-gray-900 leading-snug" x-text="c.nombre"></h3>
+            <p class="text-xs text-gray-500 mt-0.5 truncate" x-text="c.profesor || 'Sin profesor asignado'"></p>
+          </div>
+          <span class="text-xs px-2 py-1 rounded-full font-medium shrink-0"
+                :class="c.rol === 'profesor' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'"
+                x-text="c.rol === 'profesor' ? 'Profesor' : 'Estudiante'">
+          </span>
         </div>
-      </template>
-
-      <!-- Mensaje si no hay cursos -->
-      <template x-if="!loading && cursosFiltrados.length === 0">
-        <div class="col-span-full flex flex-col items-center text-center py-12">
-          <i class="fas fa-book-open text-5xl text-gray-400 mb-4"></i>
-          <p class="font-semibold text-gray-900 mb-2">Usted no está matriculado en ningún curso</p>
-          <p class="text-gray-700 max-w-md">Una vez que se inscriba en un curso, aparecerá aquí.</p>
-        </div>
-      </template>
-
-      <!-- Cards de cursos -->
-      <template x-for="curso in cursosFiltrados" :key="curso.id">
-        <div class="bg-white rounded-xl shadow-md p-6 transform transition hover:-translate-y-1 hover:shadow-xl">
-          <h3 class="text-xl font-semibold text-green-700 mb-2" x-text="curso.nombre"></h3>
-          <p class="text-gray-600 mb-1" x-text="curso.profesor || 'Sin tutor asignado'"></p>
-          <p class="text-sm italic text-gray-500 mb-3" x-text="curso.rol === 'profesor' ? 'Usted es el profesor' : 'Usted está matriculado'"></p>
-          <a :href="`/views/curso.html?id=${curso.id}`"
-             class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
-            Ir al curso
+        <p class="text-sm text-gray-600 leading-relaxed line-clamp-2" x-text="c.descripcion || 'Sin descripción.'"></p>
+        <div class="flex items-center gap-2 mt-auto pt-1 border-t border-gray-100">
+          <a :href="`/views/curso.html?id=${c.id}`" class="btn btn-primary flex-1 justify-center">
+            <i class="fas fa-arrow-right"></i> Ir al curso
           </a>
+          <template x-if="c.rol === 'estudiante'">
+            <a :href="`/views/calificaciones.html`"
+               class="text-xs text-gray-500 hover:text-green-700 hover:underline transition-colors font-medium">
+              Calificaciones
+            </a>
+          </template>
         </div>
-      </template>
-    </section>
-
-    <!-- Error -->
-    <template x-if="error">
-      <div class="col-span-full text-center py-8 mt-6 bg-red-50 border border-red-200 rounded-lg">
-        <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-2"></i>
-        <p class="font-semibold text-red-600 mb-2">Error al cargar los cursos</p>
-        <p class="text-sm text-red-500 mb-4" x-text="error"></p>
-        <button @click="cargarCursos()"
-                class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-6 rounded transition">
-          <i class="fas fa-sync-alt mr-2"></i> Reintentar
-        </button>
       </div>
     </template>
-
-  </main>
+  </div>
+</main>
 
 <script>
+fetch('/views/header.html').then(r => r.text()).then(html => {
+  const c = document.getElementById('header-container');
+  c.innerHTML = html;
+  c.querySelectorAll('script').forEach(s => {
+    const ns = document.createElement('script');
+    if (s.src) ns.src = s.src; else ns.textContent = s.textContent;
+    document.body.appendChild(ns);
+    s.remove();
+  });
+});
+
 function cursosPage() {
   return {
-    todosLosCursos: [],
+    todos: [],
     cursosFiltrados: [],
     busqueda: '',
-    filtro: 'todos',
-    orden: 'nombre',
+    filtroRol: 'todos',
     loading: true,
     error: '',
+
+    init() { this.cargarCursos(); },
+
     cargarCursos() {
-      this.loading = true;
-      this.error = '';
+      this.loading = true; this.error = '';
       fetch('/api/miscursos', { credentials: 'include' })
-        .then(res => res.json())
-        .then(data => {
-          this.todosLosCursos = Array.isArray(data.data) ? data.data : [];
+        .then(r => { if (!r.ok) throw new Error('Error al obtener cursos'); return r.json(); })
+        .then(d => {
+          this.todos = Array.isArray(d.data) ? d.data : [];
           this.aplicarFiltros();
           this.loading = false;
         })
-        .catch(e => {
-          console.error(e);
-          this.loading = false;
-          this.error = 'No se pudo conectar al servidor. Intente nuevamente.';
-        });
+        .catch(e => { this.error = e.message; this.loading = false; });
     },
+
     aplicarFiltros() {
-      let lista = this.todosLosCursos.filter(curso =>
-        curso.nombre.toLowerCase().includes(this.busqueda.toLowerCase())
-      );
-      if (this.filtro === 'activos') lista = lista.filter(c => c.activo);
-      if (this.filtro === 'finalizados') lista = lista.filter(c => !c.activo);
-      if (this.orden === 'nombre') lista.sort((a,b) => a.nombre.localeCompare(b.nombre));
-      if (this.orden === 'ultimoAcceso') lista.sort((a,b) => new Date(b.ultimoAcceso) - new Date(a.ultimoAcceso));
-      this.cursosFiltrados = lista;
+      let lista = this.todos;
+      if (this.busqueda.trim()) {
+        const q = this.busqueda.toLowerCase();
+        lista = lista.filter(c => c.nombre.toLowerCase().includes(q) || (c.descripcion || '').toLowerCase().includes(q));
+      }
+      if (this.filtroRol !== 'todos') {
+        lista = lista.filter(c => c.rol === this.filtroRol);
+      }
+      this.cursosFiltrados = lista.sort((a, b) => a.nombre.localeCompare(b.nombre));
     },
-    init() {
-      this.cargarCursos();
-    }
-  }
+  };
 }
 </script>
-
-<script>
-  // Cargar header
-  fetch('/views/header.html')
-    .then(res => res.text())
-    .then(html => {
-      const container = document.getElementById('header-container');
-      container.innerHTML = html;
-      container.querySelectorAll('script').forEach(oldScript => {
-        const newScript = document.createElement('script');
-        if (oldScript.src) newScript.src = oldScript.src;
-        else newScript.textContent = oldScript.textContent;
-        document.body.appendChild(newScript);
-        oldScript.remove();
-      });
-    });
-</script>
-
 </body>
 </html>

@@ -5,357 +5,699 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Curso</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/@popperjs/core@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
 </head>
 <body class="bg-gradient-to-b from-green-50 to-white text-gray-900 min-h-screen flex flex-col">
 
-<!-- Header -->
 <div id="header-container" class="shadow-lg bg-white"></div>
 
-<main class="flex-grow px-6 py-8 max-w-7xl mx-auto" x-data="{ tab: 'curso', subTab: 'presentacion' }">
+<main class="flex-grow px-4 py-6 max-w-5xl mx-auto w-full" x-data="cursoPag()">
 
-  <!-- Encabezado del curso -->
-  <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 text-center">
-    <h1 id="nombre-curso" class="text-4xl font-extrabold text-green-700 mb-2">Nombre del Curso</h1>
-    <p id="nombre-tutor" class="text-gray-600 text-lg flex items-center justify-center gap-2"><i class="fas fa-chalkboard-teacher"></i> Tutor: Nombre del Tutor</p>
+  <!-- Cabecera del curso -->
+  <div class="bg-white rounded-2xl shadow-md p-6 mb-6 text-center">
+    <h1 class="text-3xl font-extrabold text-green-700 mb-1" x-text="curso.nombre || 'Cargando...'"></h1>
+    <p class="text-gray-500 text-sm">
+      <i class="fas fa-chalkboard-teacher mr-1"></i>
+      <span x-text="curso.profesor || 'Sin profesor asignado'"></span>
+      <span x-show="esProfesor" class="ml-2 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-semibold">Eres el profesor</span>
+    </p>
   </div>
 
   <!-- Pestañas principales -->
-  <div class="flex justify-center gap-4 mb-6">
-    <button @click="tab='curso'" :class="tab==='curso' ? 'bg-green-100 text-green-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'" class="px-5 py-2 rounded-full transition">Curso</button>
-    <button @click="tab='participantes'" :class="tab==='participantes' ? 'bg-green-100 text-green-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'" class="px-5 py-2 rounded-full transition">Participantes</button>
-    <button @click="tab='calificaciones'" :class="tab==='calificaciones' ? 'bg-green-100 text-green-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'" class="px-5 py-2 rounded-full transition">Calificaciones</button>
+  <div class="flex flex-wrap gap-2 mb-6 border-b pb-3">
+    <template x-for="t in tabs" :key="t.id">
+      <button @click="tab = t.id"
+        :class="tab === t.id ? 'bg-green-600 text-white' : 'bg-white text-gray-600 hover:bg-green-50 border'"
+        class="px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-1.5">
+        <i :class="t.icon"></i>
+        <span x-text="t.label"></span>
+      </button>
+    </template>
   </div>
 
-  <!-- Contenido -->
-  <div x-show="tab==='curso'">
+  <!-- ═══ PRESENTACIÓN ═══ -->
+  <div x-show="tab === 'presentacion'" class="bg-white rounded-2xl shadow-md p-6">
+    <h2 class="text-xl font-bold mb-4 text-gray-800">Presentación del curso</h2>
 
-    <!-- Subpestañas -->
-    <div class="flex flex-wrap justify-center gap-2 mb-6">
-      <template x-for="sub in ['presentacion','cronograma','materiales','actividades','examenes','encuesta']">
-        <button @click="subTab=sub" :class="subTab===sub ? 'bg-green-200 text-green-800 font-medium' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'" class="px-4 py-1 rounded-full text-sm transition capitalize" x-text="sub"></button>
+    <!-- Profesor: editar descripción -->
+    <template x-if="esProfesor">
+      <div>
+        <p class="text-sm text-gray-500 mb-2">Escribe una descripción para tus estudiantes.</p>
+        <textarea x-model="descripcionEdit" rows="6"
+          class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-300 outline-none text-gray-700"
+          placeholder="Objetivos del curso, metodología, bibliografía..."></textarea>
+        <button @click="guardarDescripcion()"
+          class="mt-3 bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition font-medium">
+          <i class="fas fa-save mr-1"></i> Guardar
+        </button>
+        <span x-show="descGuardado" class="ml-3 text-green-600 text-sm" x-transition>¡Guardado!</span>
+      </div>
+    </template>
+
+    <!-- Estudiante: ver descripción -->
+    <template x-if="!esProfesor">
+      <div>
+        <p x-show="curso.descripcion" x-text="curso.descripcion" class="text-gray-700 whitespace-pre-line leading-relaxed"></p>
+        <p x-show="!curso.descripcion" class="text-gray-400 italic">El profesor aún no ha agregado una descripción.</p>
+      </div>
+    </template>
+  </div>
+
+  <!-- ═══ MATERIALES ═══ -->
+  <div x-show="tab === 'materiales'" class="bg-white rounded-2xl shadow-md p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-folder-open mr-2 text-green-600"></i>Materiales</h2>
+      <template x-if="esProfesor">
+        <button @click="mostrarFormMaterial = !mostrarFormMaterial"
+          class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition">
+          <i class="fas fa-plus mr-1"></i> Agregar material
+        </button>
       </template>
     </div>
 
-    <!-- Subcontenido -->
-    <!-- Presentación (cargada dinámicamente) -->
-    <div id="presentacion-container" x-show="subTab==='presentacion'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-      <!-- El contenido se cargará aquí dinámicamente -->
-    </div>
-
-    <!-- Otras secciones (mantenidas estáticamente) -->
-    <div x-show="subTab==='cronograma'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-calendar-alt mr-2"></i> Cronograma</h2>
-      <p class="text-gray-700">Contenido del cronograma...</p>
-    </div>
-    <div x-show="subTab==='materiales'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-folder-open mr-2"></i> Materiales de aprendizaje</h2>
-      <p class="text-gray-700">Materiales aquí...</p>
-    </div>
-
-    <div x-show="subTab==='actividades'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-2xl font-semibold"><i class="fas fa-tasks mr-2"></i> Actividades de aprendizaje</h2>
-        <!-- Botón de crear tarea -->
-        <button id="btn-crear-tarea" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
-          <i class="fas fa-plus mr-1"></i> Crear tarea
-        </button>
+    <!-- Formulario subir material (profesor) -->
+    <template x-if="esProfesor && mostrarFormMaterial">
+      <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 space-y-3">
+        <div class="flex gap-3">
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" x-model="tipoMaterial" value="archivo" class="accent-green-600"> Archivo (PDF, doc...)
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" x-model="tipoMaterial" value="enlace" class="accent-green-600"> Enlace externo
+          </label>
+        </div>
+        <input x-model="matTitulo" type="text" placeholder="Título del material *" class="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300 text-sm">
+        <input x-model="matDescripcion" type="text" placeholder="Descripción (opcional)" class="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300 text-sm">
+        <template x-if="tipoMaterial === 'archivo'">
+          <input @change="matArchivo = $event.target.files[0]" type="file" class="w-full text-sm">
+        </template>
+        <template x-if="tipoMaterial === 'enlace'">
+          <input x-model="matUrl" type="url" placeholder="https://..." class="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300 text-sm">
+        </template>
+        <p x-show="matError" x-text="matError" class="text-red-600 text-sm"></p>
+        <div class="flex gap-2">
+          <button @click="subirMaterial()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition">Subir</button>
+          <button @click="mostrarFormMaterial = false" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 transition">Cancelar</button>
+        </div>
       </div>
-      <div id="actividades-holder" class="mt-2 text-left"></div>
-    </div>
+    </template>
 
-    <div x-show="subTab==='examenes'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-file-alt mr-2"></i> Exámenes</h2>
-      <p class="text-gray-700">Exámenes aquí...</p>
-{{ ... }}
+    <!-- Lista de materiales -->
+    <div x-show="materialesLoading" class="text-center py-8 text-gray-400">
+      <i class="fas fa-spinner fa-spin text-2xl mb-2"></i><p>Cargando...</p>
     </div>
-
-    <div x-show="subTab==='encuesta'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-      <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-poll mr-2"></i> Encuesta</h2>
-      <p class="text-gray-700">Encuesta final...</p>
+    <div x-show="!materialesLoading && materiales.length === 0" class="text-center py-8 text-gray-400">
+      <i class="fas fa-folder-open text-4xl mb-2"></i>
+      <p>No hay materiales en este curso.</p>
+      <p x-show="esProfesor" class="text-sm mt-1">Sube el primer archivo con el botón de arriba.</p>
     </div>
-
+    <div class="space-y-3">
+      <template x-for="m in materiales" :key="m.id">
+        <div class="flex items-center justify-between border rounded-xl px-4 py-3 hover:bg-gray-50 transition">
+          <div class="flex items-center gap-3 min-w-0">
+            <i :class="m.tipo === 'enlace' ? 'fas fa-link text-blue-500' : iconoArchivo(m.archivo_mime)" class="text-xl shrink-0"></i>
+            <div class="min-w-0">
+              <p class="font-medium text-gray-800 truncate" x-text="m.titulo"></p>
+              <p x-show="m.descripcion" x-text="m.descripcion" class="text-xs text-gray-400 truncate"></p>
+              <p class="text-xs text-gray-400" x-text="m.tipo === 'enlace' ? m.url_externa : formatBytes(m.tamano_bytes)"></p>
+            </div>
+          </div>
+          <div class="flex gap-2 shrink-0 ml-3">
+            <template x-if="m.tipo === 'enlace'">
+              <a :href="m.url_externa" target="_blank"
+                class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-blue-700 transition">
+                <i class="fas fa-external-link-alt mr-1"></i>Abrir
+              </a>
+            </template>
+            <template x-if="m.tipo === 'archivo'">
+              <a :href="`/api/materiales?action=descargar&id=${m.id}`"
+                class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-green-700 transition">
+                <i class="fas fa-download mr-1"></i>Descargar
+              </a>
+            </template>
+            <template x-if="esProfesor">
+              <button @click="eliminarMaterial(m.id)"
+                class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs hover:bg-red-200 transition">
+                <i class="fas fa-trash"></i>
+              </button>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
   </div>
 
-  <!-- Participantes -->
-  <div x-show="tab==='participantes'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-    <h2 class="text-2xl font-semibold mb-3"><i class="fas fa-users mr-2"></i> Participantes</h2>
-    <div id="participantes-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-      <p id="cargando-participantes" class="text-gray-500 col-span-full">Cargando participantes...</p>
+  <!-- ═══ ACTIVIDADES ═══ -->
+  <div x-show="tab === 'actividades'" class="bg-white rounded-2xl shadow-md p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-tasks mr-2 text-green-600"></i>Actividades</h2>
+      <template x-if="esProfesor">
+        <button @click="mostrarFormTarea = !mostrarFormTarea"
+          class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition">
+          <i class="fas fa-plus mr-1"></i> Nueva tarea
+        </button>
+      </template>
+    </div>
+
+    <!-- Formulario nueva tarea (profesor) -->
+    <template x-if="esProfesor && mostrarFormTarea">
+      <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 space-y-3">
+        <input x-model="tareaForm.titulo" type="text" placeholder="Título de la tarea *" class="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300 text-sm">
+        <textarea x-model="tareaForm.descripcion" rows="3" placeholder="Descripción (instrucciones, criterios...)" class="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300 text-sm"></textarea>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-500 mb-1 block">Fecha límite</label>
+            <input x-model="tareaForm.fecha_limite" type="datetime-local" class="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300 text-sm">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1 block">Puntos</label>
+            <input x-model="tareaForm.puntos" type="number" min="0" placeholder="0" class="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-green-300 text-sm">
+          </div>
+        </div>
+        <p x-show="tareaError" x-text="tareaError" class="text-red-600 text-sm"></p>
+        <div class="flex gap-2">
+          <button @click="crearTarea()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition">Crear tarea</button>
+          <button @click="mostrarFormTarea = false" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 transition">Cancelar</button>
+        </div>
+      </div>
+    </template>
+
+    <!-- Lista de tareas -->
+    <div x-show="tareasLoading" class="text-center py-8 text-gray-400">
+      <i class="fas fa-spinner fa-spin text-2xl mb-2"></i><p>Cargando...</p>
+    </div>
+    <div x-show="!tareasLoading && tareas.length === 0" class="text-center py-8 text-gray-400">
+      <i class="fas fa-clipboard-list text-4xl mb-2"></i>
+      <p>No hay actividades en este curso.</p>
+    </div>
+    <div class="space-y-3">
+      <template x-for="t in tareas" :key="t.id">
+        <div class="border rounded-xl p-4 hover:shadow-sm transition">
+          <div class="flex justify-between items-start">
+            <div class="flex-1">
+              <p class="font-semibold text-gray-800" x-text="t.title"></p>
+              <p x-show="t.description" x-text="t.description" class="text-sm text-gray-500 mt-1"></p>
+              <div class="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
+                <span x-show="t.due_at">
+                  <i class="fas fa-calendar-alt mr-1"></i>
+                  <span x-text="formatFecha(t.due_at)"></span>
+                </span>
+                <span x-show="t.points > 0">
+                  <i class="fas fa-star mr-1 text-yellow-500"></i>
+                  <span x-text="t.points + ' puntos'"></span>
+                </span>
+                <span :class="{
+                  'text-green-600': t.estado_calculado === 'completada',
+                  'text-red-600':   t.estado_calculado === 'vencida',
+                  'text-yellow-600': t.estado_calculado === 'pendiente'
+                }" class="font-medium capitalize" x-text="t.estado_calculado"></span>
+              </div>
+            </div>
+            <!-- Acciones profesor -->
+            <template x-if="esProfesor">
+              <div class="flex gap-2 ml-3">
+                <a :href="`/views/entregas.html?tarea_id=${t.id}&curso_id=${cursoId}`"
+                  class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs hover:bg-blue-200 transition">
+                  <i class="fas fa-users mr-1"></i>Entregas
+                </a>
+                <button @click="eliminarTarea(t.id)"
+                  class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs hover:bg-red-200 transition">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </template>
+            <!-- Acciones estudiante -->
+            <template x-if="!esProfesor">
+              <div class="ml-3">
+                <button @click="abrirEntrega(t)"
+                  :class="t.estado_calculado === 'completada' ? 'bg-green-100 text-green-700' : 'bg-green-600 text-white hover:bg-green-700'"
+                  class="px-3 py-1.5 rounded-lg text-xs transition">
+                  <i :class="t.estado_calculado === 'completada' ? 'fas fa-check' : 'fas fa-upload'" class="mr-1"></i>
+                  <span x-text="t.estado_calculado === 'completada' ? 'Entregado' : 'Entregar'"></span>
+                </button>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 
-  <!-- Pestaña Calificaciones -->
-<div x-show="tab==='calificaciones'" x-transition class="bg-white rounded-2xl shadow-md p-6 mb-6">
-  <div class="max-w-4xl mx-auto">
-    <div class="mb-4">
-      <h2 class="text-2xl font-semibold mb-2 text-gray-800">
-        <i class="fas fa-star mr-2"></i> Calificaciones
-      </h2>
-      <p class="text-sm text-gray-500">Calificaciones del curso por tarea.</p>
+  <!-- ═══ PARTICIPANTES ═══ -->
+  <div x-show="tab === 'participantes'" class="bg-white rounded-2xl shadow-md p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-users mr-2 text-green-600"></i>Participantes</h2>
     </div>
-    <div id="calificaciones-panel" class="space-y-4">
-      <!-- Aquí se cargarán las calificaciones dinámicamente -->
+
+    <!-- Gestión para profesor -->
+    <template x-if="esProfesor">
+      <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+        <h3 class="font-semibold text-green-800 mb-3 text-sm">Matricular estudiante</h3>
+        <div x-show="noMatriculadosLoading" class="text-gray-400 text-sm">Cargando usuarios...</div>
+        <div x-show="!noMatriculadosLoading">
+          <input x-model="busqNoMat" type="text" placeholder="Buscar por nombre o email..."
+            class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-300 mb-2">
+          <div class="max-h-40 overflow-y-auto space-y-1">
+            <template x-for="u in noMatFiltrados" :key="u.id">
+              <div class="flex justify-between items-center px-3 py-2 bg-white rounded-lg border hover:border-green-300 transition">
+                <span class="text-sm" x-text="`${u.nombre} (${u.email})`"></span>
+                <button @click="matricularEst(u.id)"
+                  class="bg-green-600 text-white text-xs px-3 py-1 rounded-lg hover:bg-green-700 transition">Matricular</button>
+              </div>
+            </template>
+            <p x-show="noMatFiltrados.length === 0 && !noMatriculadosLoading" class="text-gray-400 text-sm text-center py-2">
+              Sin resultados.
+            </p>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Lista de participantes -->
+    <div x-show="participantesLoading" class="text-center py-6 text-gray-400">
+      <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+    </div>
+    <div x-show="!participantesLoading && participantes.length === 0" class="text-center py-6 text-gray-400">
+      <i class="fas fa-users text-4xl mb-2"></i>
+      <p>No hay estudiantes matriculados.</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <template x-for="p in participantes" :key="p.id">
+        <div class="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border hover:border-green-300 transition">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm shrink-0"
+              x-text="(p.nombre || 'U')[0].toUpperCase()"></div>
+            <div>
+              <p class="font-medium text-sm text-gray-800" x-text="p.nombre"></p>
+              <p class="text-xs text-gray-400" x-text="p.email"></p>
+            </div>
+          </div>
+          <template x-if="esProfesor">
+            <button @click="desmatricularEst(p.id)"
+              class="text-red-400 hover:text-red-600 text-xs transition ml-2">
+              <i class="fas fa-user-minus"></i>
+            </button>
+          </template>
+        </div>
+      </template>
     </div>
   </div>
-</div>
+
+  <!-- ═══ CALIFICACIONES ═══ -->
+  <div x-show="tab === 'calificaciones'" class="bg-white rounded-2xl shadow-md p-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-star mr-2 text-green-600"></i>Calificaciones</h2>
+    <div id="calificaciones-panel"></div>
+  </div>
+
 </main>
 
-<script src="/js/task.js"></script>
-<script src="/js/recomendaciones.js"></script>
-<script src="/js/curso-boton-crear.js" type="module"></script>
-<script src="/js/curso-calificaciones.js"></script>
+<!-- Modal Entrega (estudiante) -->
+<div id="modal-entrega" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-bold text-lg text-green-700" id="modal-tarea-titulo">Entregar tarea</h3>
+      <button onclick="document.getElementById('modal-entrega').classList.replace('flex','hidden')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="modal-entrega-contenido"></div>
+  </div>
+</div>
+
 <script>
-  // Variables globales
-  let cursoId;
-  let esProfesor = false;
-  let usuarioActual;
-  let cursoData;
+function cursoPag() {
+  return {
+    // estado global
+    cursoId: new URLSearchParams(location.search).get('id') || new URLSearchParams(location.search).get('curso_id'),
+    curso: {},
+    esProfesor: false,
+    usuarioId: null,
+    tab: 'presentacion',
+    tabs: [
+      { id: 'presentacion', label: 'Presentación', icon: 'fas fa-info-circle' },
+      { id: 'materiales',   label: 'Materiales',   icon: 'fas fa-folder-open' },
+      { id: 'actividades',  label: 'Actividades',  icon: 'fas fa-tasks' },
+      { id: 'participantes',label: 'Participantes',icon: 'fas fa-users' },
+      { id: 'calificaciones',label: 'Calificaciones',icon: 'fas fa-star' },
+    ],
+    // presentación
+    descripcionEdit: '',
+    descGuardado: false,
+    // materiales
+    materiales: [],
+    materialesLoading: false,
+    mostrarFormMaterial: false,
+    tipoMaterial: 'archivo',
+    matTitulo: '', matDescripcion: '', matArchivo: null, matUrl: '', matError: '',
+    // actividades
+    tareas: [],
+    tareasLoading: false,
+    mostrarFormTarea: false,
+    tareaForm: { titulo: '', descripcion: '', fecha_limite: '', puntos: 0 },
+    tareaError: '',
+    // participantes
+    participantes: [],
+    participantesLoading: false,
+    noMatriculados: [],
+    noMatriculadosLoading: false,
+    busqNoMat: '',
 
-  // Cargar header
-  fetch('/views/header.html')
-    .then(res => res.text())
-    .then(html => {
-      const container = document.getElementById('header-container');
-      container.innerHTML = html;
+    get noMatFiltrados() {
+      const q = this.busqNoMat.toLowerCase();
+      return q ? this.noMatriculados.filter(u =>
+        (u.nombre + ' ' + u.email).toLowerCase().includes(q)
+      ) : this.noMatriculados;
+    },
 
-      // Ejecutar scripts del header
-      const scripts = container.querySelectorAll('script');
-      scripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        if (oldScript.src) {
-          newScript.src = oldScript.src;
-        } else {
-          newScript.textContent = oldScript.textContent;
-        }
-        document.body.appendChild(newScript);
-        oldScript.remove();
+    async init() {
+      if (!this.cursoId) { alert('No se indicó ID de curso'); history.back(); return; }
+
+      // Cargar curso y perfil en paralelo
+      const [cursoDat, perfil] = await Promise.all([
+        fetch(`/api/cursos?action=obtener-detalle&id=${this.cursoId}`, { credentials: 'include' }).then(r => r.json()),
+        fetch('/api/perfil', { credentials: 'include' }).then(r => r.ok ? r.json() : null)
+      ]);
+
+      this.curso = cursoDat;
+      this.descripcionEdit = cursoDat.descripcion || '';
+
+      if (perfil) {
+        this.usuarioId = perfil.id;
+        this.esProfesor = perfil.rol === 'admin' ||
+          (perfil.rol === 'profesor' && cursoDat.profesor_id === perfil.id);
+      }
+
+      // Cargar datos del tab activo
+      this.cargarTabActivo();
+
+      // Watch tab changes
+      this.$watch('tab', () => this.cargarTabActivo());
+    },
+
+    cargarTabActivo() {
+      if (this.tab === 'materiales'    && !this.materiales.length)    this.cargarMateriales();
+      if (this.tab === 'actividades'   && !this.tareas.length)        this.cargarTareas();
+      if (this.tab === 'participantes' && !this.participantes.length) this.cargarParticipantes();
+      if (this.tab === 'calificaciones') this.cargarCalificaciones();
+    },
+
+    // ── Presentación ──
+    async guardarDescripcion() {
+      await fetch('/api/cursos?action=actualizar-descripcion', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ curso_id: this.cursoId, descripcion: this.descripcionEdit })
       });
-    });
+      this.curso.descripcion = this.descripcionEdit;
+      this.descGuardado = true;
+      setTimeout(() => this.descGuardado = false, 2500);
+    },
 
-  // Obtener ID de curso de la URL
-  const params = new URLSearchParams(window.location.search);
-  cursoId = params.get("id") || params.get("curso_id") || params.get("courseId");
+    // ── Materiales ──
+    async cargarMateriales() {
+      this.materialesLoading = true;
+      const r = await fetch(`/api/materiales?action=listar&curso_id=${this.cursoId}`, { credentials: 'include' });
+      this.materiales = r.ok ? await r.json() : [];
+      this.materialesLoading = false;
+    },
 
-  if (!cursoId) {
-    alert("No se proporcionó ID de curso");
-    location.href = "/mis-cursos.html";
-  }
+    async subirMaterial() {
+      this.matError = '';
+      if (!this.matTitulo.trim()) { this.matError = 'El título es obligatorio'; return; }
+      if (this.tipoMaterial === 'archivo' && !this.matArchivo) { this.matError = 'Selecciona un archivo'; return; }
+      if (this.tipoMaterial === 'enlace' && !this.matUrl.trim()) { this.matError = 'Ingresa una URL válida'; return; }
 
-  // Función para cargar la presentación
-  async function cargarPresentacion() {
-    const contenedor = document.getElementById('presentacion-container');
-    
-    try {
-      // Cargar el partial correspondiente desde views/presentacion/
-      const respuesta = await fetch('presentacion.html');
-      if (!respuesta.ok) {
-        throw new Error(`No se pudo cargar la presentación: ${respuesta.status}`);
-      }
-      
-      const html = await respuesta.text();
-      contenedor.innerHTML = html;
-      
-      // Inicializar la presentación
-      inicializarPresentacion();
-    } catch (error) {
-      console.error('Error al cargar la presentación:', error);
-      contenedor.innerHTML = `
-        <div class="text-center py-4 text-red-500">
-          <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
-          <p>Error al cargar la presentación</p>
-        </div>
-      `;
-    }
-  }
+      const fd = new FormData();
+      fd.append('titulo', this.matTitulo);
+      fd.append('descripcion', this.matDescripcion);
+      fd.append('tipo', this.tipoMaterial);
+      fd.append('curso_id', this.cursoId);
+      if (this.tipoMaterial === 'archivo') fd.append('archivo', this.matArchivo);
+      else fd.append('url_externa', this.matUrl);
 
-  // Función para inicializar la sección de presentación
-  function inicializarPresentacion() {
-    // Actualizar la descripción del curso
-    const presentacionTexto = document.getElementById('presentacion-texto');
-    if (presentacionTexto && cursoData) {
-      presentacionTexto.textContent = cursoData.descripcion || 'Sin descripción';
-    }
+      const r = await fetch(`/api/materiales?action=subir&curso_id=${this.cursoId}`, { method: 'POST', body: fd, credentials: 'include' });
+      const d = await r.json();
+      if (!r.ok) { this.matError = d.error || 'Error al subir'; return; }
 
-    // Configurar el editor si es profesor
-    if (esProfesor) {
-      const editor = document.getElementById('presentacion-editor');
-      if (editor) {
-        editor.classList.remove('hidden');
-        const descInput = document.getElementById('descripcion-input');
-        if (descInput && cursoData) {
-          descInput.value = cursoData.descripcion || '';
-        }
-      }
-      
-      // Configurar el evento de guardado
-      const guardarBtn = document.getElementById('guardar-descripcion');
-      if (guardarBtn) {
-        guardarBtn.addEventListener('click', guardarDescripcion);
-      }
-    }
-  }
+      this.matTitulo = ''; this.matDescripcion = ''; this.matArchivo = null; this.matUrl = '';
+      this.mostrarFormMaterial = false;
+      await this.cargarMateriales();
+    },
 
-  // Función para guardar la descripción del curso
-  function guardarDescripcion() {
-    const nuevaDescripcion = document.getElementById('descripcion-input').value;
+    async eliminarMaterial(id) {
+      if (!confirm('¿Eliminar este material?')) return;
+      await fetch(`/api/materiales?action=eliminar&id=${id}`, { method: 'DELETE', credentials: 'include' });
+      await this.cargarMateriales();
+    },
 
-    fetch(`/api/cursos?action=actualizar-descripcion`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        curso_id: cursoId,
-        descripcion: nuevaDescripcion
-      })
-    })
-      .then(res => res.json())
-      .then(res => {
-        if (res.success) {
-          document.getElementById('presentacion-texto').textContent = nuevaDescripcion;
-          alert('Descripción actualizada');
-        } else {
-          alert('Error al actualizar');
-        }
+    // ── Tareas ──
+    async cargarTareas() {
+      this.tareasLoading = true;
+      const r = await fetch(`/api/tareas?action=listar&curso_id=${this.cursoId}`, { credentials: 'include' });
+      this.tareas = r.ok ? await r.json() : [];
+      this.tareasLoading = false;
+    },
+
+    async crearTarea() {
+      this.tareaError = '';
+      if (!this.tareaForm.titulo.trim()) { this.tareaError = 'El título es obligatorio'; return; }
+      const r = await fetch('/api/tareas?action=crear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...this.tareaForm, curso_id: this.cursoId }),
+        credentials: 'include'
       });
-  }
+      const d = await r.json();
+      if (!r.ok) { this.tareaError = d.error || 'Error al crear'; return; }
+      this.tareaForm = { titulo: '', descripcion: '', fecha_limite: '', puntos: 0 };
+      this.mostrarFormTarea = false;
+      await this.cargarTareas();
+    },
 
-  // === CARGAR ACTIVIDADES (fragmento + init) ===
-  async function cargarActividades(esProfesor) {
-    const holder = document.getElementById('actividades-holder');
-    if (!holder || holder.dataset.loaded) return; // evita doble carga
+    async eliminarTarea(id) {
+      if (!confirm('¿Eliminar esta tarea? También se borrarán las entregas.')) return;
+      await fetch(`/api/tareas?action=eliminar&id=${id}`, { method: 'DELETE', credentials: 'include' });
+      await this.cargarTareas();
+    },
 
-    // Trae el fragmento /includes/task.html
-    const res = await fetch('/includes/task.html');
-    holder.innerHTML = await res.text();
+    async abrirEntrega(tarea) {
+      const modal = document.getElementById('modal-entrega');
+      document.getElementById('modal-tarea-titulo').textContent = tarea.title;
+      const cont = document.getElementById('modal-entrega-contenido');
+      cont.innerHTML = '<p class="text-gray-400 text-sm text-center py-4"><i class="fas fa-spinner fa-spin mr-1"></i>Cargando...</p>';
+      modal.classList.replace('hidden', 'flex');
 
-    // Configura dataset para rol y curso
-    const root = holder.querySelector('#tasks-root');
-    root.dataset.role = esProfesor ? 'profesor' : 'estudiante';
-    root.dataset.courseId = cursoId;
+      // Intentar cargar entrega existente
+      let entrega = null;
+      try {
+        const r = await fetch(`/api/entregas?action=detalle&tarea_id=${tarea.id}`, { credentials: 'include' });
+        if (r.ok) { const d = await r.json(); entrega = d.entrega; }
+      } catch {}
 
-    // Inicializa la página de tareas
-    if (window.TasksPage) {
-      window.TasksPage.init();
-    }
+      if (entrega) {
+        const fecha = new Date(entrega.fecha_entrega).toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' });
+        const kb = entrega.tamano_bytes ? (entrega.tamano_bytes / 1024).toFixed(1) + ' KB' : '';
+        const calificada = entrega.calificacion != null;
 
-    // Eliminar TODOS los botones de acción inmediatamente después de la inicialización
-    setTimeout(() => {
-      // Eliminar botones de profesor
-      const accionesProfesor = holder.querySelectorAll('[data-field="actions"]');
-      accionesProfesor.forEach(accion => accion.remove());
-      
-      // Eliminar botones de estudiante
-      const accionesEstudiante = holder.querySelectorAll('[data-field="student-actions"]');
-      accionesEstudiante.forEach(accion => accion.remove());
-      
-      // Eliminar botón de nueva tarea
-      const btnNuevaTarea = holder.querySelector('#btnNuevaTarea');
-      if (btnNuevaTarea) btnNuevaTarea.remove();
-      
-      // Eliminar cualquier otro botón de acción que pueda existir
-      const botonesAccion = holder.querySelectorAll('button');
-      botonesAccion.forEach(boton => {
-        const texto = boton.textContent.toLowerCase();
-        if (texto.includes('entregar') || texto.includes('editar') || 
-            texto.includes('eliminar') || texto.includes('actualizar') ||
-            texto.includes('calificar') || texto.includes('completar') ||
-            texto.includes('ver entrega')) {
-          boton.remove();
-        }
-      });
-    }, 100);
-
-    holder.dataset.loaded = "1";
-  }
-
-  // Cargar datos del curso
-  fetch(`/api/cursos?action=obtener-detalle&id=${cursoId}`)
-    .then(res => {
-      if (!res.ok) {
-        throw new Error(`Error al cargar el curso: ${res.status} ${res.statusText}`);
-      }
-      return res.json();
-    })
-    .then(curso => {
-      if (!curso) {
-        throw new Error('No se pudo cargar la información del curso');
-      }
-      
-      // Guardar datos del curso en variable global
-      cursoData = curso;
-      
-      document.getElementById('nombre-curso').textContent = curso.nombre || 'Curso sin nombre';
-      document.getElementById('nombre-tutor').textContent = `Tutor: ${curso.profesor || 'No asignado'}`;
-
-      // Obtener usuario actual
-      return fetch('/api/perfil')
-        .then(res => {
-          if (!res.ok) {
-            throw new Error(`Error al cargar el perfil de usuario: ${res.status} ${res.statusText}`);
-          }
-          return res.json();
-        })
-        .then(usuario => {
-          if (!usuario || !usuario.id) {
-            throw new Error('No se pudo cargar la información del usuario');
-          }
-          usuarioActual = usuario;
-          esProfesor = usuario.id === curso.profesor_id || usuario.rol === 'profesor' || usuario.rol === 'admin';
-          
-          // Cargar la presentación
-          cargarPresentacion();
-          
-          // Cargar actividades
-          cargarActividades(esProfesor);
-          
-          // Cargar participantes
-          cargarParticipantes(cursoId);
-        });
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert(error.message || 'Ocurrió un error al cargar el curso');
-      // Redirigir a la página de cursos si hay un error
-      window.location.href = '/mis-cursos.html';
-    });
-
-  // Función para cargar participantes
-  async function cargarParticipantes(cursoId){
-    const listContainer = document.getElementById('participantes-list');
-    const cargando = document.getElementById('cargando-participantes');
-    try {
-      const res = await fetch(`/api/participantes?id=${cursoId}`, { credentials:'include' });
-      if(!res.ok) throw new Error('Error al cargar participantes');
-      const data = await res.json();
-      cargando.remove();
-      if(Array.isArray(data) && data.length>0){
-        data.forEach(usuario=>{
-          const div = document.createElement('div');
-          div.className='bg-green-50 rounded-lg p-3 flex items-center gap-3 hover:bg-green-100 transition';
-          div.innerHTML=`
-            <div class="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center text-green-700 font-semibold">${(usuario.nombre[0]||'U').toUpperCase()}</div>
-            <div>
-              <p class="font-medium text-gray-700">${usuario.nombre}</p>
-              <p class="text-gray-500 text-sm">${usuario.email||''}</p>
+        const bloqueCalificacion = calificada ? `
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
+            <p class="text-xs text-blue-700 font-semibold uppercase">Calificación del profesor</p>
+            <div class="flex items-center gap-3">
+              <span class="text-3xl font-extrabold text-blue-700">${entrega.calificacion}</span>
+              <span class="text-gray-400 text-sm">/ 10</span>
             </div>
-          `;
-          listContainer.appendChild(div);
-        });
+            ${entrega.observacion ? `
+              <div class="bg-white border border-blue-100 rounded-lg px-3 py-2 text-sm text-gray-700">
+                <p class="text-xs text-gray-400 font-medium mb-1">Retroalimentación</p>
+                <p>${escH(entrega.observacion)}</p>
+              </div>` : ''}
+          </div>` : `
+          <div class="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 flex items-center gap-2 text-sm text-yellow-700">
+            <i class="fas fa-clock"></i>
+            <span>Pendiente de calificación por el profesor.</span>
+          </div>`;
+
+        cont.innerHTML = `
+          <div class="space-y-4">
+            ${bloqueCalificacion}
+            <!-- Entrega actual -->
+            <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+              <p class="text-xs text-green-700 font-semibold uppercase mb-2">Tu entrega</p>
+              <div class="flex items-center gap-3">
+                <i class="fas fa-file text-green-600 text-2xl"></i>
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium text-gray-800 truncate">${escH(entrega.archivo_nombre)}</p>
+                  <p class="text-xs text-gray-500">${kb} · Entregado el ${fecha}</p>
+                </div>
+                <a href="/api/entregas?action=descargar&tarea_id=${tarea.id}"
+                   class="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-green-700 transition shrink-0">
+                  <i class="fas fa-download mr-1"></i>Descargar
+                </a>
+              </div>
+            </div>
+            <!-- Reemplazar (solo si no está calificada) -->
+            ${!calificada ? `
+            <details class="border rounded-xl overflow-hidden">
+              <summary class="px-4 py-2 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50">
+                <i class="fas fa-upload mr-1 text-blue-500"></i>Reemplazar entrega
+              </summary>
+              <form onsubmit="submitEntrega(event, ${tarea.id})" class="p-4 space-y-3 border-t">
+                <input type="file" name="archivo" required class="w-full text-sm border rounded-lg px-2 py-1.5">
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium text-sm">
+                  <i class="fas fa-sync mr-1"></i>Actualizar entrega
+                </button>
+              </form>
+            </details>
+            <button onclick="eliminarEntrega(${tarea.id})"
+              class="w-full border border-red-300 text-red-600 py-2 rounded-lg hover:bg-red-50 text-sm font-medium transition">
+              <i class="fas fa-trash mr-1"></i>Eliminar entrega
+            </button>` : `
+            <p class="text-xs text-gray-400 text-center">La entrega ya fue calificada y no puede modificarse.</p>`}
+          </div>
+        `;
       } else {
-        listContainer.innerHTML='<p class="text-gray-500 col-span-full">No hay participantes inscritos.</p>';
+        cont.innerHTML = `
+          <form onsubmit="submitEntrega(event, ${tarea.id})" class="space-y-3">
+            <p class="text-sm text-gray-500">${escH(tarea.description || '')}</p>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Archivo de entrega</label>
+              <input type="file" name="archivo" required class="w-full mt-1 text-sm border rounded-lg px-2 py-1.5">
+            </div>
+            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-medium">
+              <i class="fas fa-upload mr-1"></i>Entregar
+            </button>
+          </form>
+        `;
       }
-    } catch(err){ 
-      console.error(err); 
-      listContainer.innerHTML='<p class="text-red-500 col-span-full">Error al cargar los participantes.</p>'; 
+    },
+
+    // ── Participantes ──
+    async cargarParticipantes() {
+      this.participantesLoading = true;
+      const r = await fetch(`/api/participantes?id=${this.cursoId}`, { credentials: 'include' });
+      this.participantes = r.ok ? await r.json() : [];
+      this.participantesLoading = false;
+
+      if (this.esProfesor) {
+        this.noMatriculadosLoading = true;
+        const r2 = await fetch(`/api/cursos?action=no-matriculados&curso_id=${this.cursoId}`, { credentials: 'include' });
+        this.noMatriculados = r2.ok ? await r2.json() : [];
+        this.noMatriculadosLoading = false;
+      }
+    },
+
+    async matricularEst(estudianteId) {
+      await fetch('/api/cursos?action=matricular-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ curso_id: this.cursoId, estudiante_id: estudianteId }),
+        credentials: 'include'
+      });
+      this.participantes = []; // forzar recarga
+      await this.cargarParticipantes();
+    },
+
+    async desmatricularEst(estudianteId) {
+      if (!confirm('¿Desmatricular a este estudiante?')) return;
+      await fetch(`/api/cursos?action=desmatricular&curso_id=${this.cursoId}&estudiante_id=${estudianteId}`, {
+        method: 'DELETE', credentials: 'include'
+      });
+      this.participantes = [];
+      await this.cargarParticipantes();
+    },
+
+    // ── Calificaciones ──
+    cargarCalificaciones() {
+      const panel = document.getElementById('calificaciones-panel');
+      panel.innerHTML = '<p class="text-gray-400 text-sm">Cargando...</p>';
+      fetch(`/api/calificaciones?action=listar_por_curso&curso_id=${this.cursoId}`, { credentials: 'include' })
+        .then(r => r.json())
+        .then(data => {
+          if (!data.tareas?.length) { panel.innerHTML = '<p class="text-gray-400">Sin calificaciones registradas.</p>'; return; }
+          panel.innerHTML = data.tareas.map(t => `
+            <div class="border rounded-xl p-4 mb-3">
+              <p class="font-semibold text-gray-800">${escH(t.titulo)}</p>
+              <p class="text-xs text-gray-400 mb-2">Evaluadas: ${t.evaluadas}/${t.total} · Promedio: ${t.promedio != null ? Number(t.promedio).toFixed(1) : 'N/A'}</p>
+              ${data.puedeVerTodo ? t.estudiantes.map(e => `
+                <div class="flex justify-between text-sm border-t py-1">
+                  <span>${escH(e.nombre)}</span>
+                  <span class="font-medium ${e.calificacion != null ? 'text-green-700' : 'text-gray-400'}">${e.calificacion != null ? e.calificacion : 'Pendiente'}</span>
+                </div>
+              `).join('') : ''}
+            </div>
+          `).join('');
+        }).catch(() => { panel.innerHTML = '<p class="text-red-400 text-sm">Error al cargar calificaciones.</p>'; });
+    },
+
+    // ── Helpers ──
+    formatFecha(str) {
+      if (!str) return '';
+      return new Date(str).toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' });
+    },
+    formatBytes(b) {
+      if (!b) return '';
+      if (b < 1024) return b + ' B';
+      if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+      return (b/1024/1024).toFixed(1) + ' MB';
+    },
+    iconoArchivo(mime) {
+      if (!mime) return 'fas fa-file text-gray-400';
+      if (mime.includes('pdf')) return 'fas fa-file-pdf text-red-500';
+      if (mime.includes('word') || mime.includes('document')) return 'fas fa-file-word text-blue-500';
+      if (mime.includes('sheet') || mime.includes('excel')) return 'fas fa-file-excel text-green-500';
+      if (mime.includes('image')) return 'fas fa-file-image text-purple-500';
+      if (mime.includes('video')) return 'fas fa-file-video text-orange-500';
+      return 'fas fa-file text-gray-400';
     }
   }
+}
+
+function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function submitEntrega(e, tareaId) {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Enviando...';
+  const fd = new FormData(e.target);
+  fd.append('tarea_id', tareaId);
+  const r = await fetch('/api/entregas?action=subir', { method: 'POST', body: fd, credentials: 'include' });
+  const d = await r.json();
+  if (r.ok) {
+    document.getElementById('modal-entrega').classList.replace('flex','hidden');
+    // Recargar tareas para que el estado se actualice
+    Alpine.store && Alpine.store('curso') ? null : null;
+    location.reload();
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-upload mr-1"></i>Entregar';
+    alert(d.error || 'Error al entregar');
+  }
+}
+
+async function eliminarEntrega(tareaId) {
+  if (!confirm('¿Eliminar tu entrega? Esta acción no se puede deshacer.')) return;
+  const r = await fetch(`/api/entregas?action=eliminar&tarea_id=${tareaId}`, { method: 'DELETE', credentials: 'include' });
+  if (r.ok) {
+    document.getElementById('modal-entrega').classList.replace('flex','hidden');
+    location.reload();
+  } else {
+    alert('Error al eliminar la entrega');
+  }
+}
 </script>
 
+<script>
+fetch('/views/header.html').then(r => r.text()).then(html => {
+  const c = document.getElementById('header-container');
+  c.innerHTML = html;
+  c.querySelectorAll('script').forEach(s => {
+    const ns = document.createElement('script');
+    ns.src ? (ns.src = s.src) : (ns.textContent = s.textContent);
+    document.body.appendChild(ns);
+    s.remove();
+  });
+});
+</script>
 
-
-<script src="/js/curso.js"></script>
-<script src="/js/curso-calificaciones.js"></script>
 </body>
 </html>

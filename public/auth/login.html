@@ -1,73 +1,167 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - UTM 2024</title>
-    <link rel="stylesheet" href="/css/login.css">
-</head>
-<body>
-    <div class="login-container">
-        <img src="/imagenes/logo.svg" alt="Logo" class="logo">
-        <h2>Iniciar Sesión</h2>
-        
-        <!-- Botón de regresar -->
-        <a href="/index.html" class="btn-regresar">Regresar</a>
-        
-        <!-- Mensaje de error dinámico -->
-        <p id="error-message" class="error-message" style="display: none;"></p>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión - Innovatech</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .btn-primary {
+      background-color: #00983d;
+      transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { background-color: #007d32; box-shadow: 0 4px 14px rgba(0,152,61,0.35); }
+    .btn-primary:active { transform: scale(0.98); }
 
-        <form id="loginForm">
-            <div class="input-box">
-                <input type="email" name="email" id="email" placeholder="Email" required>
-            </div>
-            <div class="input-box">
-                <input type="password" name="password" id="password" placeholder="Contraseña" required>
-            </div>
-            <button type="submit" class="btn-login">Entrar</button>
-        </form>
+    .input-field {
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: #00983d;
+      box-shadow: 0 0 0 3px rgba(0,152,61,0.15);
+    }
+
+    .card-enter {
+      animation: slideUp 0.4s ease-out;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center px-4">
+
+  <div class="w-full max-w-md card-enter">
+    <!-- Logo / Brand -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg" style="background-color:#00983d;">
+        <i class="fas fa-graduation-cap text-white text-2xl"></i>
+      </div>
+      <h1 class="text-2xl font-extrabold text-gray-900">Innovatech LMS</h1>
+      <p class="text-sm text-gray-500 mt-1">Plataforma educativa</p>
     </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Capturar error de la URL si existe
-            const urlParams = new URLSearchParams(window.location.search);
-            const errorMessage = urlParams.get("error");
-            if (errorMessage) {
-                document.getElementById("error-message").textContent = decodeURIComponent(errorMessage);
-                document.getElementById("error-message").style.display = "block";
-            }
-    
-            // Manejo del formulario de login
-            document.getElementById("loginForm").addEventListener("submit", async function (event) {
-                event.preventDefault();
-    
-                const email = document.getElementById("email").value;
-                const password = document.getElementById("password").value;
-    
-                try {
-                    const response = await fetch("/api/procesarlogin", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        credentials: "include", // Para incluir cookies en la petición
-                        body: JSON.stringify({ email, password }),
-                    });
-    
-                    const result = await response.json();
-                    
-                    if (response.ok) {
-                        window.location.href = result.redirect; // Ahora redirige correctamente según el rol
-                    } else {
-                        document.getElementById("error-message").textContent = result.error;
-                        document.getElementById("error-message").style.display = "block";
-                    }
-                } catch (error) {
-                    document.getElementById("error-message").textContent = "Error de conexión con el servidor.";
-                    document.getElementById("error-message").style.display = "block";
-                }
-            });
+    <!-- Card -->
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <h2 class="text-xl font-bold text-gray-800 mb-6">Iniciar sesión</h2>
+
+      <!-- Error message -->
+      <div id="error-message" class="hidden mb-4 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+        <i class="fas fa-exclamation-circle shrink-0"></i>
+        <span id="error-text"></span>
+      </div>
+
+      <form id="loginForm" class="space-y-5">
+        <!-- Email -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5" for="email">
+            Correo electrónico
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <i class="fas fa-envelope text-sm"></i>
+            </span>
+            <input
+              type="email" id="email" name="email" required
+              placeholder="tu@correo.com"
+              class="input-field w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 text-sm text-gray-900 bg-gray-50"
+            >
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5" for="password">
+            Contraseña
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <i class="fas fa-lock text-sm"></i>
+            </span>
+            <input
+              type="password" id="password" name="password" required
+              placeholder="••••••••"
+              class="input-field w-full border border-gray-300 rounded-lg pl-9 pr-10 py-2.5 text-sm text-gray-900 bg-gray-50"
+            >
+            <button type="button" id="toggle-password"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+              <i class="fas fa-eye text-sm" id="eye-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" id="btn-submit"
+          class="btn-primary w-full text-white font-semibold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 mt-2">
+          <i class="fas fa-sign-in-alt"></i>
+          <span>Entrar</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Back link -->
+    <p class="text-center mt-5 text-sm text-gray-500">
+      <a href="/index.html" class="text-green-700 hover:text-green-800 hover:underline font-medium transition-colors">
+        <i class="fas fa-arrow-left mr-1 text-xs"></i>Volver al inicio
+      </a>
+    </p>
+  </div>
+
+  <script>
+    // Toggle password visibility
+    document.getElementById('toggle-password').addEventListener('click', () => {
+      const input = document.getElementById('password');
+      const icon  = document.getElementById('eye-icon');
+      const show  = input.type === 'password';
+      input.type  = show ? 'text' : 'password';
+      icon.className = show ? 'fas fa-eye-slash text-sm' : 'fas fa-eye text-sm';
+    });
+
+    // Error from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlError  = urlParams.get('error');
+    if (urlError) showError(decodeURIComponent(urlError));
+
+    function showError(msg) {
+      document.getElementById('error-text').textContent = msg;
+      document.getElementById('error-message').classList.remove('hidden');
+    }
+
+    // Login form
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn  = document.getElementById('btn-submit');
+      const email    = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Entrando...</span>';
+      document.getElementById('error-message').classList.add('hidden');
+
+      try {
+        const response = await fetch('/api/procesarlogin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, password }),
         });
-    </script>
-    
+        const result = await response.json();
+        if (response.ok) {
+          window.location.href = result.redirect;
+        } else {
+          showError(result.error || 'Credenciales inválidas');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>Entrar</span>';
+        }
+      } catch {
+        showError('Error de conexión con el servidor.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>Entrar</span>';
+      }
+    });
+  </script>
 </body>
 </html>
