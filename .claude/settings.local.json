@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node server.js)",
+      "Bash(curl -s http://localhost:3000/api/usuarios?action=profesores)",
+      "PowerShell($p = Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -First 1; if \\($p\\) { Stop-Process -Id $p -Force; Write-Host \"Killed PID $p\" }; Start-Sleep -Seconds 2; Set-Location \"c:\\\\Users\\\\craft\\\\Downloads\\\\innovatech-main\"; node server.js)",
+      "Bash(curl -s \"http://localhost:3000/api/usuarios?action=profesores\")",
+      "PowerShell(Get-Process node -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)",
+      "Bash(curl -s \"http://localhost:3000/api/usuarios?action=profesores\" -H \"Accept: application/json\")",
+      "Bash(curl -s -c /tmp/cookies.txt -X POST \"http://localhost:3000/api/procesarlogin\" -H \"Content-Type: application/json\" -d '{\"email\":\"srdieguit@gmail.com\",\"password\":\"Diego2002##\"}')",
+      "Bash(curl -s -b /tmp/cookies.txt -X POST \"http://localhost:3000/api/usuarios?action=crear-profesor\" -H \"Content-Type: application/json\" -d '{\"nombre\":\"Ana Pérez\",\"email\":\"ana@test.com\",\"password\":\"Test1234\"}')",
+      "Bash(curl -s http://localhost:3000/api/verificarSesion)",
+      "Bash(curl -s \"http://localhost:3000/api/verificarSesion\")",
+      "Bash(Get-Process node *)",
+      "Bash(Stop-Process -Force -ErrorAction SilentlyContinue)",
+      "Bash(Start-Sleep 1)"
+    ]
+  }
+}

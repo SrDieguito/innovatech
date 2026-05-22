@@ -441,11 +441,12 @@
             <i class="fab fa-wikipedia-w"></i> Wikipedia
             <span class="opacity-70" x-text="tareaRecursos.filter(r => r.fuente === 'wikipedia').length"></span>
           </button>
-          <button x-show="tareaRecursos.some(r => r.fuente === 'scholar')"
+          <button x-show="tareaRecursos.some(r => ['scholar','semanticscholar','scihub'].includes(r.fuente))"
                   @click="filtroTareaRec = 'scholar'"
                   :class="filtroTareaRec === 'scholar' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'"
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition">
             <i class="fas fa-graduation-cap"></i> Académico
+            <span class="opacity-70" x-text="tareaRecursos.filter(r => ['scholar','semanticscholar','scihub'].includes(r.fuente)).length"></span>
           </button>
           <button x-show="tareaRecursos.some(r => r.fuente === 'khanacademy')"
                   @click="filtroTareaRec = 'khanacademy'"
@@ -458,10 +459,10 @@
 
         <!-- Cards de recursos -->
         <div x-show="!tareaRecursosLoading" class="space-y-2">
-          <template x-for="r in tareaRecursos.filter(r => filtroTareaRec === 'todos' || r.fuente === filtroTareaRec)" :key="r.url">
+          <template x-for="r in tareaRecursos.filter(r => filtroTareaRec === 'todos' || r.fuente === filtroTareaRec || (filtroTareaRec === 'scholar' && ['semanticscholar','scihub'].includes(r.fuente)))" :key="r.url">
             <div>
-              <!-- ── Card legible (Wikipedia): Leer + Descargar ── -->
-              <template x-if="r.legible">
+              <!-- ── Card legible (Wikipedia) ── -->
+              <template x-if="r.legible && r.fuente === 'wikipedia'">
                 <div class="bg-gray-50 rounded-xl border border-slate-200 p-3 hover:border-slate-300 transition">
                   <div class="flex gap-3">
                     <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 text-base">
@@ -486,53 +487,115 @@
                 </div>
               </template>
 
-              <!-- ── Card normal (link externo) ── -->
-              <template x-if="!r.legible">
-                <a :href="r.url" target="_blank" rel="noopener noreferrer"
-                   class="flex gap-3 bg-gray-50 rounded-xl p-3 hover:bg-white hover:shadow-md border border-transparent hover:border-green-200 transition group">
+              <!-- ── Card legible (Semantic Scholar paper) ── -->
+              <template x-if="r.legible && r.fuente === 'semanticscholar'">
+                <div class="bg-indigo-50 rounded-xl border border-indigo-200 p-3 hover:border-indigo-300 transition">
+                  <div class="flex gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 text-base">
+                      <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="font-semibold text-sm text-gray-800 leading-snug" x-text="r.titulo"></p>
+                      <p x-show="r.autores || r.anio" class="text-xs text-indigo-600 mt-0.5 truncate">
+                        <span x-show="r.autores" x-text="r.autores"></span>
+                        <span x-show="r.autores && r.anio"> · </span>
+                        <span x-show="r.anio" x-text="r.anio"></span>
+                      </p>
+                      <p class="text-xs text-gray-500 mt-0.5 line-clamp-2" x-text="r.desc"></p>
+                      <span class="text-xs font-medium text-indigo-500">Semantic Scholar</span>
+                    </div>
+                  </div>
+                  <div class="flex gap-2 mt-3 flex-wrap">
+                    <button @click="abrirArticulo(r)"
+                            class="flex-1 bg-indigo-600 text-white text-xs font-semibold py-2 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-1.5">
+                      <i class="fas fa-file-alt"></i> Leer abstract
+                    </button>
+                    <template x-if="r.scihub_url">
+                      <a :href="r.scihub_url" target="_blank" rel="noopener noreferrer"
+                         class="px-3 bg-green-600 text-white text-xs font-semibold py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-1.5">
+                        <i class="fas fa-unlock"></i> Sci-Hub
+                      </a>
+                    </template>
+                    <template x-if="r.pdf_url">
+                      <a :href="r.pdf_url" target="_blank" rel="noopener noreferrer"
+                         class="px-3 bg-white border border-indigo-300 text-indigo-600 text-xs font-medium py-2 rounded-lg hover:bg-indigo-50 transition flex items-center gap-1.5">
+                        <i class="fas fa-file-pdf"></i> PDF
+                      </a>
+                    </template>
+                    <a :href="r.url" target="_blank" rel="noopener noreferrer"
+                       class="px-3 border border-indigo-200 text-indigo-400 text-xs font-medium py-2 rounded-lg hover:bg-indigo-50 transition flex items-center gap-1">
+                      <i class="fas fa-external-link-alt"></i>
+                    </a>
+                  </div>
+                </div>
+              </template>
 
-                  <template x-if="r.thumbnail">
-                    <div class="relative w-28 h-16 rounded-lg overflow-hidden bg-gray-200 shrink-0">
-                      <img :src="r.thumbnail" :alt="r.titulo" class="w-full h-full object-cover">
-                      <div class="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                        <i class="fas fa-play text-white text-sm"></i>
+              <!-- ── Card YouTube (reproductor in-app) ── -->
+              <template x-if="!r.legible && r.fuente === 'youtube'">
+                <div @click="reproducirVideo(r)"
+                     class="cursor-pointer flex gap-3 bg-gray-50 rounded-xl p-3 hover:bg-white hover:shadow-md border border-transparent hover:border-red-200 transition group">
+                  <div class="relative w-28 h-16 rounded-lg overflow-hidden bg-gray-900 shrink-0">
+                    <img x-show="r.thumbnail" :src="r.thumbnail" :alt="r.titulo" class="w-full h-full object-cover">
+                    <div x-show="!r.thumbnail" class="absolute inset-0 bg-red-900 flex items-center justify-center">
+                      <i class="fab fa-youtube text-red-400 text-2xl"></i>
+                    </div>
+                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/50 transition">
+                      <div class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fas fa-play text-white text-sm ml-0.5"></i>
                       </div>
                     </div>
-                  </template>
+                  </div>
+                  <div class="flex-1 min-w-0 self-center">
+                    <p class="font-semibold text-sm text-gray-800 group-hover:text-red-600 transition leading-snug line-clamp-2" x-text="r.titulo"></p>
+                    <p class="text-xs text-gray-500 mt-0.5 line-clamp-1" x-text="r.desc"></p>
+                    <span class="inline-block mt-1 text-xs font-medium text-red-500" x-text="r.canal || 'YouTube'"></span>
+                  </div>
+                  <div class="shrink-0 self-center flex flex-col items-end gap-2 ml-1">
+                    <span class="text-xs bg-red-600 text-white px-3 py-1 rounded-full font-semibold flex items-center gap-1.5">
+                      <i class="fas fa-play text-[9px]"></i> Ver
+                    </span>
+                    <a :href="r.url" target="_blank" rel="noopener noreferrer"
+                       @click.stop
+                       class="text-[10px] text-gray-400 hover:text-red-500 transition flex items-center gap-1">
+                      <i class="fas fa-external-link-alt"></i> YouTube
+                    </a>
+                  </div>
+                </div>
+              </template>
 
-                  <template x-if="!r.thumbnail">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-base"
-                         :class="{
-                           'bg-indigo-100 text-indigo-600': r.fuente === 'scholar',
-                           'bg-green-100 text-green-700':   r.fuente === 'khanacademy',
-                           'bg-orange-100 text-orange-600': r.tipo === 'ejercicios',
-                           'bg-purple-100 text-purple-600': r.tipo === 'curso',
-                           'bg-blue-100 text-blue-600':     r.tipo === 'articulo',
-                           'bg-gray-100 text-gray-500':     r.tipo === 'herramienta' || r.tipo === 'busqueda'
-                         }">
-                      <i :class="{
-                        'fas fa-graduation-cap': r.fuente === 'scholar',
-                        'fas fa-book-open':      r.fuente === 'khanacademy',
-                        'fas fa-dumbbell':       r.tipo === 'ejercicios' && r.fuente !== 'khanacademy',
-                        'fas fa-laptop-code':    r.tipo === 'curso',
-                        'fas fa-file-alt':       r.tipo === 'articulo',
-                        'fas fa-search':         r.tipo === 'busqueda',
-                        'fas fa-tools':          r.tipo === 'herramienta'
-                      }"></i>
-                    </div>
-                  </template>
-
+              <!-- ── Card normal (link externo, no YouTube) ── -->
+              <template x-if="!r.legible && r.fuente !== 'youtube'">
+                <a :href="r.url" target="_blank" rel="noopener noreferrer"
+                   class="flex gap-3 bg-gray-50 rounded-xl p-3 hover:bg-white hover:shadow-md border border-transparent hover:border-green-200 transition group">
+                  <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-base"
+                       :class="{
+                         'bg-indigo-100 text-indigo-600': r.fuente === 'scholar',
+                         'bg-green-100 text-green-700':   r.fuente === 'khanacademy',
+                         'bg-orange-100 text-orange-600': r.tipo === 'ejercicios',
+                         'bg-purple-100 text-purple-600': r.tipo === 'curso',
+                         'bg-blue-100 text-blue-600':     r.tipo === 'articulo',
+                         'bg-gray-100 text-gray-500':     r.tipo === 'herramienta' || r.tipo === 'busqueda'
+                       }">
+                    <i :class="{
+                      'fas fa-graduation-cap': r.fuente === 'scholar',
+                      'fas fa-book-open':      r.fuente === 'khanacademy',
+                      'fas fa-dumbbell':       r.tipo === 'ejercicios' && r.fuente !== 'khanacademy',
+                      'fas fa-laptop-code':    r.tipo === 'curso',
+                      'fas fa-file-alt':       r.tipo === 'articulo',
+                      'fas fa-search':         r.tipo === 'busqueda',
+                      'fas fa-tools':          r.tipo === 'herramienta'
+                    }"></i>
+                  </div>
                   <div class="flex-1 min-w-0">
                     <p class="font-semibold text-sm text-gray-800 group-hover:text-green-700 transition leading-snug line-clamp-2" x-text="r.titulo"></p>
                     <p class="text-xs text-gray-500 mt-0.5 line-clamp-2" x-text="r.desc"></p>
                     <span class="inline-block mt-1 text-xs font-medium"
                           :class="{
-                            'text-indigo-600':  r.fuente === 'scholar',
-                            'text-green-700':   r.fuente === 'khanacademy',
-                            'text-red-500':     r.fuente === 'youtube',
-                            'text-blue-600':    !['scholar','khanacademy','youtube'].includes(r.fuente)
+                            'text-indigo-600': r.fuente === 'scholar',
+                            'text-green-700':  r.fuente === 'khanacademy',
+                            'text-blue-600':   !['scholar','khanacademy'].includes(r.fuente)
                           }"
-                          x-text="({scholar:'Google Scholar',khanacademy:'Khan Academy',youtube:r.canal||'YouTube',academico:'Recurso académico'})[r.fuente] || r.fuente"></span>
+                          x-text="({scholar:'Google Scholar',khanacademy:'Khan Academy',academico:'Recurso académico'})[r.fuente] || r.fuente"></span>
                   </div>
                   <i class="fas fa-external-link-alt text-xs text-gray-300 group-hover:text-green-500 transition shrink-0 self-center"></i>
                 </a>
@@ -540,11 +603,21 @@
             </div>
           </template>
 
-          <div x-show="!tareaRecursosLoading && tareaRecursos.filter(r => filtroTareaRec === 'todos' || r.fuente === filtroTareaRec).length === 0"
+          <div x-show="!tareaRecursosLoading && tareaRecursos.filter(r => filtroTareaRec === 'todos' || r.fuente === filtroTareaRec || (filtroTareaRec === 'scholar' && ['semanticscholar','scihub'].includes(r.fuente))).length === 0"
                class="text-center py-6 text-gray-400">
             <i class="fas fa-search text-2xl mb-2"></i>
             <p class="text-sm">No hay recursos para este filtro.</p>
           </div>
+        </div>
+
+        <!-- Cargar más recursos -->
+        <div x-show="!tareaRecursosLoading && tareaHayMas" class="mt-4 text-center">
+          <button @click="cargarMasRecursos()"
+                  :disabled="tareaRecursosMasLoading"
+                  class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition disabled:opacity-60">
+            <i :class="tareaRecursosMasLoading ? 'fas fa-spinner fa-spin' : 'fas fa-plus-circle'"></i>
+            <span x-text="tareaRecursosMasLoading ? 'Buscando más...' : 'Cargar más recursos'"></span>
+          </button>
         </div>
       </div>
 
@@ -568,10 +641,25 @@
       <!-- Cabecera -->
       <div class="flex items-start justify-between p-5 border-b">
         <div class="flex-1 pr-4">
-          <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full mb-2">
-            <i class="fab fa-wikipedia-w"></i> Wikipedia en español
-          </span>
+          <template x-if="articuloActivo?.fuente === 'semanticscholar'">
+            <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-full mb-2">
+              <i class="fas fa-graduation-cap"></i> Semantic Scholar
+            </span>
+          </template>
+          <template x-if="articuloActivo?.fuente !== 'semanticscholar'">
+            <span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full mb-2">
+              <i class="fab fa-wikipedia-w"></i> Wikipedia en español
+            </span>
+          </template>
           <h2 class="text-lg font-bold text-gray-800 leading-snug" x-text="articuloActivo?.titulo"></h2>
+          <div x-show="articuloActivo?.fuente === 'semanticscholar'" class="flex flex-wrap gap-3 mt-1.5">
+            <span x-show="articuloActivo?.autores" class="text-xs text-gray-500">
+              <i class="fas fa-user-circle mr-1"></i><span x-text="articuloActivo?.autores"></span>
+            </span>
+            <span x-show="articuloActivo?.anio" class="text-xs text-gray-500">
+              <i class="fas fa-calendar-alt mr-1"></i><span x-text="articuloActivo?.anio"></span>
+            </span>
+          </div>
         </div>
         <button @click="articuloActivo = null"
                 class="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-100 transition shrink-0">
@@ -584,7 +672,7 @@
         <!-- Spinner -->
         <div x-show="articuloLoading" class="text-center py-12 text-gray-400">
           <i class="fas fa-spinner fa-spin text-2xl mb-3"></i>
-          <p class="text-sm">Cargando artículo...</p>
+          <p class="text-sm" x-text="articuloActivo?.fuente === 'semanticscholar' ? 'Cargando abstract...' : 'Cargando artículo...'"></p>
         </div>
 
         <!-- Texto del artículo -->
@@ -607,14 +695,76 @@
                 class="bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-green-700 transition flex items-center gap-2">
           <i class="fas fa-download"></i> Descargar .txt
         </button>
-        <a :href="articuloActivo?.url" target="_blank" rel="noopener noreferrer"
-           class="border border-gray-300 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-100 transition flex items-center gap-2">
-          <i class="fab fa-wikipedia-w"></i> Ver en Wikipedia
-        </a>
+        <template x-if="articuloActivo?.pdf_url">
+          <a :href="articuloActivo?.pdf_url" target="_blank" rel="noopener noreferrer"
+             class="border border-indigo-300 text-indigo-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-50 transition flex items-center gap-2">
+            <i class="fas fa-file-pdf"></i> PDF completo
+          </a>
+        </template>
+        <template x-if="articuloActivo?.fuente === 'semanticscholar'">
+          <a :href="articuloActivo?.url" target="_blank" rel="noopener noreferrer"
+             class="border border-gray-300 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-100 transition flex items-center gap-2">
+            <i class="fas fa-external-link-alt"></i> Ver en Semantic Scholar
+          </a>
+        </template>
+        <template x-if="articuloActivo?.fuente !== 'semanticscholar'">
+          <a :href="articuloActivo?.url" target="_blank" rel="noopener noreferrer"
+             class="border border-gray-300 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-100 transition flex items-center gap-2">
+            <i class="fab fa-wikipedia-w"></i> Ver en Wikipedia
+          </a>
+        </template>
         <button @click="articuloActivo = null"
                 class="ml-auto text-gray-400 hover:text-gray-600 px-3 py-2 rounded-xl text-sm transition">
           Cerrar
         </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ MODAL REPRODUCTOR DE VIDEO ═══ -->
+  <!-- Sin @click.self para evitar que se cierre con clics accidentales dentro del área oscura -->
+  <div x-show="videoActivo"
+       x-transition:enter="transition ease-out duration-200"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-150"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       @keydown.escape.window="videoActivo = null"
+       class="fixed inset-0 bg-black/85 flex items-center justify-center z-[60] p-4">
+
+    <div class="bg-black rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden" @click.stop>
+
+      <!-- Barra superior -->
+      <div class="flex items-center justify-between px-4 py-3 bg-gray-900">
+        <div class="flex-1 min-w-0 pr-3">
+          <p class="text-white font-semibold text-sm truncate" x-text="videoActivo?.titulo"></p>
+          <p x-show="videoActivo?.canal" class="text-gray-400 text-xs truncate" x-text="videoActivo?.canal"></p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <a :href="videoActivo?.url" target="_blank" rel="noopener noreferrer"
+             class="text-gray-400 hover:text-red-400 text-xs px-2.5 py-1.5 rounded-lg hover:bg-gray-800 transition flex items-center gap-1.5">
+            <i class="fab fa-youtube"></i> Ver en YouTube
+          </a>
+          <button @click="videoActivo = null"
+                  class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-700 transition">
+            <i class="fas fa-times text-base"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Iframe 16:9 — solo se crea cuando videoActivo existe para evitar autoplay al iniciar -->
+      <div class="relative w-full bg-black" style="padding-bottom: 56.25%;">
+        <template x-if="videoActivo?.videoId">
+          <iframe
+            :src="`https://www.youtube.com/embed/${videoActivo.videoId}?autoplay=1&rel=0&modestbranding=1`"
+            class="absolute inset-0 w-full h-full"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
+        </template>
       </div>
 
     </div>
@@ -679,6 +829,12 @@ function cursoPag() {
     // lector de artículos
     articuloActivo: null,
     articuloLoading: false,
+    // reproductor de video
+    videoActivo: null,
+    // paginación de recursos
+    tareaRecursosPagina: 0,
+    tareaRecursosMasLoading: false,
+    tareaHayMas: true,
 
     get noMatFiltrados() {
       const q = this.busqNoMat.toLowerCase();
@@ -709,11 +865,18 @@ function cursoPag() {
         this.cargarAlerta(); // no bloquea
       }
 
+      // Restaurar tab desde URL hash
+      const hash = location.hash.replace('#', '');
+      if (hash && this.tabs.some(t => t.id === hash)) this.tab = hash;
+
       // Cargar datos del tab activo
       this.cargarTabActivo();
 
-      // Watch tab changes
-      this.$watch('tab', () => this.cargarTabActivo());
+      // Watch tab changes — also persist to hash
+      this.$watch('tab', (val) => {
+        history.replaceState(null, '', `#${val}`);
+        this.cargarTabActivo();
+      });
     },
 
     cargarTabActivo() {
@@ -973,6 +1136,8 @@ function cursoPag() {
       this.tareaActiva = t;
       this.tareaRecursos = [];
       this.filtroTareaRec = 'todos';
+      this.tareaRecursosPagina = 0;
+      this.tareaHayMas = true;
       this.tareaRecursosLoading = true;
       try {
         const params = new URLSearchParams();
@@ -988,6 +1153,29 @@ function cursoPag() {
       this.tareaRecursosLoading = false;
     },
 
+    async cargarMasRecursos() {
+      if (this.tareaRecursosMasLoading || !this.tareaActiva) return;
+      this.tareaRecursosMasLoading = true;
+      this.tareaRecursosPagina++;
+      try {
+        const params = new URLSearchParams();
+        params.set('tarea_id', this.tareaActiva.id);
+        params.set('titulo', this.tareaActiva.title || '');
+        if (this.tareaActiva.description) params.set('descripcion', this.tareaActiva.description);
+        params.set('page', this.tareaRecursosPagina);
+        const r = await fetch(`/api/recomendaciones?${params}`, { credentials: 'include' });
+        if (r.ok) {
+          const d = await r.json();
+          const nuevos = (d.items || []).filter(n => !this.tareaRecursos.some(e => e.url === n.url));
+          if (nuevos.length === 0) this.tareaHayMas = false;
+          else this.tareaRecursos = [...this.tareaRecursos, ...nuevos];
+        } else {
+          this.tareaHayMas = false;
+        }
+      } catch { this.tareaHayMas = false; }
+      this.tareaRecursosMasLoading = false;
+    },
+
     abrirEntregaDesdeDetalle() {
       const t = this.tareaActiva;
       this.tareaActiva = null;
@@ -996,6 +1184,12 @@ function cursoPag() {
 
     // ── Lector de artículos ──
     async abrirArticulo(r) {
+      // Papers from Semantic Scholar already have content — no API call needed
+      if (r.contenido) {
+        this.articuloActivo = { ...r };
+        this.articuloLoading = false;
+        return;
+      }
       this.articuloActivo = { ...r, contenido: null };
       this.articuloLoading = true;
       try {
@@ -1023,6 +1217,13 @@ function cursoPag() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
+    },
+
+    // ── Reproductor de video ──
+    reproducirVideo(r) {
+      const match = (r.url || '').match(/[?&]v=([^&]{6,})/);
+      if (!match) { window.open(r.url, '_blank'); return; }
+      this.videoActivo = { titulo: r.titulo, canal: r.canal, videoId: match[1], url: r.url };
     },
 
     // ── Helpers ──
